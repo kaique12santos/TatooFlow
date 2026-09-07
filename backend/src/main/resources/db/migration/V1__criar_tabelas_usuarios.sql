@@ -1,0 +1,16 @@
+CREATE TABLE usuarios (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    perfil VARCHAR(50) NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE convites (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(100) NOT NULL UNIQUE,
+    email_convidado VARCHAR(255) NOT NULL,
+    utilzado BOOLEAN DEFAULT FALSE,
+    data_expiracao DATETIME
+);

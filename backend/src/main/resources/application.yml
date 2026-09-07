@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: tattooflow-backend
+
+server:
+  port: 8080
