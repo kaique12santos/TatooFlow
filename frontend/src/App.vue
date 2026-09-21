@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import Dock, { type DockItemData } from '@/components/Dock.vue';
-import { Users } from '@lucide/vue';
+import { Calendar, Hammer, Package, Users, Wallet } from '@lucide/vue';
 import { computed, h, onMounted, ref, type Ref } from 'vue';
 import { RouterView } from 'vue-router';
 const isMobile = ref(false);
 const items = computed<DockItemData[]>(() => [
   {
-    icon: h(Users, { size: isMobile.value ? 20 : 24, color: "#fff" }),
+    icon: h(Calendar, { size: isMobile.value ? 20 : 24, color: "#fff" }),
     label: "Agenda",
     onClick: () => console.log("Clicou aqui")
   },
@@ -16,19 +16,24 @@ const items = computed<DockItemData[]>(() => [
     onClick: () => console.log("Clicou aqui")
   },
     {
-    icon: h(Users, { size: isMobile.value ? 20 : 24, color: "#fff" }),
-    label: "Artistas",
+    icon: h(Wallet, { size: isMobile.value ? 20 : 24, color: "#fff" }),
+    label: "Fechamento",
     onClick: () => console.log("Clicou aqui")
   },
     {
-    icon: h(Users, { size: isMobile.value ? 20 : 24, color: "#fff" }),
-    label: "Artistas",
+    icon: h(Hammer, { size: isMobile.value ? 20 : 24, color: "#fff" }),
+    label: "Gestão",
+    onClick: () => console.log("Clicou aqui")
+  },
+     {
+    icon: h(Package, { size: isMobile.value ? 20 : 24, color: "#fff" }),
+    label: "Estoque",
     onClick: () => console.log("Clicou aqui")
   }
 ])
 
 const checkScreenSize = () => {
-  isMobile.value = window.innerWidth < 640; // 640px é o padrão do 'sm:' no Tailwind
+  isMobile.value = window.innerWidth < 640;
 };
 
 onMounted(() => {
@@ -46,11 +51,10 @@ onMounted(() => {
   <router-view />
   <Dock
   :items="items"
-  :dock-height="70"
-  :magnification="50"
-    :distance="isMobile ? 0 : 200" 
+  :panel-height="isMobile ? 50 : 70"
   
-  class-name="!w-[calc(100%-2rem)] !left-4 !right-4 !translate-x-0 sm:!w-auto sm:!left-1/2 sm:!-translate-x-1/2"
+  :magnification="50"
+  
    />
 </template>
 
