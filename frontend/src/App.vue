@@ -1,36 +1,17 @@
 <script setup lang="ts">
-import Dock, { type DockItemData } from '@/components/Dock.vue';
 import { Calendar, Hammer, Package, Users, Wallet } from '@lucide/vue';
-import { computed, h, onMounted, ref, type Ref } from 'vue';
+import { IonApp, IonTabs, IonTabBar, IonTabButton, IonLabel, IonRouterOutlet } from '@ionic/vue';
+import { onMounted, ref } from 'vue';
 import { RouterView } from 'vue-router';
+import router from './router';
 const isMobile = ref(false);
-const items = computed<DockItemData[]>(() => [
-  {
-    icon: h(Calendar, { size: isMobile.value ? 20 : 24, color: "#fff" }),
-    label: "Agenda",
-    onClick: () => console.log("Clicou aqui")
-  },
-    {
-    icon: h(Users, { size: isMobile.value ? 20 : 24, color: "#fff" }),
-    label: "Artistas",
-    onClick: () => console.log("Clicou aqui")
-  },
-    {
-    icon: h(Wallet, { size: isMobile.value ? 20 : 24, color: "#fff" }),
-    label: "Fechamento",
-    onClick: () => console.log("Clicou aqui")
-  },
-    {
-    icon: h(Hammer, { size: isMobile.value ? 20 : 24, color: "#fff" }),
-    label: "Gestão",
-    onClick: () => console.log("Clicou aqui")
-  },
-     {
-    icon: h(Package, { size: isMobile.value ? 20 : 24, color: "#fff" }),
-    label: "Estoque",
-    onClick: () => console.log("Clicou aqui")
-  }
-])
+const navItems = [
+  { name: 'Agenda', icon: Calendar, route: { name: 'Agenda' } },
+  { name: 'Clientes', icon: Users, route: { name: 'Clientes' } },
+  { name: 'Fechamento', icon: Wallet, route: { name: 'Fechamento' } },
+  { name: 'Gestão', icon: Hammer, route: { name: 'Gestao' } },
+  { name: 'Estoque', icon: Package, route: { name: 'Estoque' } }
+];
 
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 640;
@@ -48,14 +29,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <router-view />
-  <Dock
-  :items="items"
-  :panel-height="isMobile ? 50 : 70"
-  
-  :magnification="50"
-  
-   />
+  <ion-app>
+    <ion-tabs>
+      <ion-router-outlet />
+
+      <ion-tab-bar slot="bottom" class="ion-no-border" style="--background: #0b0b0c;">
+        <ion-tab-button v-for="(it, idx) in navItems" :key="idx" @click="() => router.push(it.route)">
+          <component :is="it.icon" :size="20" :color="'#e6c383'" />
+          <ion-label>{{ it.name }}</ion-label>
+        </ion-tab-button>
+      </ion-tab-bar>
+    </ion-tabs>
+  </ion-app>
 </template>
 
 <style>
