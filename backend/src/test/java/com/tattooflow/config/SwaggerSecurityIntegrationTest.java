@@ -32,6 +32,13 @@ class SwaggerSecurityIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/agendamentos/tatuador/{tatuadorId}'].get.security[0].bearerAuth").isArray())
                 .andExpect(jsonPath("$.paths['/api/agendamentos'].post.security[0].bearerAuth").isArray())
                 .andExpect(jsonPath("$.paths['/api/auth/login'].post.security").doesNotExist())
+                .andExpect(jsonPath("$.paths['/auth/login'].post.security").doesNotExist())
+                .andExpect(jsonPath("$.paths['/auth/login'].post.requestBody.content['application/json']").exists())
+                .andExpect(jsonPath("$.paths['/auth/login'].post.responses['401']").exists())
+                .andExpect(jsonPath("$.paths['/auth/login'].post.responses['403']").exists())
+                .andExpect(jsonPath("$.components.schemas.LoginRequest.properties.pin.writeOnly").value(true))
+                .andExpect(jsonPath("$.components.schemas.LoginRequest.properties.aparelhoId").exists())
+                .andExpect(jsonPath("$.components.schemas.Usuario.properties.senha").doesNotExist())
                 .andExpect(jsonPath("$.security").doesNotExist());
     }
 }

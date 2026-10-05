@@ -21,7 +21,7 @@ public class SwaggerConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
-                                .description("Cole apenas o JWT retornado no campo data de POST /api/auth/login, sem o prefixo Bearer.")))
+                                .description("Cole apenas o JWT retornado no campo data de POST /auth/login (PIN + aparelhoId), sem o prefixo Bearer.")))
                 .info(new Info()
                         .title("TattooFlow API")
                         .version("1.0.0")

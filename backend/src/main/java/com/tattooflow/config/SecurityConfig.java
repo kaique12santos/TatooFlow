@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -31,7 +32,9 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
-                auth.requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/whatsapp/webhook").permitAll();
+                auth.requestMatchers(HttpMethod.POST, "/auth/login", "/api/auth/login").permitAll();
+                auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/whatsapp/webhook").permitAll();
+                auth.requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN");
                 if (h2ConsoleEnabled) {
                     auth.requestMatchers(PathRequest.toH2Console()).permitAll();
                 }

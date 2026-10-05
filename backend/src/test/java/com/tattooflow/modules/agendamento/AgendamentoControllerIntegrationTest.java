@@ -1,6 +1,8 @@
 package com.tattooflow.modules.agendamento;
 
 import com.tattooflow.common.security.JwtUtil;
+import com.tattooflow.modules.usuario.Usuario;
+import com.tattooflow.modules.usuario.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +38,22 @@ class AgendamentoControllerIntegrationTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     private String authorization;
 
     @BeforeEach
     void prepararBanco() {
         repository.deleteAll();
+        usuarioService.salvar(Usuario.builder()
+                .nome("Tatuador da agenda")
+                .email("agenda@tattooflow.com")
+                .senha("012345")
+                .aparelhoId("aparelho-agenda-test")
+                .perfil("TATUADOR")
+                .ativo(true)
+                .build());
         authorization = "Bearer " + jwtUtil.generateToken("agenda@tattooflow.com");
     }
 
