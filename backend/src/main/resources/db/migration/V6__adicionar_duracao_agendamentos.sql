@@ -1,0 +1,1 @@
+ALTER TABLE agendamentos ADD COLUMN duracao_minutos INT NOT NULL DEFAULT 60;
