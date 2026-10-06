@@ -1,6 +1,8 @@
 package com.tattooflow.modules.convite;
 
 import com.tattooflow.common.response.ApiResponse;
+import com.tattooflow.config.SwaggerConfig;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/convites")
+@SecurityRequirement(name = SwaggerConfig.BEARER_AUTH)
 public class ConviteController {
 
     private final ConviteService conviteService;
