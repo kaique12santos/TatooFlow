@@ -4,7 +4,6 @@ import { IonicVue } from '@ionic/vue';
 
 import App from './App.vue'
 import router from './router'
-
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
 import '@ionic/vue/css/normalize.css';
@@ -18,6 +17,9 @@ import '@ionic/vue/css/text-alignment.css';
 import '@ionic/vue/css/text-transformation.css';
 import '@ionic/vue/css/flex-utils.css';
 import '@ionic/vue/css/display.css';
+
+/* Global Design System & Theme */
+import './global.css';
 
 const app = createApp(App)
 
