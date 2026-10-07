@@ -20,6 +20,7 @@ public class ConviteService {
         return conviteRepository.findAll();
     }
 
+    @Transactional
     public Convite buscarPorCodigo(String codigo) {
     return conviteRepository
             .buscarConviteValido(codigo, LocalDateTime.now())

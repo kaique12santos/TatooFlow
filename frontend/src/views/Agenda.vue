@@ -121,6 +121,7 @@
 </template>
 
 <script setup lang="ts">
+<<<<<<< Updated upstream
 import { IonContent, IonPage, IonCard, IonCardContent, IonButton, IonHeader, IonSegment, IonSegmentButton, IonSearchbar,IonLabel } from '@ionic/vue';
 import { ref } from 'vue';
 
@@ -168,6 +169,96 @@ const cards = ref([
     total: 'R$ 1.800 — R$ 2.200',
     signal: 'Pendente Decisão',
     balance: '-'
+=======
+import { ref, computed, onMounted } from 'vue';
+import { IonPage, IonContent } from '@ionic/vue';
+import { Search, SlidersHorizontal, Calendar, Syringe, CheckCircle2, FileText, MessageSquare, Pause, Play, AlertCircle, Bell } from '@lucide/vue';
+
+// Components imports
+import AppHeader from '../components/AppHeader.vue';
+import ArtistStationCard from '../components/ArtistStationCard.vue';
+import StatusFilterTabs, { type FilterTab } from '../components/StatusFilterTabs.vue';
+import WeekCalendarStrip, { type CalendarDay } from '../components/WeekCalendarStrip.vue';
+import SessionCard, { type SessionCardItem } from '../components/SessionCard.vue';
+import router from '@/router/index.ts';
+import { useAgendaStore } from '@/stores/agenda';
+
+const agendaStore = useAgendaStore();
+
+// Reactive state
+const searchQuery = ref('');
+const activeFilter = ref('todos');
+const selectedDay = ref(24);
+
+// Filter tabs definition
+const filterTabs: FilterTab[] = [
+  { id: 'todos', label: 'TODOS', count: 5 },
+  { id: 'confirmados', label: 'CONFIRMADOS', count: 2, dotColor: 'bg-[#2a3b2e]' },
+  { id: 'andamento', label: 'EM ANDAMENTO', count: 1, dotColor: 'bg-[#3d301b]' },
+  { id: 'orcamentos', label: 'ORÇAMENTOS', count: 1, dotColor: 'bg-[#182232]' },
+  { id: 'concluidos', label: 'CONCLUÍDOS', count: 1, dotColor: 'bg-[#2a2a2c]' },
+];
+
+// Week days definition
+const weekDays: CalendarDay[] = [
+  { dayName: 'SEG', dayNum: 21, status: 'FOLGA', badgeColor: 'text-[#a39e93]' },
+  { dayName: 'TER', dayNum: 22, status: '2 SESS', badgeColor: 'text-[#e6c383]' },
+  { dayName: 'QUA', dayNum: 23, status: '3 SESS', badgeColor: 'text-[#e6c383]' },
+  { dayName: 'QUI', dayNum: 24, status: 'HOJE', badgeColor: 'text-[#09090b]' },
+  { dayName: 'SEX', dayNum: 25, status: '4 SESS', badgeColor: 'text-[#e6c383]' },
+  { dayName: 'SÁB', dayNum: 26, status: 'LOTADO', badgeColor: 'text-[#e5c281]' },
+  { dayName: 'DOM', dayNum: 27, status: 'FECH', badgeColor: 'text-[#a39e93]' },
+];
+
+// Sincroniza com a store que implementa a verificação condicional (backend vs mock fallback)
+onMounted(async () => {
+  await agendaStore.fetchAppointments();
+});
+
+const appointments = computed<SessionCardItem[]>(() => agendaStore.appointments);
+
+// Computed filtered list
+const filteredCards = computed(() => {
+  return appointments.value.filter(card => {
+    const matchesFilter = activeFilter.value === 'todos' || card.category === activeFilter.value;
+    const q = searchQuery.value.toLowerCase().trim();
+    const matchesSearch = !q ||
+      card.clientName.toLowerCase().includes(q) ||
+      card.tattooTitle.toLowerCase().includes(q) ||
+      card.statusText.toLowerCase().includes(q);
+    return matchesFilter && matchesSearch;
+  });
+});
+
+function handleNotifications() {
+  console.log('Notifications opened');
+}
+
+function handleProfile() {
+  router.push('/perfil');
+}
+
+function onCardAction(payload: { action: string; card: SessionCardItem }) {
+  console.log(`Action: ${payload.action} for ${payload.card.clientName}`);
+
+  if (payload.action === 'VER TERMO' || payload.action === 'ANAMNESE') {
+    router.push({ name: 'TermoAnamnese' });
+    return;
+  }
+
+  if (payload.action === 'INICIAR' || payload.action === 'PREPARAR BANCADA') {
+    // Redireciona para o Kit Cirúrgico & Insumos com contexto da sessão e cliente
+    const clientId = payload.card.id === 2 ? 'cli-lucas' : (payload.card.id === 1 ? 'cli-beatriz' : 'cli-helena');
+    router.push({
+      path: '/alocacao-materiais',
+      query: {
+        clientId,
+        sessionId: String(payload.card.id),
+        from: 'agenda',
+      },
+    });
+    return;
+>>>>>>> Stashed changes
   }
 ]);
 </script>

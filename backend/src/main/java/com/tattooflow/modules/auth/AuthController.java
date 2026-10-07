@@ -1,6 +1,9 @@
 package com.tattooflow.modules.auth;
 
 import com.tattooflow.common.response.ApiResponse;
+import com.tattooflow.modules.usuario.Usuario;
+import com.tattooflow.modules.usuario.UsuarioRepository;
+import java.security.Principal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -13,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final UsuarioRepository usuarioRepository;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UsuarioRepository usuarioRepository) {
         this.authService = authService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -32,5 +37,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> login(@Valid @RequestBody LoginRequest request) {
         String token = authService.autenticar(request.pin(), request.aparelhoId());
         return ResponseEntity.ok(ApiResponse.success("Autenticado com sucesso", token));
+    }
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<Usuario>> perfil(Principal principal) {
+        return usuarioRepository.findByEmail(principal.getName())
+                .map(usuario -> ResponseEntity.ok(ApiResponse.success(usuario)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

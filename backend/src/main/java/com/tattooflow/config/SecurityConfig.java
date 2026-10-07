@@ -43,6 +43,11 @@ public class SecurityConfig {
                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/whatsapp/webhook").permitAll();
                 auth.requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN");
                 auth.requestMatchers(HttpMethod.POST, "/api/convites").hasRole("ADMIN");
+<<<<<<< Updated upstream
+=======
+                auth.requestMatchers(HttpMethod.POST, "/api/convites/*/aceitar").permitAll();
+                auth.requestMatchers(HttpMethod.GET, "/api/convites").hasRole("ADMIN");
+>>>>>>> Stashed changes
                 if (h2ConsoleEnabled) {
                     auth.requestMatchers(PathRequest.toH2Console()).permitAll();
                 }

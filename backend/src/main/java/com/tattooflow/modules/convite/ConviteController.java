@@ -25,7 +25,7 @@ public class ConviteController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Convite>> criarConvite(@RequestBody Convite convite) {
-        return ResponseEntity.ok(ApiResponse.success("Convite criado com sucesso", conviteService.criarConvite(convite)));
+    public ResponseEntity<ApiResponse<Convite>> criarConvite(@Valid @RequestBody CriarConviteRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Convite criado com sucesso", conviteService.criarConvite(Convite.builder().emailConvidado(request.emailConvidado()).build())));
     }
 }
