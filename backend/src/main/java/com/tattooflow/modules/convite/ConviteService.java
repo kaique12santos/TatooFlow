@@ -1,7 +1,11 @@
 package com.tattooflow.modules.convite;
 
 import com.tattooflow.common.exception.ResourceNotFoundException;
+import com.tattooflow.modules.usuario.Usuario;
+import com.tattooflow.modules.usuario.UsuarioService;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,9 +15,11 @@ import java.util.UUID;
 public class ConviteService {
 
     private final ConviteRepository conviteRepository;
+    private final UsuarioService usuarioService;
 
-    public ConviteService(ConviteRepository conviteRepository) {
+    public ConviteService(ConviteRepository conviteRepository, UsuarioService usuarioService) {
         this.conviteRepository = conviteRepository;
+        this.usuarioService = usuarioService;
     }
 
     public List<Convite> listarTodos() {
@@ -37,5 +43,26 @@ public class ConviteService {
                 .build();
 
         return conviteRepository.save(novoConvite);
+    }
+
+    @Transactional
+    public Usuario aceitarConvite(String codigo, AceitarConviteRequest request) {
+        Convite convite = buscarPorCodigo(codigo);
+
+        Usuario usuario = Usuario.builder()
+                .nome(request.nome())
+                .email(convite.getEmailConvidado())
+                .senha(request.pin())
+                .aparelhoId(request.aparelhoId())
+                .perfil("TATUADOR")
+                .ativo(true)
+                .build();
+
+        Usuario salvo = usuarioService.salvar(usuario);
+
+        convite.setUtilizado(true);
+        conviteRepository.save(convite);
+
+        return salvo;
     }
 }
