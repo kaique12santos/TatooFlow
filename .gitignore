@@ -17,6 +17,7 @@ frontend/build/
 # Environment Files
 *.env
 *.env.local
+whatsapp-local.properties
 
 # Logs
 *.log
