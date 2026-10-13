@@ -14,6 +14,9 @@ A aplicação adota o padrão **MVC em Camadas organizado por Módulos de Domín
 Para configurar o sandbox da Meta e validar o webhook de teste (F2-INFRA-01), consulte
 [Configuração do WhatsApp Business API](../docs/whatsapp-sandbox.md).
 
+Para simular mensagens recebidas sem conta ou credenciais Meta (F2-INFRA-02), consulte
+[Mock local do WhatsApp](../docs/whatsapp-mock.md).
+
 ```bash
 # Executar a aplicação
 mvn spring-boot:run

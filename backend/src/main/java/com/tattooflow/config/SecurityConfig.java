@@ -41,6 +41,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers(HttpMethod.POST, "/auth/login", "/api/auth/login").permitAll();
                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/whatsapp/webhook").permitAll();
+                // O controller de mock so existe em dev/h2, com ativacao explicita e sem prod.
+                auth.requestMatchers(HttpMethod.POST, "/api/whatsapp/mock/messages").permitAll();
                 auth.requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN");
                 auth.requestMatchers(HttpMethod.POST, "/api/convites").hasRole("ADMIN");
                 auth.requestMatchers(HttpMethod.POST, "/api/convites/*/aceitar").permitAll();
