@@ -23,6 +23,9 @@ public class PreAgendamento {
 
     private String ideiasDescricao;
     private String localCorpo;
-    private String statusTriagem; // PENDENTE, APROVADO, REJEITADO
+    private String dataDesejada;
+    private String statusTriagem; // EM_TRIAGEM, PENDENTE, APROVADO, REJEITADO
+    private String etapaBot; // INICIO, AGUARDANDO_ARTE, AGUARDANDO_LOCAL, AGUARDANDO_DATA, FINALIZADO
     private LocalDateTime dataCriacao;
+    private LocalDateTime dataAtualizacao;
 }
