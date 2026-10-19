@@ -1,5 +1,6 @@
 package com.tattooflow.modules.usuario;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,7 +24,11 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String senha;
+
+    @Column(unique = true)
+    private String aparelhoId;
 
     @Column(nullable = false)
     private String perfil; // ADMIN ou TATUADOR

@@ -37,3 +37,20 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Target / Build Output
+backend/target/
+frontend/node_modules/
+frontend/.expo/
+frontend/dist/
+frontend/build/
+frontend/builds/
+
+
+# Environment Files
+*.env
+*.env.local
+
+# Database & OS
+*.db
+Thumbs.db
