@@ -1,0 +1,11 @@
+# Copie para whatsapp-local.properties (ignorado pelo Git) e preencha localmente.
+# Carregue com --spring.config.additional-location=optional:file:./whatsapp-local.properties
+# Nunca envie este arquivo preenchido ao repositorio ou ao chat.
+integrations.whatsapp.enabled=true
+integrations.whatsapp.verify-token=
+integrations.whatsapp.app-secret=
+integrations.whatsapp.access-token=
+integrations.whatsapp.phone-number-id=
+integrations.whatsapp.business-account-id=
+# Informe a versao suportada exibida no painel Meta, incluindo o prefixo v.
+integrations.whatsapp.graph-api-version=
