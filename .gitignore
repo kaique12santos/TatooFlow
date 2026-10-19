@@ -17,6 +17,10 @@ frontend/build/
 # Environment Files
 *.env
 *.env.local
+whatsapp-local.properties
+mcp_config.json
+.agents/
+trello_context.json
 
 # Logs
 *.log

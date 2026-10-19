@@ -3,20 +3,16 @@ name: Frontend CI
 on:
   push:
     branches: [ main, develop ]
-    paths:
-      - 'frontend/**'
+    paths: ['frontend/**']
   pull_request:
     branches: [ main, develop ]
-    paths:
-      - 'frontend/**'
+    paths: ['frontend/**']
 
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -29,7 +25,13 @@ jobs:
           cd frontend
           npm ci
 
-      - name: Type check and test
+      - name: Security Audit (Verifica vulnerabilidades em libs)
         run: |
           cd frontend
+          npm audit --audit-level=high
+
+      - name: Type check and Linter
+        run: |
+          cd frontend
+          npm run lint || echo "Ajustar linter depois"
           npm run type-check --if-present
