@@ -2,6 +2,7 @@ package com.tattooflow.modules.financeiro;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.tattooflow.common.exception.BusinessException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,5 +32,19 @@ class FinanceiroServiceTest {
         assertNotNull(pagamentos);
         assertEquals(1, pagamentos.size());
         verify(financeiroRepository, times(1)).findAll();
+    }
+
+    @Test
+    void deveBloquearSinalPeloRegistroGenerico() {
+        assertThrows(BusinessException.class, () -> financeiroService.registrarPagamento(
+                Pagamento.builder().tipo("SINAL").build()));
+        verifyNoInteractions(financeiroRepository);
+    }
+
+    @Test
+    void deveBloquearSobrescritaDePagamentoPeloRegistroGenerico() {
+        assertThrows(BusinessException.class, () -> financeiroService.registrarPagamento(
+                Pagamento.builder().id(1L).build()));
+        verifyNoInteractions(financeiroRepository);
     }
 }
