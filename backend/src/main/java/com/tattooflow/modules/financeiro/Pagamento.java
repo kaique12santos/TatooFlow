@@ -1,5 +1,6 @@
 package com.tattooflow.modules.financeiro;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -27,4 +28,16 @@ public class Pagamento {
     private String formaPagamento; // PIX, CARTAO, DINHEIRO
     private String status; // PENDENTE, CONCLUIDO
     private LocalDateTime dataPagamento;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private String tipo = "PAGAMENTO"; // PAGAMENTO, SINAL
+
+    private String comprovanteNome;
+    private String comprovanteContentType;
+
+    @JsonIgnore
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] comprovante;
 }

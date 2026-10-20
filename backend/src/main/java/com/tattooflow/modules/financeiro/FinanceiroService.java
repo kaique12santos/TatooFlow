@@ -1,5 +1,6 @@
 package com.tattooflow.modules.financeiro;
 
+import com.tattooflow.common.exception.BusinessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +19,16 @@ public class FinanceiroService {
     }
 
     public Pagamento registrarPagamento(Pagamento pagamento) {
+        if (pagamento.getId() != null) {
+            throw new BusinessException("O registro não permite sobrescrever um pagamento existente");
+        }
+        if (pagamento.getTipo() != null && !"PAGAMENTO".equals(pagamento.getTipo())) {
+            throw new BusinessException("Utilize o endpoint de sinal para registrar o sinal com comprovante");
+        }
+        pagamento.setTipo("PAGAMENTO");
+        pagamento.setComprovanteNome(null);
+        pagamento.setComprovanteContentType(null);
+        pagamento.setComprovante(null);
         return financeiroRepository.save(pagamento);
     }
 }
