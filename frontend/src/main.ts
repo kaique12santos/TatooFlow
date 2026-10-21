@@ -21,6 +21,20 @@ import '@ionic/vue/css/display.css';
 /* Global Design System & Theme */
 import './global.css';
 
+const nativeFetch = window.fetch.bind(window);
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string) || (import.meta.env.VITE_API_URL as string) || '';
+
+window.fetch = (input: RequestInfo | URL, init: RequestInit = {}) => {
+	const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+	const token = localStorage.getItem('tattooflow_auth_token');
+	if (apiBaseUrl && token && requestUrl.startsWith(apiBaseUrl) && !requestUrl.endsWith('/auth/login')) {
+		const headers = new Headers(init.headers);
+		if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
+		return nativeFetch(input, { ...init, headers });
+	}
+	return nativeFetch(input, init);
+};
+
 const app = createApp(App)
 
 app.use(createPinia())
