@@ -44,3 +44,7 @@ defineProps<{
 
 defineEmits(['select-filter', 'update:modelValue']);
 </script>
+
+<style scoped>
+button { min-height: 32px; padding: 6px 12px; }
+</style>

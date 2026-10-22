@@ -18,3 +18,14 @@ integrations:
     phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
     business-account-id: ${WHATSAPP_BUSINESS_ACCOUNT_ID:}
     graph-api-version: ${WHATSAPP_GRAPH_API_VERSION:}
+
+notificacoes:
+  cuidados:
+    enabled: ${NOTIFICACOES_CUIDADOS_ENABLED:true}
+    pre-horas: ${NOTIFICACOES_CUIDADOS_PRE_HORAS:24}
+    pos-horas: ${NOTIFICACOES_CUIDADOS_POS_HORAS:2}
+    intervalo-ms: ${NOTIFICACOES_CUIDADOS_INTERVALO_MS:60000}
+    zona: ${NOTIFICACOES_CUIDADOS_ZONA:America/Sao_Paulo}
+    whatsapp-template-pre: ${NOTIFICACOES_CUIDADOS_WHATSAPP_TEMPLATE_PRE:cuidados_pre_sessao}
+    whatsapp-template-pos: ${NOTIFICACOES_CUIDADOS_WHATSAPP_TEMPLATE_POS:cuidados_pos_sessao}
+    whatsapp-idioma: ${NOTIFICACOES_CUIDADOS_WHATSAPP_IDIOMA:pt_BR}

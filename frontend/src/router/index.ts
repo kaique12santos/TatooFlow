@@ -16,6 +16,18 @@ export const routes: Array<RouteRecordRaw> = [
       }
     },
   },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/Login.vue'),
+    meta: { title: 'Entrar no TattooFlow', public: true, hideTabBar: true },
+  },
+  {
+    path: '/perfil',
+    name: 'Perfil',
+    component: () => import('../views/Perfil.vue'),
+    meta: { title: 'Meu perfil', hideTabBar: true },
+  },
 
   // ==========================================
   // TATUADOR PRIMARY VIEWS (Tab Bar items)
@@ -191,11 +203,6 @@ export const routes: Array<RouteRecordRaw> = [
     path: '/pin',
     redirect: '/pin-lock',
   },
-  {
-    path: '/login',
-    redirect: '/pin-lock',
-  },
-
   // Sub-flows / Steps
   {
     path: '/legenda-curadoria',
@@ -318,8 +325,13 @@ const router = createRouter({
 });
 
 // Navigation Guard: Route protection & dynamic redirection
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
+  if (!authStore.isAuthenticated && authStore.token) {
+    await authStore.restoreSession();
+  }
+  if (!to.meta.public && !authStore.isAuthenticated) return next('/login');
+  if (to.path === '/login' && authStore.isAuthenticated) return next('/');
   const currentRole: UserRole = authStore.currentRole;
 
   // Handle root

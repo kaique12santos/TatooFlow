@@ -1,5 +1,5 @@
 <template>
-  <header class="flex items-center justify-between py-3 mb-4 border-b border-[rgba(201,168,106,0.12)]">
+  <header class="relative flex items-center justify-between py-3 mb-4 border-b border-[rgba(201,168,106,0.12)]">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 bg-[#000000] border border-[#b89355] rounded-[2px] p-1 flex items-center justify-center shadow-lg">
         <img :src="logoUrl" alt="New Concept Tattoo" class="w-full h-full object-contain" />
@@ -24,17 +24,51 @@
       </button>
 
       <button
-        @click="$emit('click-profile')"
+        @click="isProfileMenuOpen = !isProfileMenuOpen"
+        :aria-expanded="isProfileMenuOpen"
+        aria-label="Abrir menu do perfil"
         class="w-9 h-9 bg-[#1d1a15] border border-[#b89355] rounded-full flex items-center justify-center text-[#c9a86a] shadow-inner cursor-pointer hover:border-[#c9a86a] transition-colors"
       >
         <User class="w-4.5 h-4.5" />
+      </button>
+    </div>
+    <div v-if="isProfileMenuOpen" class="absolute right-0 top-14 z-50 w-64 bg-[#141416] border border-[rgba(201,168,106,0.35)] rounded-lg shadow-2xl p-3">
+      <div class="border-b border-[rgba(201,168,106,0.14)] pb-3 mb-2">
+        <p class="font-inter text-[13px] font-semibold text-[#f2ebd9] truncate">{{ authStore.user.name }}</p>
+        <p class="font-inter text-[11px] text-[#a39e93] truncate mt-1">{{ authStore.user.email }}</p>
+      </div>
+      <button @click="openProfile" class="w-full flex items-center gap-2 px-2 py-2.5 text-left font-inter text-[12px] text-[#f2ebd9] hover:bg-[#1d1a15] rounded-md">
+        <UserRound class="w-4 h-4 text-[#d6b77e]" />
+        Ver meu perfil
+      </button>
+      <button @click="signOut" class="w-full flex items-center gap-2 px-2 py-2.5 text-left font-inter text-[12px] text-[#ef8b83] hover:bg-[#24191a] rounded-md">
+        <LogOut class="w-4 h-4" />
+        Sair
       </button>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { Bell, User } from '@lucide/vue';
+import { ref } from 'vue';
+import { Bell, User, UserRound, LogOut } from '@lucide/vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+
+const router = useRouter();
+const authStore = useAuthStore();
+const isProfileMenuOpen = ref(false);
+
+function openProfile() {
+  isProfileMenuOpen.value = false;
+  router.push('/perfil');
+}
+
+function signOut() {
+  isProfileMenuOpen.value = false;
+  authStore.logout();
+  router.push('/login');
+}
 
 withDefaults(
   defineProps<{
