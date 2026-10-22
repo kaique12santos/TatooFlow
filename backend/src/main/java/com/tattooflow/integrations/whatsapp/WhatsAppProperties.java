@@ -16,12 +16,19 @@ import org.springframework.validation.annotation.Validated;
 public class WhatsAppProperties {
 
     private boolean enabled;
+    private Mock mock = new Mock();
     private String verifyToken;
     private String appSecret;
     private String accessToken;
     private String phoneNumberId;
     private String businessAccountId;
     private String graphApiVersion;
+
+    @Getter
+    @Setter
+    public static class Mock {
+        private boolean enabled;
+    }
 
     @AssertTrue(message = "WhatsApp habilitado exige verify-token, app-secret, access-token, "
             + "phone-number-id, business-account-id e graph-api-version no formato vNN.N")

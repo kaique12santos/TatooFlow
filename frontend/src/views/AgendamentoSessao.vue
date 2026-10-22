@@ -1,438 +1,220 @@
 <template>
   <ion-page>
-    <ion-content class="bg-[#09090b] text-[#f2ebd9] font-sans" fullscreen>
-      <div class="screen-container min-h-screen pb-12 pt-3">
-        <!-- Compact Session Header (Back button, More menu, Studio logo) -->
-        <header class="flex items-center justify-between py-2 mb-3">
-          <button
-            @click="handleBack"
-            class="w-9 h-9 bg-[#141416] hover:bg-[#1e1d21] border border-[rgba(255,255,255,0.08)] rounded-[2px] flex items-center justify-center text-[#a39e93] hover:text-[#f2ebd9] transition-colors cursor-pointer"
-            title="Voltar para Triagem"
-          >
-            <ArrowLeft class="w-4.5 h-4.5" />
-          </button>
+    <ion-content class="bg-[#09090b] text-[#f2ebd9]" fullscreen>
+      <main class="min-h-screen bg-[#09090b] max-w-[560px] mx-auto px-5 pt-5 pb-28">
+        <button @click="router.push('/agenda')" class="flex items-center gap-2 text-sm text-[#c9a86a] py-2 mb-6"><ArrowLeft class="w-4 h-4" /> Voltar à agenda</button>
+        <p class="text-[10px] tracking-[2px] text-[#c9a86a] uppercase">Sessões do estúdio</p>
+        <h1 class="font-playfair text-3xl mt-2">Novo agendamento</h1>
+        <p class="text-sm text-[#a39e93] mt-2 mb-6">Escolha o cliente e reserve o horário da sessão.</p>
 
-          <div class="flex items-center gap-2">
-            <button
-              @click="handleMenu"
-              class="w-8 h-8 rounded-full flex items-center justify-center text-[#a39e93] hover:text-[#f2ebd9] transition-colors cursor-pointer"
-              title="Mais opções"
-            >
-              <MoreVertical class="w-4 h-4" />
-            </button>
-            <div class="w-9 h-9 bg-[#000000] border border-[#b89355] rounded-full p-1 flex items-center justify-center shadow-lg">
-              <img :src="logoUrl" alt="New Concept Tattoo" class="w-full h-full object-contain rounded-full" />
-            </div>
-          </div>
-        </header>
-
-        <!-- Step Tracker / Progress Bar -->
-        <div class="mb-4 px-0.5">
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="flex items-center gap-1.5 text-[#c9a86a]">
-              <Compass class="w-3.5 h-3.5 text-[#c9a86a]" />
-              <span class="font-jetbrains text-[10px] font-bold tracking-[1.4px] uppercase">
-                ETAPA 1 DE 2 • ESPAÇO &amp; AGENDA
-              </span>
-            </div>
-            <span class="font-jetbrains text-[11px] font-bold text-[#a39e93] tracking-wider uppercase">
-              50% CONCLUÍDO
-            </span>
-          </div>
-
-          <!-- 2-Segment Progress Bar -->
-          <div class="grid grid-cols-2 gap-2">
-            <div class="h-1 bg-[#c9a86a] rounded-full shadow-[0_0_8px_rgba(201,168,106,0.4)]"></div>
-            <div class="h-1 bg-[#222226] rounded-full"></div>
-          </div>
+        <p v-if="carregando" role="status" class="text-sm text-[#a39e93] py-5">Carregando clientes e tatuadores...</p>
+        <div v-if="erroCarregamento" role="alert" class="rounded border border-red-300/30 p-4 mb-5 text-sm text-[#ef8b83]">
+          {{ erroCarregamento }}
+          <button @click="carregar" class="block underline mt-2">Tentar novamente</button>
         </div>
 
-        <!-- SECTION 1: SINAL CONFIRMADO & ORDEM DE EXECUÇÃO CARD -->
-        <div class="bg-[#141416] border border-[rgba(255,255,255,0.07)] rounded-[4px] p-3.5 mb-3.5 shadow-lg">
-          <!-- Top Badge Row -->
-          <div class="flex items-center justify-between mb-2.5">
-            <div
-              v-if="client.depositPaid"
-              class="bg-[#132c1c] border border-[#235838] px-2.5 py-1 rounded-[2px] flex items-center gap-1.5"
-            >
-              <CheckCircle2 class="w-3.5 h-3.5 text-[#86efac]" />
-              <span class="font-jetbrains text-[9px] font-bold text-[#86efac] tracking-[0.5px] uppercase">
-                SINAL CONFIRMADO • R$ {{ client.depositAmount.toFixed(2).replace('.', ',') }} (PIX AUTENTICADO)
-              </span>
-            </div>
-            <div
-              v-else
-              class="bg-[#2d2417] border border-[rgba(201,168,106,0.3)] px-2.5 py-1 rounded-[2px] flex items-center gap-1.5"
-            >
-              <Clock class="w-3.5 h-3.5 text-[#e6c383]" />
-              <span class="font-jetbrains text-[9px] font-bold text-[#e6c383] tracking-[0.5px] uppercase">
-                GARANTIA DE BANCADA • 50% SINAL PENDENTE (R$ {{ client.depositAmount.toFixed(2).replace('.', ',') }})
-              </span>
-            </div>
+        <form v-if="!carregando && !erroCarregamento" @submit.prevent="salvar" class="space-y-5">
+          <fieldset :disabled="salvando || cadastrandoCliente || cadastrandoTatuador" class="space-y-5 disabled:opacity-60">
+            <section class="bg-[#141416] border border-white/10 rounded-lg p-4 space-y-4">
+              <div class="flex items-center justify-between gap-2">
+                <label for="cliente-agenda" class="text-xs text-[#e6c383] uppercase tracking-wider">Cliente</label>
+                <button type="button" @click="novoCliente = !novoCliente" class="text-xs text-[#c9a86a] underline">{{ novoCliente ? 'Usar cliente cadastrado' : 'Cadastrar cliente' }}</button>
+              </div>
+              <div v-if="novoCliente" class="space-y-3 border-b border-white/10 pb-4">
+                <label class="block text-xs text-[#a39e93]">Nome do cliente<input v-model="nomeCliente" maxlength="255" class="campo mt-2" autocomplete="name" /></label>
+                <label class="block text-xs text-[#a39e93]">WhatsApp com código do país e DDD<input v-model="telefoneCliente" type="tel" class="campo mt-2" placeholder="5511999999999" autocomplete="tel" /></label>
+                <p v-if="erroCliente" role="alert" class="text-xs text-[#ef8b83]">{{ erroCliente }}</p>
+                <button type="button" @click="cadastrarCliente" class="border border-[#c9a86a]/50 text-[#e6c383] rounded px-3 py-2 text-sm">{{ cadastrandoCliente ? 'Salvando cliente...' : 'Salvar cliente' }}</button>
+              </div>
+              <select id="cliente-agenda" v-model="form.clienteId" required class="campo">
+                <option value="" disabled>Selecione um cliente</option>
+                <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">{{ cliente.nome }}{{ cliente.telefone ? ` · ${cliente.telefone}` : '' }}</option>
+              </select>
+              <p v-if="!clientes.length" class="text-xs text-[#a39e93]">Cadastre o primeiro cliente acima para continuar.</p>
+              <p v-else-if="clienteSelecionado && !clienteSelecionado.telefone" class="text-xs text-[#e6c383]">Este cliente não tem telefone cadastrado. Os cuidados automáticos precisam de um telefone.</p>
+              <div class="flex items-center justify-between gap-2">
+                <label for="tatuador-agenda" class="text-xs text-[#e6c383] uppercase tracking-wider">Tatuador</label>
+                <button v-if="auth.user.role === 'admin'" type="button" @click="novoTatuador = !novoTatuador" class="text-xs text-[#c9a86a] underline">{{ novoTatuador ? 'Usar tatuador cadastrado' : 'Cadastrar tatuador' }}</button>
+              </div>
+              <div v-if="novoTatuador" class="space-y-3 border-b border-white/10 pb-4">
+                <label class="block text-xs text-[#a39e93]">Nome do tatuador<input v-model="dadosTatuador.nome" maxlength="255" class="campo mt-2" /></label>
+                <label class="block text-xs text-[#a39e93]">E-mail<input v-model="dadosTatuador.email" type="email" maxlength="255" class="campo mt-2" autocomplete="off" /></label>
+                <label class="block text-xs text-[#a39e93]">PIN de acesso (4 a 6 dígitos)<input v-model="dadosTatuador.pin" type="password" inputmode="numeric" maxlength="6" class="campo mt-2" autocomplete="new-password" /></label>
+                <label class="block text-xs text-[#a39e93]">ID do aparelho autorizado<input v-model="dadosTatuador.aparelhoId" maxlength="255" class="campo mt-2" /></label>
+                <p v-if="erroTatuador" role="alert" class="text-xs text-[#ef8b83]">{{ erroTatuador }}</p>
+                <button type="button" @click="cadastrarTatuador" class="border border-[#c9a86a]/50 text-[#e6c383] rounded px-3 py-2 text-sm">{{ cadastrandoTatuador ? 'Salvando tatuador...' : 'Salvar tatuador' }}</button>
+              </div>
+              <select id="tatuador-agenda" v-model="form.tatuadorId" required class="campo">
+                <option value="" disabled>Selecione um tatuador</option>
+                <option v-for="tatuador in tatuadores" :key="tatuador.id" :value="tatuador.id">{{ tatuador.nome }}</option>
+              </select>
+              <p v-if="!tatuadores.length" role="status" class="text-xs text-[#e6c383]">Não há tatuadores ativos cadastrados. Peça à administração para cadastrar um usuário com perfil TATUADOR.</p>
+            </section>
 
-            <span class="font-jetbrains text-[11px] font-bold text-[#a39e93]">
-              {{ client.lotId }}
-            </span>
-          </div>
+            <section class="bg-[#141416] border border-white/10 rounded-lg p-4 space-y-4">
+              <h2 class="font-playfair text-xl">Data e horário</h2>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="text-xs text-[#a39e93]">Data<input v-model="form.data" required type="date" class="campo mt-2" /></label>
+                <label class="text-xs text-[#a39e93]">Horário<input v-model="form.hora" required type="time" class="campo mt-2" /></label>
+              </div>
+              <label class="block text-xs text-[#a39e93]">Duração em minutos<input v-model.number="form.duracaoMinutos" required type="number" min="1" max="1440" step="1" class="campo mt-2" /></label>
+              <p v-if="termino" class="text-xs text-[#c9a86a]">Término previsto: {{ termino }}</p>
+              <label for="status-agendamento" class="block text-xs text-[#a39e93]">Status</label>
+              <select id="status-agendamento" v-model="form.status" class="campo"><option value="AGENDADO">Agendado</option><option value="EM_ANDAMENTO">Em andamento</option><option value="CONCLUIDO">Concluído</option></select>
+            </section>
 
-          <!-- Order of Execution Header -->
-          <div class="font-jetbrains text-[9px] font-bold tracking-[1.4px] text-[#8e8a82] uppercase mb-0.5">
-            ORDEM DE EXECUÇÃO
-          </div>
-          <h2 class="font-playfair text-[20px] font-semibold text-[#f2ebd9] leading-tight mb-3">
-            {{ client.projectTitle }}
-          </h2>
-
-          <!-- 2x2 Grid Info -->
-          <div class="grid grid-cols-2 gap-x-3 gap-y-2.5 pt-2 border-t border-[rgba(255,255,255,0.05)]">
-            <!-- Col 1, Row 1: Cliente -->
-            <div>
-              <div class="font-jetbrains text-[8.5px] font-bold tracking-[1px] text-[#8e8a82] uppercase">
-                CLIENTE SOLICITANTE
-              </div>
-              <div class="font-inter text-[13px] font-semibold text-[#f2ebd9] mt-0.5 truncate">
-                {{ client.name }}
-              </div>
-            </div>
-            <!-- Col 2, Row 1: Artista -->
-            <div>
-              <div class="font-jetbrains text-[8.5px] font-bold tracking-[1px] text-[#8e8a82] uppercase">
-                ARTISTA RESPONSÁVEL
-              </div>
-              <div class="font-inter text-[13px] font-bold text-[#d6b77e] mt-0.5 truncate">
-                {{ client.assignedArtist }}
-              </div>
-            </div>
-            <!-- Col 1, Row 2: Técnica -->
-            <div>
-              <div class="font-jetbrains text-[8.5px] font-bold tracking-[1px] text-[#8e8a82] uppercase">
-                ABORDAGEM TÉCNICA
-              </div>
-              <div class="font-inter text-[12px] text-[#a39e93] mt-0.5 truncate">
-                {{ client.style }}
-              </div>
-            </div>
-            <!-- Col 2, Row 2: Tempo -->
-            <div>
-              <div class="font-jetbrains text-[8.5px] font-bold tracking-[1px] text-[#8e8a82] uppercase">
-                TEMPO ESTIMADO
-              </div>
-              <div class="flex items-center gap-1 font-jetbrains text-[12px] font-bold text-[#f2ebd9] mt-0.5">
-                <Clock class="w-3.5 h-3.5 text-[#c9a86a]" />
-                <span>{{ client.estimatedDuration }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 2: BANCADA DO ATELIER -->
-        <div class="bg-[#141416] border border-[rgba(255,255,255,0.07)] rounded-[4px] p-3.5 mb-3.5 shadow-lg">
-          <!-- Header: Bancada + Badge ESPAÇO BLOQUEADO -->
-          <div class="flex items-start justify-between mb-2">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-[2px] bg-[#1a1917] border border-[rgba(201,168,106,0.2)] flex items-center justify-center text-[#c9a86a] shrink-0">
-                <Armchair class="w-4.5 h-4.5 text-[#c9a86a]" />
-              </div>
-              <div>
-                <h3 class="font-playfair text-[16px] font-semibold text-[#f2ebd9] leading-tight">
-                  {{ client.station || 'Bancada 01' }}
-                </h3>
-                <div class="font-jetbrains text-[8.5px] font-bold tracking-[1.2px] text-[#8e8a82] uppercase mt-0.5">
-                  ALA PRINCIPAL DO ATELIER
-                </div>
-              </div>
-            </div>
-
-            <!-- Badge: ESPAÇO BLOQUEADO -->
-            <div class="bg-[#2d2417] border border-[rgba(201,168,106,0.3)] px-2.5 py-1 rounded-[2px] text-center">
-              <span class="font-jetbrains text-[8.5px] font-bold text-[#d6b77e] tracking-[1px] uppercase block leading-tight">
-                ESPAÇO
-              </span>
-              <span class="font-jetbrains text-[8.5px] font-bold text-[#d6b77e] tracking-[1px] uppercase block leading-tight">
-                BLOQUEADO
-              </span>
-            </div>
-          </div>
-
-          <!-- Checklist Rows -->
-          <div class="divide-y divide-[rgba(255,255,255,0.05)] mt-2">
-            <div class="py-2 flex items-center gap-2.5 font-inter text-[12px] text-[#f2ebd9]">
-              <CheckCircle2 class="w-4 h-4 text-[#c9a86a] shrink-0" />
-              <span>Autoclave Concluída</span>
-            </div>
-            <div class="py-2 flex items-center gap-2.5 font-inter text-[12px] text-[#f2ebd9]">
-              <CheckCircle2 class="w-4 h-4 text-[#c9a86a] shrink-0" />
-              <span>Iluminação Focal</span>
-            </div>
-            <div class="py-2 flex items-center gap-2.5 font-inter text-[12px] text-[#f2ebd9]">
-              <CheckCircle2 class="w-4 h-4 text-[#c9a86a] shrink-0" />
-              <span>Terminal Tablet &amp; Fonte Calibrada</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 3: DISPONIBILIDADE DE BANCADA & JANELA DE TURNO -->
-        <div class="mb-4">
-          <!-- Title Row -->
-          <div class="flex items-center justify-between mb-2 px-0.5">
-            <div>
-              <div class="font-jetbrains text-[9.5px] font-bold tracking-[1.4px] text-[#c9a86a] uppercase">
-                DISPONIBILIDADE DE BANCADA
-              </div>
-              <h2 class="font-playfair text-[20px] font-semibold text-[#f2ebd9] leading-tight mt-0.5">
-                Selecione a Janela de Turno
-              </h2>
-            </div>
-            <CalendarDays class="w-5 h-5 text-[#8e8a82]" />
-          </div>
-
-          <!-- 3 Day Selector Cards Grid -->
-          <div class="grid grid-cols-3 gap-2.5 my-3">
-            <!-- Day 1: 28 MAI -->
-            <button
-              @click="selectedDay = '28'"
-              :class="[
-                'rounded-[4px] p-2.5 text-center cursor-pointer transition-all',
-                selectedDay === '28'
-                  ? 'bg-[#141416] border border-[#c9a86a] shadow-[0_0_12px_rgba(201,168,106,0.15)]'
-                  : 'bg-[#141416] border border-[rgba(255,255,255,0.07)] hover:border-[rgba(201,168,106,0.3)]'
-              ]"
-            >
-              <div class="font-jetbrains text-[9px] font-bold tracking-[1px] text-[#8e8a82] uppercase">
-                TERÇA
-              </div>
-              <div class="font-jetbrains text-[15px] font-bold text-[#f2ebd9] my-0.5">
-                28 MAI
-              </div>
-              <div class="bg-[#241e17] text-[#d6b77e] border border-[rgba(201,168,106,0.25)] text-[8px] font-jetbrains font-bold px-1.5 py-0.5 rounded-[2px] mx-auto w-fit uppercase">
-                1 VAGA
-              </div>
-            </button>
-
-            <!-- Day 2: 29 MAI (SELECTED) -->
-            <button
-              @click="selectedDay = '29'"
-              :class="[
-                'rounded-[4px] p-2.5 text-center cursor-pointer transition-all',
-                selectedDay === '29'
-                  ? 'bg-[#141416] border border-[#c9a86a] shadow-[0_0_12px_rgba(201,168,106,0.15)]'
-                  : 'bg-[#141416] border border-[rgba(255,255,255,0.07)] hover:border-[rgba(201,168,106,0.3)]'
-              ]"
-            >
-              <div class="font-jetbrains text-[9px] font-bold tracking-[1px] text-[#e6c383] uppercase">
-                QUARTA
-              </div>
-              <div class="font-jetbrains text-[15px] font-bold text-[#f2ebd9] my-0.5">
-                29 MAI
-              </div>
-              <div class="bg-[#382e1d] text-[#e6c383] border border-[#c9a86a] text-[8px] font-jetbrains font-bold px-1.5 py-0.5 rounded-[2px] mx-auto w-fit uppercase">
-                SELECIONADO
-              </div>
-            </button>
-
-            <!-- Day 3: 30 MAI -->
-            <button
-              @click="selectedDay = '30'"
-              :class="[
-                'rounded-[4px] p-2.5 text-center cursor-pointer transition-all',
-                selectedDay === '30'
-                  ? 'bg-[#141416] border border-[#c9a86a] shadow-[0_0_12px_rgba(201,168,106,0.15)]'
-                  : 'bg-[#141416] border border-[rgba(255,255,255,0.07)] hover:border-[rgba(201,168,106,0.3)]'
-              ]"
-            >
-              <div class="font-jetbrains text-[9px] font-bold tracking-[1px] text-[#8e8a82] uppercase">
-                QUINTA
-              </div>
-              <div class="font-jetbrains text-[15px] font-bold text-[#f2ebd9] my-0.5">
-                30 MAI
-              </div>
-              <div class="bg-[#0e2417] text-[#4ade80] border border-[#225533] text-[8px] font-jetbrains font-bold px-1.5 py-0.5 rounded-[2px] mx-auto w-fit uppercase">
-                2 VAGAS
-              </div>
-            </button>
-          </div>
-
-          <!-- Shift Slots -->
-          <div class="space-y-2">
-            <!-- Slot 1: Turno Manhã -->
-            <div
-              @click="selectedShift = 'manha'"
-              :class="[
-                'rounded-[4px] p-3 flex items-center justify-between cursor-pointer transition-colors',
-                selectedShift === 'manha'
-                  ? 'bg-[#141416] border-l-2 border-l-[#c9a86a] border border-[rgba(201,168,106,0.35)] shadow-md'
-                  : 'bg-[#141416] border border-[rgba(255,255,255,0.07)] hover:border-[rgba(201,168,106,0.2)]'
-              ]"
-            >
-              <div class="flex items-center gap-2">
-                <span class="font-jetbrains text-[14px] font-bold text-[#f2ebd9]">09:30 — 14:00</span>
-                <span class="font-jetbrains text-[9.5px] font-bold text-[#8e8a82] uppercase">TURNO MANHÃ</span>
-              </div>
-              <div
-                v-if="selectedShift === 'manha'"
-                class="w-4 h-4 rounded-full border-2 border-[#e6c383] flex items-center justify-center p-0.5"
-              >
-                <div class="w-2 h-2 rounded-full bg-[#e6c383]"></div>
-              </div>
-              <button
-                v-else
-                class="bg-[#09090b] hover:bg-[#1f1d19] border border-[rgba(255,255,255,0.1)] text-[#f2ebd9] font-jetbrains text-[9.5px] font-bold px-3 py-1.5 rounded-[2px] uppercase cursor-pointer transition-colors"
-              >
-                ESCOLHER
-              </button>
-            </div>
-
-            <!-- Slot 2: Turno Tarde (SELECTED / RECOMENDADO IA) -->
-            <div
-              @click="selectedShift = 'tarde'"
-              class="bg-[#141416] border-l-2 border-l-[#c9a86a] border border-[rgba(201,168,106,0.35)] rounded-[4px] p-3.5 shadow-lg cursor-pointer transition-all"
-            >
-              <div class="flex items-center justify-between">
-                <span class="font-jetbrains text-[15px] font-bold text-[#f2ebd9]">14:30 — 19:00</span>
-                <!-- Radio Double Circle Selected -->
-                <div class="w-4 h-4 rounded-full border-2 border-[#e6c383] flex items-center justify-center p-0.5">
-                  <div class="w-2 h-2 rounded-full bg-[#e6c383]"></div>
-                </div>
-              </div>
-
-              <div class="bg-[#2d2417] border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-jetbrains text-[8.5px] font-bold px-2 py-0.5 rounded-[2px] tracking-wider uppercase inline-block my-1.5">
-                RECOMENDADO IA • JANELA IDEAL
-              </div>
-
-              <p class="font-inter text-[11.5px] text-[#a39e93] leading-snug mb-2.5">
-                Janela de rendimento de pigmento &amp; foco ergonômico contínuo
-              </p>
-
-              <div class="flex items-center gap-2 text-[#8e8a82] font-jetbrains text-[10px] pt-1.5 border-t border-[rgba(255,255,255,0.05)]">
-                <div class="flex items-center gap-1">
-                  <Hourglass class="w-3.5 h-3.5 text-[#c9a86a]" />
-                  <span>{{ client.estimatedDuration }} de Agulhamento</span>
-                </div>
-                <span>•</span>
-                <div class="flex items-center gap-1">
-                  <Sparkles class="w-3.5 h-3.5 text-[#c9a86a]" />
-                  <span>15 min Assepsia</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Slot 3: Turno Noite (OCUPADO) -->
-            <div class="bg-[#0d0d0e] border border-[rgba(255,255,255,0.04)] rounded-[4px] p-3 opacity-60">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="font-jetbrains text-[13px] text-[#8e8a82] line-through">19:30 — 23:30</span>
-                  <span class="font-jetbrains text-[9px] font-bold text-[#8e8a82] uppercase">OCUPADO</span>
-                </div>
-                <Lock class="w-3.5 h-3.5 text-[#8e8a82]" />
-              </div>
-              <div class="font-inter text-[11px] text-[#5a5852] mt-0.5">
-                Sessão externa agendada para Gabriel D.
-              </div>
-            </div>
-          </div>
-
-          <!-- Mandatory Notice -->
-          <div class="flex items-start gap-2 text-[#8e8a82] font-inter text-[10.5px] leading-relaxed my-4 px-0.5">
-            <Info class="w-4 h-4 text-[#8e8a82] shrink-0 mt-0.5" />
-            <span>Intervalo técnico mandatório de 30 minutos bloqueado antes e após para protocolo de assepsia e desinfecção química das superfícies.</span>
-          </div>
-
-          <!-- Primary CTA Button: Avançar para Reserva de Insumos -->
-          <button
-            @click="avancarParaInsumos"
-            class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11.5px] font-bold tracking-[1.4px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99] mb-4"
-          >
-            <span>AVANÇAR PARA RESERVA DE INSUMOS (2/2)</span>
-            <ArrowRight class="w-4 h-4 text-[#09090b] stroke-[2.2]" />
-          </button>
-        </div>
-      </div>
+            <section class="bg-[#141416] border border-white/10 rounded-lg p-4 space-y-4">
+              <label class="block text-xs text-[#a39e93]">Descrição da sessão<textarea v-model="form.descricaoSessao" maxlength="255" rows="3" class="campo mt-2" placeholder="Projeto, região do corpo ou observações" /></label>
+              <label class="block text-xs text-[#a39e93]">Valor estimado (R$) · opcional<input v-model="form.valorEstimado" type="number" min="0" step="0.01" class="campo mt-2" placeholder="0,00" /></label>
+            </section>
+            <p class="text-xs leading-relaxed text-[#a39e93]">Os cuidados pré-sessão são enviados antes do início. Os cuidados pós-sessão exigem status concluído e respeitam o prazo configurado após o término previsto.</p>
+            <p v-if="erro" role="alert" class="text-sm text-[#ef8b83] border border-red-300/30 rounded p-3">{{ erro }}</p>
+            <button type="submit" :disabled="!tatuadores.length || !clientes.length" class="w-full flex items-center justify-center gap-2 bg-[#c9a86a] text-[#09090b] rounded py-3.5 font-bold text-sm disabled:opacity-40"><CalendarCheck class="w-4 h-4" />{{ salvando ? 'Salvando...' : 'Salvar agendamento' }}</button>
+          </fieldset>
+        </form>
+      </main>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { IonPage, IonContent } from '@ionic/vue';
+import { computed, reactive, ref } from 'vue';
+import { IonPage, IonContent, onIonViewWillEnter } from '@ionic/vue';
+import { ArrowLeft, CalendarCheck } from '@lucide/vue';
 import { useRouter, useRoute } from 'vue-router';
-import {
-  ArrowLeft,
-  MoreVertical,
-  Compass,
-  CheckCircle2,
-  Clock,
-  Armchair,
-  CalendarDays,
-  Hourglass,
-  Sparkles,
-  Lock,
-  Info,
-  ArrowRight
-} from '@lucide/vue';
-import { useTriageStore } from '@/stores/triage';
+import { useAuthStore } from '@/stores/auth';
+import { criarClienteAgenda, criarTatuadorAgenda, listarClientesAgenda, listarUsuariosAgenda, salvarAgendamento,
+  type ClienteAgenda, type UsuarioAgenda, type StatusAgendamento } from '@/api/agendamentos';
 
 const router = useRouter();
 const route = useRoute();
-const triageStore = useTriageStore();
+const auth = useAuthStore();
+const clientes = ref<ClienteAgenda[]>([]);
+const tatuadores = ref<UsuarioAgenda[]>([]);
+const carregando = ref(false);
+const salvando = ref(false);
+const erroCarregamento = ref('');
+const erro = ref('');
+const novoCliente = ref(false);
+const cadastrandoCliente = ref(false);
+const nomeCliente = ref('');
+const telefoneCliente = ref('');
+const erroCliente = ref('');
+const novoTatuador = ref(false);
+const cadastrandoTatuador = ref(false);
+const erroTatuador = ref('');
+const dadosTatuador = reactive({ nome: '', email: '', pin: '', aparelhoId: '' });
+const form = reactive({ clienteId: '' as number | '', tatuadorId: '' as number | '', data: '', hora: '', duracaoMinutos: 60,
+  status: 'AGENDADO' as StatusAgendamento, descricaoSessao: '', valorEstimado: '' });
 
-// Dynamic client from Route Query or Store
-const clientId = computed(() => {
-  return (route.query.clientId as string) || triageStore.selectedClientId || 'cli-beatriz';
+const clienteSelecionado = computed(() => clientes.value.find((cliente) => cliente.id === form.clienteId));
+const termino = computed(() => {
+  if (!form.data || !form.hora || form.duracaoMinutos <= 0) return '';
+  const fim = new Date(`${form.data}T${form.hora}:00`);
+  fim.setMinutes(fim.getMinutes() + Number(form.duracaoMinutos));
+  return Number.isNaN(fim.getTime()) ? '' : fim.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 });
 
-const client = computed(() => {
-  return triageStore.getClientById(clientId.value);
+onIonViewWillEnter(() => {
+  const agora = new Date();
+  agora.setHours(agora.getHours() + 1, 0, 0, 0);
+  Object.assign(form, { clienteId: '', tatuadorId: '', data: agora.toLocaleDateString('sv-SE'),
+    hora: `${String(agora.getHours()).padStart(2, '0')}:00`, duracaoMinutos: 60, status: 'AGENDADO', descricaoSessao: '', valorEstimado: '' });
+  erro.value = '';
+  novoCliente.value = false;
+  novoTatuador.value = false;
+  Object.assign(dadosTatuador, { nome: '', email: '', pin: '', aparelhoId: '' });
+  void carregar();
 });
 
-// State
-const selectedDay = ref('29');
-const selectedShift = ref('tarde');
-const isSaving = ref(false);
-
-// Sincroniza agendamento do cliente via backend (com fallback mock)
-onMounted(async () => {
-  await triageStore.fetchClientSchedule(clientId.value);
-  if (client.value?.scheduledSlot) {
-    selectedDay.value = client.value.scheduledSlot.day || '29';
-    selectedShift.value = client.value.scheduledSlot.shift || 'tarde';
-  }
-});
-
-// Studio logo
-const logoUrl = 'https://s3-alpha-sig.figma.com/img/3c73/8bb6/09078c4aab5df9f0c9aa2e5b4489ac50?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=SCdgUzfuAfo61MxW3nRPxZOcJqBEhQi-8pORR9hhvKMCiPgugvyqSkk5p5z~NsYx4HWlSe8d0~9xPpbGi4f0np1DwPhWBszD0Gtf2B-5-ZuCuO~lDpnfdBGO~MsVmMg7G7G~0X2qrANB-bLoTOBm7T3s7JPpz5pmaCt1bhEI3Ja4DW8T1u0TVhCJ-n~ZU3t6Hi37tnzBY1fUiCqqStql4MyyqsQSyU4~bwbhMxIZimqefof0zrJi1lvERse9cv-po2bpTcfnoftzt0aTLVsIoMurlP4ZphisFdZ2MFrErItliBLSAQkiGd7jHKFImnqew8JRbdJ2AI5CYU3ebuHZZQ__';
-
-function handleBack() {
-  router.push('/triagem');
-}
-
-function handleMenu() {
-  alert(`Opções da Sessão ${client.value.lotId}: Reatribuir bancada, exportar ficha ou cancelar agendamento.`);
-}
-
-async function avancarParaInsumos() {
-  const dayLabel = selectedDay.value === '28' ? 'TERÇA • 28 MAI' : selectedDay.value === '29' ? 'QUARTA • 29 MAI' : 'QUINTA • 30 MAI';
-  const shiftLabel = selectedShift.value === 'manha' ? 'TURNO MANHÃ' : selectedShift.value === 'tarde' ? 'TURNO TARDE' : 'TURNO NOITE';
-  const time = selectedShift.value === 'manha' ? '09:30 — 14:00' : selectedShift.value === 'tarde' ? '14:30 — 19:00' : '19:30 — 23:30';
-
-  isSaving.value = true;
+async function carregar() {
+  carregando.value = true;
+  erroCarregamento.value = '';
   try {
-    // Executa persistência com validação condicional backend / mock
-    await triageStore.saveScheduleSlot(client.value.id, {
-      day: selectedDay.value,
-      dayLabel,
-      shift: selectedShift.value,
-      shiftLabel,
-      time,
-    });
+    const [pessoas, equipe] = await Promise.all([listarClientesAgenda(), listarUsuariosAgenda()]);
+    clientes.value = pessoas;
+    tatuadores.value = equipe.filter((usuario) => usuario.perfil === 'TATUADOR' && usuario.ativo);
+    const clientId = Number(route.query.clientId);
+    if (pessoas.some((cliente) => cliente.id === clientId)) form.clienteId = clientId;
+    const meuId = Number(auth.user.id);
+    if (tatuadores.value.some((usuario) => usuario.id === meuId)) form.tatuadorId = meuId;
+    else if (tatuadores.value.length === 1) form.tatuadorId = tatuadores.value[0]!.id;
   } catch (err) {
-    console.warn('[AgendamentoSessao] Erro ao sincronizar agendamento:', err);
+    erroCarregamento.value = err instanceof Error ? err.message : 'Não foi possível carregar as opções.';
   } finally {
-    isSaving.value = false;
+    carregando.value = false;
   }
+}
 
-  router.push({
-    path: '/alocacao-materiais',
-    query: { clientId: client.value.id },
-  });
+async function cadastrarCliente() {
+  if (cadastrandoCliente.value) return;
+  erroCliente.value = '';
+  const telefone = telefoneCliente.value.replace(/\D/g, '');
+  if (!nomeCliente.value.trim() || !/^[1-9]\d{9,14}$/.test(telefone)) {
+    erroCliente.value = 'Informe o nome e o WhatsApp com código do país e DDD (10 a 15 dígitos).';
+    return;
+  }
+  cadastrandoCliente.value = true;
+  try {
+    const cliente = await criarClienteAgenda(nomeCliente.value.trim(), telefone);
+    clientes.value.push(cliente);
+    form.clienteId = cliente.id;
+    novoCliente.value = false;
+    nomeCliente.value = '';
+    telefoneCliente.value = '';
+  } catch (err) {
+    erroCliente.value = err instanceof Error ? err.message : 'Não foi possível cadastrar o cliente.';
+  } finally {
+    cadastrandoCliente.value = false;
+  }
+}
+
+async function salvar() {
+  if (salvando.value || cadastrandoCliente.value || cadastrandoTatuador.value) return;
+  erro.value = '';
+  if (!form.clienteId || !form.tatuadorId || !form.data || !form.hora || !Number.isInteger(form.duracaoMinutos) || form.duracaoMinutos < 1 || form.duracaoMinutos > 1440) {
+    erro.value = 'Selecione cliente, tatuador, data e horário, com duração entre 1 e 1440 minutos.';
+    return;
+  }
+  salvando.value = true;
+  try {
+    const agendamento = await salvarAgendamento({ clienteId: form.clienteId, tatuadorId: form.tatuadorId,
+      dataHora: `${form.data}T${form.hora}:00`, duracaoMinutos: form.duracaoMinutos, status: form.status,
+      descricaoSessao: form.descricaoSessao.trim(), valorEstimado: form.valorEstimado === '' ? null : Number(form.valorEstimado) });
+    await router.push({ path: '/agenda', query: { criado: agendamento.id } });
+  } catch (err) {
+    erro.value = err instanceof Error ? err.message : 'Não foi possível salvar o agendamento.';
+  } finally {
+    salvando.value = false;
+  }
+}
+
+async function cadastrarTatuador() {
+  if (cadastrandoTatuador.value) return;
+  erroTatuador.value = '';
+  if (!dadosTatuador.nome.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dadosTatuador.email.trim())
+      || !/^\d{4,6}$/.test(dadosTatuador.pin) || !dadosTatuador.aparelhoId.trim()) {
+    erroTatuador.value = 'Informe nome, e-mail, PIN de 4 a 6 dígitos e o ID do aparelho autorizado.';
+    return;
+  }
+  cadastrandoTatuador.value = true;
+  try {
+    const tatuador = await criarTatuadorAgenda({ nome: dadosTatuador.nome.trim(), email: dadosTatuador.email.trim(),
+      pin: dadosTatuador.pin, aparelhoId: dadosTatuador.aparelhoId.trim() });
+    tatuadores.value.push(tatuador);
+    form.tatuadorId = tatuador.id;
+    novoTatuador.value = false;
+    Object.assign(dadosTatuador, { nome: '', email: '', pin: '', aparelhoId: '' });
+  } catch (err) {
+    erroTatuador.value = err instanceof Error ? err.message : 'Não foi possível cadastrar o tatuador.';
+  } finally {
+    cadastrandoTatuador.value = false;
+  }
 }
 </script>
+
+<style scoped>
+button { min-height: 40px; padding: 8px 12px; }
+.campo { display: block; width: 100%; min-width: 0; border: 1px solid rgba(201, 168, 106, 0.22); border-radius: 4px; background: #09090b; color: #f2ebd9; padding: 11px 12px; font-size: 14px; color-scheme: dark; }
+.campo:focus { outline: 2px solid #c9a86a; outline-offset: 2px; }
+</style>

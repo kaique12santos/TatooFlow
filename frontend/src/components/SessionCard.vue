@@ -17,8 +17,9 @@
 
     <!-- Client & Tattoo Info Grid -->
     <div class="flex items-start gap-3.5 mb-4">
-      <div class="w-16 h-16 rounded-[2px] overflow-hidden bg-[#09090b] border border-[rgba(255,255,255,0.08)] shrink-0 shadow-md">
-        <img :src="card.image" :alt="card.clientName" class="w-full h-full object-cover" />
+      <div class="w-16 h-16 rounded-[2px] overflow-hidden bg-[#09090b] border border-[rgba(255,255,255,0.08)] shrink-0 shadow-md flex items-center justify-center">
+        <img v-if="card.image" :src="card.image" :alt="card.clientName" class="w-full h-full object-cover" />
+        <span v-else aria-hidden="true" class="font-playfair text-2xl text-[#c9a86a]">{{ card.clientName.slice(0, 1).toUpperCase() }}</span>
       </div>
 
       <div class="flex-1 min-w-0">
@@ -70,13 +71,14 @@
     </div>
 
     <!-- Micro Action Buttons -->
-    <div class="flex items-center gap-2 pt-1">
+    <div v-if="card.actions.length" class="flex items-center gap-2 pt-1">
       <button
         v-for="btn in card.actions"
         :key="btn.label"
+        :disabled="busy"
         @click="$emit('action', { action: btn.label, card })"
         :class="[
-          'flex-1 py-2 px-3 rounded-[2px] font-inter text-[9px] font-bold tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer',
+          'flex-1 py-2 px-3 rounded-[2px] font-inter text-[9px] font-bold tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-wait',
           btn.primary
             ? 'bg-[#e6c383] text-[#09090b] hover:bg-[#d6b77e] shadow-md active:scale-[0.98]'
             : 'bg-[#1a1a1e] text-[#f2ebd9] hover:bg-[#25252a] border border-[rgba(255,255,255,0.04)] active:scale-[0.98]'
@@ -117,7 +119,12 @@ export interface SessionCardItem {
 
 defineProps<{
   card: SessionCardItem;
+  busy?: boolean;
 }>();
 
 defineEmits(['action']);
 </script>
+
+<style scoped>
+button { min-height: 40px; padding: 8px; }
+</style>
