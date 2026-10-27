@@ -2,6 +2,7 @@ package com.tattooflow.modules.agendamento;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -9,12 +10,15 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import jakarta.persistence.LockModeType;
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
 
     List<Agendamento> findByTatuadorId(Long tatuadorId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from Agendamento a where a.id = :id")
+    Optional<Agendamento> buscarPorIdParaAtualizacao(@Param("id") Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Agendamento a WHERE a.id = :id")

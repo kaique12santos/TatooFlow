@@ -67,7 +67,7 @@ O cliente deve existir na tabela `clientes`, com `telefone` contendo código do 
 
 ## Persistência e falhas
 
-A migration `V9__criar_notificacao_envios.sql` cria o histórico com unicidade por `(agendamento_id, tipo)` e um índice de seleção por status/data. Cada agendamento recebe no máximo um registro de pré e um de pós; remarcar um agendamento que já recebeu uma notificação não reinicia esse histórico.
+A migration `V10__criar_notificacao_envios.sql` cria o histórico com unicidade por `(agendamento_id, tipo)` e um índice de seleção por status/data. Cada agendamento recebe no máximo um registro de pré e um de pós; remarcar um agendamento que já recebeu uma notificação não reinicia esse histórico.
 
 Cada envio bloqueia o agendamento no banco, revalida status, prazo e histórico e usa uma transação independente. Isso evita envios concorrentes duplicados em condições normais, inclusive com múltiplas instâncias. Falhas do provedor ou ausência de cliente/telefone não geram registro de sucesso, não interrompem os demais agendamentos e são tentadas novamente no próximo ciclo. Os logs dos jobs identificam somente o agendamento, o tipo e a classe do erro.
 

@@ -33,6 +33,9 @@ mvn clean compile
 
 ## Login com PIN e ID do aparelho (F1-BACK-02)
 
+Para executar sem Docker/MySQL e cadastrar os dados manualmente, consulte também
+o roteiro de [execução local com H2](#execução-local-com-h2).
+
 `POST /auth/login` valida o PIN e o aparelho autorizado de um usuário ativo com perfil `ADMIN` ou `TATUADOR`. A rota `/api/auth/login` aceita o mesmo contrato. Ambas são públicas e recebem JSON:
 
 ```json
@@ -157,3 +160,80 @@ Exemplo dos dados de um agendamento no campo `data`:
 ```
 
 O perfil `h2` usa um banco em memoria: os dados inseridos ficam disponiveis enquanto a aplicacao estiver em execucao e sao perdidos ao reiniciar. Para consultar dados existentes, use a mesma instancia e o mesmo perfil usados na insercao.
+
+## Execução local com H2
+
+1. Na pasta `backend/`, inicie a aplicação com o perfil `h2`:
+
+   ```powershell
+   mvn spring-boot:run "-Dspring-boot.run.profiles=h2" "-Dspring-boot.run.arguments=--server.address=127.0.0.1"
+   ```
+
+   É necessário ter Java e Maven disponíveis no terminal. Se `mvn` não for reconhecido,
+   use o caminho completo do `mvn.cmd` da instalação local ou configure o Maven no `PATH`.
+
+2. Aguarde a aplicação iniciar. O H2 roda dentro do backend e as tabelas são criadas
+   pelas migrations do Flyway; não é necessário iniciar um servidor de banco separado.
+3. Abra `http://localhost:8080/h2-console` e use os dados de `src/main/resources/application-h2.yml`:
+
+   | Campo | Valor |
+   | --- | --- |
+   | Driver Class | `org.h2.Driver` |
+   | JDBC URL | `jdbc:h2:mem:tattooflow_db;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE` |
+   | User Name | `sa` |
+   | Password | Deixe em branco |
+
+4. Siga [Primeiro administrador e usuários antigos](#primeiro-administrador-e-usuários-antigos)
+   neste arquivo para gerar o hash bcrypt do PIN e executar o `INSERT INTO usuarios` no console H2.
+5. Faça login com o PIN e o `aparelhoId` cadastrados. Use o JWT retornado para acessar os endpoints
+   ou autorizar o Swagger em `http://localhost:8080/swagger-ui/index.html`.
+
+O banco é em memória: mantenha o backend aberto e repita a inserção dos dados após cada reinício.
+O comando com o mock de WhatsApp habilitado está em [docs/whatsapp-mock.md](../docs/whatsapp-mock.md).
+
+## F2-BACK-03 — Registrar sinal de 50% (RN01)
+
+O sinal é registrado com upload do comprovante em
+`POST /api/agendamentos/{id}/sinal`, autenticado com JWT e `multipart/form-data`:
+
+| Campo | Regra |
+| --- | --- |
+| `valor` | Obrigatório; exatamente 50% de `valorEstimado`, usando ponto decimal |
+| `comprovante` | Obrigatório; arquivo PDF, PNG ou JPEG de até 5 MB |
+| `formaPagamento` | `PIX` (padrão), `CARTAO` ou `DINHEIRO` |
+
+Exemplo no PowerShell, para um agendamento de R$ 350,00:
+
+```powershell
+curl.exe -X POST "http://localhost:8080/api/agendamentos/1/sinal" `
+  -H "Authorization: Bearer SEU_TOKEN" `
+  -F "valor=175.00" `
+  -F "formaPagamento=PIX" `
+  -F "comprovante=@comprovante.pdf;type=application/pdf"
+```
+
+O retorno HTTP `201` contém o pagamento de tipo `SINAL`, status `CONCLUIDO`, data e
+metadados do arquivo. O conteúdo do arquivo fica armazenado no banco e não aparece no JSON.
+Para baixar o comprovante, use `GET /api/agendamentos/{id}/sinal/comprovante`, também autenticado.
+
+Somente agendamentos `AGENDADO` com valor estimado positivo podem receber sinal.
+O cálculo usa duas casas decimais e arredondamento `HALF_UP`: para R$ 100,01, o sinal é R$ 50,01.
+A assinatura inicial do arquivo e seu tipo declarado são verificados. Esse registro não consulta
+o banco pagador para autenticar a transferência.
+
+O pagamento, o comprovante e a mudança para `CONFIRMADO` são gravados na mesma transação;
+uma falha reverte a operação inteira. O bloqueio do agendamento impede sinais duplicados
+em requisições simultâneas e é compartilhado com a edição do agendamento.
+
+A criação/edição não permite `CONFIRMADO`, `EM_ANDAMENTO` ou `CONCLUIDO` sem sinal registrado.
+Após o sinal, o valor estimado deve continuar compatível com os 50% pagos. A edição de duração,
+horário e as validações de conflito existentes continuam disponíveis. O endpoint genérico de
+pagamentos não aceita tipo `SINAL` nem sobrescrita por ID; pagamentos comuns não confirmam a sessão.
+
+Erros de regra ou campos inválidos retornam `400`; recursos ausentes, `404`; requisições que
+não são multipart, `415`; uploads acima dos limites do servidor, `413`. O limite total da requisição
+é 6 MB. A migration `V9__adicionar_sinal_comprovante_pagamentos.sql` acrescenta os campos ao
+banco existente e classifica os pagamentos anteriores como `PAGAMENTO`.
+
+Os testes da RN01 incluem upload/download autenticado, persistência e migrations no perfil H2,
+proteção contra confirmação direta, rollback e concorrência.
