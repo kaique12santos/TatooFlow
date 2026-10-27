@@ -152,6 +152,7 @@ public class BotTriagemService {
         }
 
         preAgendamento.setIdeiasDescricao(texto);
+        preAgendamento.setReferencia(texto);
         preAgendamento.setEtapaBot(ETAPA_AGUARDANDO_LOCAL);
 
         return "Excelente ideia! Já anotei aqui. ✍️\n\nAgora me diga: em qual **local do corpo** você pretende fazer a tattoo? (Ex: antebraço, costela, ombro, panturrilha)";

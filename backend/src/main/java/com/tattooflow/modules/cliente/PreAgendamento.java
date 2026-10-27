@@ -22,10 +22,19 @@ public class PreAgendamento {
     private Cliente cliente;
 
     private String ideiasDescricao;
+    private String referencia;
     private String localCorpo;
     private String dataDesejada;
     private String statusTriagem; // EM_TRIAGEM, PENDENTE, APROVADO, REJEITADO
     private String etapaBot; // INICIO, AGUARDANDO_ARTE, AGUARDANDO_LOCAL, AGUARDANDO_DATA, FINALIZADO
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
+
+    public String getStatus() {
+        return statusTriagem;
+    }
+
+    public void setStatus(String status) {
+        this.statusTriagem = status;
+    }
 }

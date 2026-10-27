@@ -100,15 +100,18 @@ class BotTriagemIntegrationTest {
                 .andExpect(jsonPath("$.data.etapaAtual").value("FINALIZADO"))
                 .andExpect(jsonPath("$.data.textoEnviado").value(org.hamcrest.Matchers.containsString("concluído com sucesso")));
 
-        // Valida persistência no banco
+        // Valida persistência no banco (F2-BANCO-01)
         Cliente cliente = clienteRepository.findByTelefone(telefone).orElseThrow();
         assertThat(cliente.getNome()).isEqualTo(nome);
 
         PreAgendamento pre = preAgendamentoRepository.findFirstByClienteOrderByDataCriacaoDesc(cliente).orElseThrow();
         assertThat(pre.getIdeiasDescricao()).isEqualTo("Quero uma tattoo de lobo tribal");
+        assertThat(pre.getReferencia()).isEqualTo("Quero uma tattoo de lobo tribal");
         assertThat(pre.getLocalCorpo()).isEqualTo("Panturrilha esquerda");
         assertThat(pre.getDataDesejada()).isEqualTo("20 de Novembro à tarde");
         assertThat(pre.getStatusTriagem()).isEqualTo("PENDENTE");
+        assertThat(pre.getStatus()).isEqualTo("PENDENTE");
+        assertThat(pre.getCliente().getId()).isEqualTo(cliente.getId());
         assertThat(pre.getEtapaBot()).isEqualTo("FINALIZADO");
     }
 
@@ -130,6 +133,7 @@ class BotTriagemIntegrationTest {
         PreAgendamento pre = preAgendamentoRepository.findFirstByClienteOrderByDataCriacaoDesc(cliente).orElseThrow();
 
         assertThat(pre.getIdeiasDescricao()).isEqualTo("Quero uma fênix realista no peito");
+        assertThat(pre.getReferencia()).isEqualTo("Quero uma fênix realista no peito");
         assertThat(pre.getEtapaBot()).isEqualTo("AGUARDANDO_LOCAL");
 
         // Confirma que a mensagem de resposta do bot foi enviada

@@ -237,3 +237,17 @@ banco existente e classifica os pagamentos anteriores como `PAGAMENTO`.
 
 Os testes da RN01 incluem upload/download autenticado, persistência e migrations no perfil H2,
 proteção contra confirmação direta, rollback e concorrência.
+
+
+## F2-BANCO-01 e F3-BANCO-01 — Triagem, Termos de Aceite e Retenção Legal (RN06)
+
+A migration `V11__adicionar_referencia_triagem_e_retencao_termos.sql` atualiza o esquema do banco de dados para contemplar todos os critérios de aceite das tarefas:
+
+1. **[F2-BANCO-01] Pré-agendamento / Triagem**:
+   - Tabela `pre_agendamentos` com suporte aos campos de referência (`referencia`), local do corpo (`local_corpo`), data desejada (`data_desejada`) e status (`status_triagem`).
+   - Relacionamento de chave estrangeira com a tabela `clientes`.
+
+2. **[F3-BANCO-01] Termos / Histórico de Aceite**:
+   - Tabela `termos_aceite` vinculada ao cliente (`cliente_id`) e ao agendamento (`agendamento_id`) por chaves estrangeiras com índices.
+   - Registro de data/hora (`data_assinatura`), IP (`ip_assinatura`) e URL do PDF gerado/assinado (`url_pdf_assinado`).
+   - Campo de expiração de retenção legal (`data_expiracao_retencao`): atende à **RN06**, garantindo prazo mínimo de retenção de 5 anos calculados a partir da data de assinatura.
