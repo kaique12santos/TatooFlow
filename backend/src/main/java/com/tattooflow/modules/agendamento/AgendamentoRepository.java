@@ -22,7 +22,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     @Query("""
         SELECT a.id FROM Agendamento a
-        WHERE a.status = 'AGENDADO' AND a.dataHora > :agora AND a.dataHora <= :limite
+        WHERE a.status IN ('AGENDADO', 'CONFIRMADO') AND a.dataHora > :agora AND a.dataHora <= :limite
           AND NOT EXISTS (SELECT n.id FROM NotificacaoEnvio n
                           WHERE n.agendamentoId = a.id
                             AND n.tipo = com.tattooflow.modules.notificacao.TipoNotificacao.PRE_SESSAO)

@@ -69,7 +69,9 @@ public class NotificacaoService {
                 ? properties.getTemplatePre() : properties.getTemplatePos();
         String templateWhatsApp = tipo == TipoNotificacao.PRE_SESSAO
                 ? properties.getWhatsappTemplatePre() : properties.getWhatsappTemplatePos();
-        List<String> parametros = List.of(cliente.getNome(), DATA.format(agendamento.getDataHora()),
+        List<String> parametros = List.of(
+                cliente.getNome() != null ? cliente.getNome() : "",
+                DATA.format(agendamento.getDataHora()),
                 HORA.format(agendamento.getDataHora()));
         String texto = template.replace("{nome}", parametros.get(0))
                 .replace("{data}", parametros.get(1)).replace("{hora}", parametros.get(2));
@@ -82,12 +84,13 @@ public class NotificacaoService {
 
     private boolean deveEnviar(Agendamento agendamento, TipoNotificacao tipo, LocalDateTime agora) {
         if (tipo == TipoNotificacao.PRE_SESSAO) {
-            return "AGENDADO".equals(agendamento.getStatus())
+            return ("AGENDADO".equals(agendamento.getStatus()) || "CONFIRMADO".equals(agendamento.getStatus()))
                     && agendamento.getDataHora().isAfter(agora)
                     && !agendamento.getDataHora().minusHours(properties.getPreHoras()).isAfter(agora);
         }
+        int duracao = agendamento.getDuracaoMinutos() != null ? agendamento.getDuracaoMinutos() : 60;
         return "CONCLUIDO".equals(agendamento.getStatus())
-                && !agendamento.getDataHora().plusMinutes(agendamento.getDuracaoMinutos())
+                && !agendamento.getDataHora().plusMinutes(duracao)
                         .plusHours(properties.getPosHoras()).isAfter(agora);
     }
 }
