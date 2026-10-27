@@ -32,5 +32,5 @@ public class Agendamento {
 
     private String descricaoSessao;
     private BigDecimal valorEstimado;
-    private String status; // AGENDADO, EM_ANDAMENTO, CONCLUIDO, CANCELADO
+    private String status; // AGENDADO, CONFIRMADO, EM_ANDAMENTO, CONCLUIDO, CANCELADO
 }
