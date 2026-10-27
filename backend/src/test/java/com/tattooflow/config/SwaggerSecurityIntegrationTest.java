@@ -22,7 +22,7 @@ class SwaggerSecurityIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    void deveDocumentarJwtNosAgendamentosComLoginEDocumentacaoPublicos() throws Exception {
+    void deveDocumentarJwtNosAgendamentosEClientesComLoginEDocumentacaoPublicos() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.type").value("http"))
@@ -31,6 +31,9 @@ class SwaggerSecurityIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/agendamentos'].get.security[0].bearerAuth").isArray())
                 .andExpect(jsonPath("$.paths['/api/agendamentos/tatuador/{tatuadorId}'].get.security[0].bearerAuth").isArray())
                 .andExpect(jsonPath("$.paths['/api/agendamentos'].post.security[0].bearerAuth").isArray())
+                .andExpect(jsonPath("$.paths['/api/clientes'].get.security[0].bearerAuth").isArray())
+                .andExpect(jsonPath("$.paths['/api/clientes/{id}'].get.security[0].bearerAuth").isArray())
+                .andExpect(jsonPath("$.paths['/api/clientes'].post.security[0].bearerAuth").isArray())
                 .andExpect(jsonPath("$.paths['/api/auth/login'].post.security").doesNotExist())
                 .andExpect(jsonPath("$.paths['/auth/login'].post.security").doesNotExist())
                 .andExpect(jsonPath("$.paths['/auth/login'].post.requestBody.content['application/json']").exists())

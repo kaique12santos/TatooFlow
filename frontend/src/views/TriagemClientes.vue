@@ -27,6 +27,11 @@
         </div>
 
         <!-- Search Bar Input -->
+        <div class="flex gap-3 mb-5">
+          <router-link to="/agenda" class="flex-1 text-center rounded border border-[#c9a86a]/40 py-3 text-xs font-bold text-[#e6c383]">Ver agenda</router-link>
+          <router-link to="/agendamento-sessao" class="flex-1 text-center rounded bg-[#c9a86a] py-3 text-xs font-bold text-[#09090b]">Novo agendamento</router-link>
+        </div>
+
         <div class="bg-[#141416] border border-[rgba(255,255,255,0.08)] rounded-[4px] px-3.5 py-2.5 flex items-center gap-2.5 mb-3 shadow-sm">
           <Search class="w-4 h-4 text-[#8e8a82] shrink-0" />
           <input

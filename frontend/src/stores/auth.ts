@@ -10,6 +10,13 @@ export interface UserProfile {
   station: string;
 }
 
+interface BackendUser {
+  id: number;
+  nome: string;
+  email: string;
+  perfil: string;
+}
+
 export interface UserActivationProfile {
   id: string;
   name: string;
@@ -51,6 +58,8 @@ export interface PinAuthResponse {
 }
 
 const STORAGE_KEY = 'tattooflow_user_role';
+const TOKEN_STORAGE_KEY = 'tattooflow_auth_token';
+const DEVICE_STORAGE_KEY = 'tattooflow_device_id';
 
 const defaultActivationProfile: UserActivationProfile = {
   id: 'usr-val-02',
@@ -69,6 +78,22 @@ const defaultActivationProfile: UserActivationProfile = {
 
 export const useAuthStore = defineStore('auth', () => {
   const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string) || (import.meta.env.VITE_API_URL as string) || '';
+  const getStoredValue = (key: string) => {
+    try {
+      return localStorage.getItem(key) || '';
+    } catch {
+      return '';
+    }
+  };
+  const getDeviceId = () => {
+    const configured = (import.meta.env.VITE_DEVICE_ID as string) || '';
+    if (configured) return configured;
+    const stored = getStoredValue(DEVICE_STORAGE_KEY);
+    if (stored) return stored;
+    const generated = `tattooflow-${crypto.randomUUID()}`;
+    try { localStorage.setItem(DEVICE_STORAGE_KEY, generated); } catch { /* ignore */ }
+    return generated;
+  };
 
   const getInitialRole = (): UserRole => {
     try {
@@ -83,27 +108,18 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const currentRole = ref<UserRole>(getInitialRole());
+  const token = ref(getStoredValue(TOKEN_STORAGE_KEY));
+  const deviceId = ref(getDeviceId());
+  const profile = ref<UserProfile | null>(null);
+  const isLoading = ref(false);
   const activationProfile = ref<UserActivationProfile>({ ...defaultActivationProfile });
   const isPinLoading = ref<boolean>(false);
 
-  const user = computed<UserProfile>(() => {
-    if (currentRole.value === 'admin') {
-      return {
-        id: 'usr-adm-01',
-        name: 'Carlos Notarial',
-        email: 'gestao@newconcept.tattoo',
-        role: 'admin',
-        station: 'GESTÃO & AUDITORIA',
-      };
-    }
-    return {
-      id: 'usr-tat-01',
-      name: 'Gabriel Dornelles',
-      email: 'gabriel@newconcept.tattoo',
-      role: 'tatuador',
-      station: 'BANCADA 01',
-    };
+  const user = computed<UserProfile>(() => profile.value || {
+    id: '', name: 'Usuário TattooFlow', email: '', role: currentRole.value,
+    station: currentRole.value === 'admin' ? 'GESTÃO & AUDITORIA' : 'BANCADA 01',
   });
+  const isAuthenticated = computed(() => Boolean(token.value && profile.value));
 
   const isAdmin = computed(() => currentRole.value === 'admin');
   const isTatuador = computed(() => currentRole.value === 'tatuador');
@@ -119,6 +135,53 @@ export const useAuthStore = defineStore('auth', () => {
 
   function toggleRole() {
     setRole(currentRole.value === 'admin' ? 'tatuador' : 'admin');
+  }
+
+  function mapBackendUser(backendUser: BackendUser): UserProfile {
+    const role: UserRole = backendUser.perfil === 'ADMIN' ? 'admin' : 'tatuador';
+    return { id: String(backendUser.id), name: backendUser.nome, email: backendUser.email, role, station: role === 'admin' ? 'GESTÃO & AUDITORIA' : 'BANCADA 01' };
+  }
+
+  async function login(pin: string, aparelhoId: string): Promise<{ success: boolean; message: string }> {
+    isLoading.value = true;
+    try {
+      if (!apiBaseUrl) return { success: false, message: 'Configure a URL da API em VITE_API_BASE_URL.' };
+      const response = await fetch(`${apiBaseUrl}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin, aparelhoId }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.data) return { success: false, message: result.message || 'Não foi possível entrar.' };
+      const nextToken = result.data as string;
+      const profileResponse = await fetch(`${apiBaseUrl}/api/auth/me`, { headers: { Authorization: `Bearer ${nextToken}` } });
+      const profileResult = await profileResponse.json().catch(() => ({}));
+      if (!profileResponse.ok || !profileResult.data) return { success: false, message: profileResult.message || 'Não foi possível carregar seu perfil.' };
+      token.value = nextToken;
+      deviceId.value = aparelhoId;
+      profile.value = mapBackendUser(profileResult.data as BackendUser);
+      setRole(profile.value.role);
+      try { localStorage.setItem(TOKEN_STORAGE_KEY, nextToken); localStorage.setItem(DEVICE_STORAGE_KEY, aparelhoId); } catch { /* ignore */ }
+      return { success: true, message: result.message || 'Login realizado com sucesso.' };
+    } catch {
+      return { success: false, message: 'Não foi possível conectar ao backend.' };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function restoreSession(): Promise<boolean> {
+    if (!token.value || !apiBaseUrl) return false;
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/auth/me`, { headers: { Authorization: `Bearer ${token.value}` } });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.data) { logout(); return false; }
+      profile.value = mapBackendUser(result.data as BackendUser);
+      setRole(profile.value.role);
+      return true;
+    } catch { return false; }
+  }
+
+  function logout() {
+    token.value = '';
+    profile.value = null;
+    try { localStorage.removeItem(TOKEN_STORAGE_KEY); localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   }
 
   // Action com IF: Buscar perfil de ativação e PIN temporário no backend
@@ -298,12 +361,19 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     currentRole,
     user,
+    token,
+    deviceId,
+    isAuthenticated,
+    isLoading,
     isAdmin,
     isTatuador,
     activationProfile,
     isPinLoading,
     setRole,
     toggleRole,
+    login,
+    restoreSession,
+    logout,
     fetchActivationProfile,
     definePermanentPin,
     resendTemporaryPin,

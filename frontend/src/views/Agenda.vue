@@ -1,170 +1,123 @@
 <template>
   <ion-page>
-    <ion-content class="bg-[#09090b] text-[#f2ebd9] select-none font-sans" fullscreen>
-      <div class="min-h-screen bg-[#09090b] pb-24 max-w-[480px] mx-auto px-4 pt-3 sm:px-6">
-        <!-- Reusable Header Component -->
-        <AppHeader
-          @click-notifications="handleNotifications"
-          @click-profile="handleProfile"
-        />
+    <ion-content class="bg-[#09090b] text-[#f2ebd9]" fullscreen>
+      <main class="min-h-screen bg-[#09090b] pb-28 max-w-[560px] mx-auto px-5 pt-4">
+        <AppHeader @click-profile="router.push('/perfil')" />
+        <div class="flex items-end justify-between gap-3 mt-6 mb-5">
+          <div>
+            <p class="font-inter text-[10px] tracking-[2px] text-[#c9a86a] uppercase">Sessões do estúdio</p>
+            <h1 class="font-playfair text-3xl mt-1">Agenda</h1>
+          </div>
+          <button @click="router.push('/agendamento-sessao')" class="bg-[#c9a86a] text-[#09090b] rounded px-4 py-3 flex items-center gap-2 text-xs font-bold">
+            <Plus class="w-4 h-4" /> Novo agendamento
+          </button>
+        </div>
 
-        <!-- Reusable Artist & Station Card Component -->
-        <ArtistStationCard />
+        <div class="grid grid-cols-3 gap-2 mb-5">
+          <div v-for="stat in resumo" :key="stat.label" class="bg-[#141416] border border-white/5 rounded p-3">
+            <p class="text-[9px] tracking-wider text-[#a39e93] uppercase">{{ stat.label }}</p>
+            <p class="font-playfair text-2xl text-[#e6c383] mt-1">{{ stat.value }}</p>
+          </div>
+        </div>
 
-        <!-- Search Field -->
-        <div class="mb-4">
-          <div class="relative bg-[#141416] rounded-[2px] border border-[rgba(255,255,255,0.06)] flex items-center px-3 py-2.5 shadow-inner focus-within:border-[rgba(201,168,106,0.5)] transition-all">
-            <Search class="w-4 h-4 text-[#a39e93] mr-2.5 shrink-0" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Buscar cliente, CPF, termo ou projeto..."
-              class="w-full bg-transparent text-[13px] font-montserrat text-[#f2ebd9] placeholder-[#a39e93] focus:outline-none"
-            />
-            <button class="ml-2 text-[#a39e93] hover:text-[#e6c383] transition-colors p-1 cursor-pointer">
-              <SlidersHorizontal class="w-4 h-4" />
+        <p v-if="aviso" role="status" class="mb-4 rounded border border-green-200/20 bg-green-950/30 p-3 text-sm text-[#c8e6c9]">{{ aviso }}</p>
+        <div v-if="agendaStore.error" role="alert" class="mb-4 rounded border border-red-300/30 p-3 text-sm text-[#ef8b83]">
+          {{ agendaStore.error }}
+          <button @click="agendaStore.fetchAppointments()" class="block mt-2 underline">Tentar novamente</button>
+        </div>
+
+        <div class="bg-[#141416] border border-white/10 rounded p-3 mb-4 space-y-3">
+          <label class="flex items-center gap-2">
+            <Search class="w-4 h-4 text-[#a39e93]" />
+            <input v-model="busca" aria-label="Buscar sessão" placeholder="Buscar cliente, tatuador ou sessão" class="w-full bg-transparent text-sm outline-none" />
+          </label>
+          <div class="flex items-center gap-3 border-t border-white/5 pt-3">
+            <label for="data-agenda" class="text-xs text-[#a39e93]">Data</label>
+            <input id="data-agenda" v-model="dataSelecionada" type="date" class="bg-[#09090b] text-sm rounded px-2 py-1 [color-scheme:dark]" />
+            <button v-if="dataSelecionada" @click="dataSelecionada = ''" class="text-xs text-[#e6c383]">Todas as datas</button>
+            <button @click="agendaStore.fetchAppointments()" :disabled="agendaStore.isLoading" aria-label="Atualizar agenda" class="ml-auto p-2 text-[#e6c383] disabled:opacity-40">
+              <RefreshCw :class="['w-4 h-4', { 'animate-spin': agendaStore.isLoading }]" />
             </button>
           </div>
         </div>
 
-        <!-- Reusable Status Filter Tabs Component -->
-        <StatusFilterTabs
-          v-model="activeFilter"
-          :tabs="filterTabs"
-          @select-filter="activeFilter = $event"
-        />
-
-        <!-- Reusable Weekly Calendar Strip Component -->
-        <WeekCalendarStrip
-          :selected-day="selectedDay"
-          :days="weekDays"
-          @select-day="selectedDay = $event"
-        />
-
-        <!-- Section Header -->
-        <div class="flex items-center justify-between mb-3 px-0.5">
-          <div class="flex items-center gap-2">
-            <h2 class="font-playfair text-[20px] font-semibold text-[#f2ebd9] leading-tight">
-              Ordem das Sessões
-            </h2>
-            <span class="bg-[#141416] border border-[rgba(230,195,131,0.15)] text-[#e6c383] font-inter text-[9px] font-bold px-2 py-0.5 rounded-[2px] tracking-wider uppercase">
-              {{ filteredCards.length }} REGISTRADAS
-            </span>
-          </div>
-          <span class="font-jetbrains text-[11px] text-[#a39e93]">
-            Bancada #01 Livre às 18:00
-          </span>
-        </div>
-
-        <!-- Appointments Deck with Reusable SessionCard Component -->
-        <div class="space-y-4">
-          <SessionCard
-            v-for="card in filteredCards"
-            :key="card.id"
-            :card="card"
-            @action="onCardAction"
-          />
-
-          <div v-if="filteredCards.length === 0" class="text-center py-12 bg-[#141416] rounded-[2px] border border-[rgba(255,255,255,0.04)]">
-            <Calendar class="w-8 h-8 text-[#a39e93] mx-auto mb-2 opacity-40" />
-            <p class="font-playfair text-[16px] text-[#f2ebd9]">Nenhuma sessão encontrada</p>
-            <p class="font-montserrat text-[12px] text-[#a39e93] mt-1">Tente ajustar a busca ou os filtros acima.</p>
+        <StatusFilterTabs v-model="filtro" :tabs="filtros" @select-filter="filtro = $event" />
+        <p v-if="agendaStore.isLoading" role="status" class="py-5 text-center text-sm text-[#a39e93]">Carregando sessões...</p>
+        <div v-else class="space-y-4">
+          <SessionCard v-for="card in cards" :key="card.id" :card="card" :busy="agendaStore.updatingId !== null" @action="alterarStatus" />
+          <div v-if="cards.length === 0 && !agendaStore.error" class="text-center py-10 bg-[#141416] rounded border border-white/5">
+            <Calendar class="w-8 h-8 text-[#c9a86a] mx-auto mb-3" />
+            <h2 class="font-playfair text-xl">Nenhuma sessão encontrada</h2>
+            <p class="text-sm text-[#a39e93] mt-2 px-5">Cadastre uma sessão ou ajuste os filtros.</p>
+            <button @click="router.push('/agendamento-sessao')" class="text-sm text-[#e6c383] underline mt-4">Criar agendamento</button>
           </div>
         </div>
-      </div>
+        <p class="mt-6 text-xs leading-relaxed text-[#a39e93]">Conclua a sessão para habilitar os cuidados pós-sessão. O envio respeita o prazo configurado após o término previsto.</p>
+      </main>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { IonPage, IonContent } from '@ionic/vue';
-import { Search, SlidersHorizontal, Calendar, Syringe, CheckCircle2, FileText, MessageSquare, Pause, Play, AlertCircle, Bell } from '@lucide/vue';
-
-// Components imports
-import AppHeader from '../components/AppHeader.vue';
-import ArtistStationCard from '../components/ArtistStationCard.vue';
-import StatusFilterTabs, { type FilterTab } from '../components/StatusFilterTabs.vue';
-import WeekCalendarStrip, { type CalendarDay } from '../components/WeekCalendarStrip.vue';
-import SessionCard, { type SessionCardItem } from '../components/SessionCard.vue';
-import router from '@/router/index.ts';
+import { computed, ref } from 'vue';
+import { IonPage, IonContent, onIonViewWillEnter } from '@ionic/vue';
+import { Calendar, Plus, RefreshCw, Search } from '@lucide/vue';
+import { useRoute, useRouter } from 'vue-router';
+import AppHeader from '@/components/AppHeader.vue';
+import SessionCard, { type SessionCardItem } from '@/components/SessionCard.vue';
+import StatusFilterTabs from '@/components/StatusFilterTabs.vue';
 import { useAgendaStore } from '@/stores/agenda';
+import type { StatusAgendamento } from '@/api/agendamentos';
 
+const router = useRouter();
+const route = useRoute();
 const agendaStore = useAgendaStore();
+const busca = ref('');
+const filtro = ref('todos');
+const dataSelecionada = ref('');
+const aviso = ref('');
 
-// Reactive state
-const searchQuery = ref('');
-const activeFilter = ref('todos');
-const selectedDay = ref(24);
-
-// Filter tabs definition
-const filterTabs: FilterTab[] = [
-  { id: 'todos', label: 'TODOS', count: 5 },
-  { id: 'confirmados', label: 'CONFIRMADOS', count: 2, dotColor: 'bg-[#2a3b2e]' },
-  { id: 'andamento', label: 'EM ANDAMENTO', count: 1, dotColor: 'bg-[#3d301b]' },
-  { id: 'orcamentos', label: 'ORÇAMENTOS', count: 1, dotColor: 'bg-[#182232]' },
-  { id: 'concluidos', label: 'CONCLUÍDOS', count: 1, dotColor: 'bg-[#2a2a2c]' },
-];
-
-// Week days definition
-const weekDays: CalendarDay[] = [
-  { dayName: 'SEG', dayNum: 21, status: 'FOLGA', badgeColor: 'text-[#a39e93]' },
-  { dayName: 'TER', dayNum: 22, status: '2 SESS', badgeColor: 'text-[#e6c383]' },
-  { dayName: 'QUA', dayNum: 23, status: '3 SESS', badgeColor: 'text-[#e6c383]' },
-  { dayName: 'QUI', dayNum: 24, status: 'HOJE', badgeColor: 'text-[#09090b]' },
-  { dayName: 'SEX', dayNum: 25, status: '4 SESS', badgeColor: 'text-[#e6c383]' },
-  { dayName: 'SÁB', dayNum: 26, status: 'LOTADO', badgeColor: 'text-[#e5c281]' },
-  { dayName: 'DOM', dayNum: 27, status: 'FECH', badgeColor: 'text-[#a39e93]' },
-];
-
-// Sincroniza com a store que implementa a verificação condicional (backend vs mock fallback)
-onMounted(async () => {
+onIonViewWillEnter(async () => {
+  aviso.value = route.query.criado ? `Agendamento #${route.query.criado} salvo com sucesso.` : '';
+  if (route.query.criado) {
+    busca.value = '';
+    filtro.value = 'todos';
+    dataSelecionada.value = '';
+    await router.replace({ path: '/agenda', query: {} });
+  }
   await agendaStore.fetchAppointments();
 });
 
-const appointments = computed<SessionCardItem[]>(() => agendaStore.appointments);
-
-// Computed filtered list
-const filteredCards = computed(() => {
-  return appointments.value.filter(card => {
-    const matchesFilter = activeFilter.value === 'todos' || card.category === activeFilter.value;
-    const q = searchQuery.value.toLowerCase().trim();
-    const matchesSearch = !q ||
-      card.clientName.toLowerCase().includes(q) ||
-      card.tattooTitle.toLowerCase().includes(q) ||
-      card.statusText.toLowerCase().includes(q);
-    return matchesFilter && matchesSearch;
-  });
+const daData = computed(() => agendaStore.appointments.filter((card) =>
+  !dataSelecionada.value || agendaStore.registros.find((registro) => registro.id === card.id)?.dataHora.startsWith(dataSelecionada.value)));
+const filtros = computed(() => [
+  { id: 'todos', label: 'TODOS' }, { id: 'confirmados', label: 'AGENDADOS' },
+  { id: 'andamento', label: 'EM ANDAMENTO' }, { id: 'concluidos', label: 'CONCLUÍDOS' },
+  { id: 'cancelados', label: 'CANCELADOS' },
+].map((item) => ({ ...item, count: daData.value.filter((card) => item.id === 'todos' || card.category === item.id).length })));
+const cards = computed(() => daData.value.filter((card) => {
+  const texto = `${card.clientName} ${card.tattooTitle} ${card.sessionMeta} ${card.id}`.toLocaleLowerCase('pt-BR');
+  return (filtro.value === 'todos' || card.category === filtro.value) && texto.includes(busca.value.trim().toLocaleLowerCase('pt-BR'));
+}));
+const resumo = computed(() => {
+  const hoje = new Date().toLocaleDateString('sv-SE');
+  return [
+    { label: 'Registradas', value: agendaStore.registros.length },
+    { label: 'Hoje', value: agendaStore.registros.filter((sessao) => sessao.dataHora.startsWith(hoje)).length },
+    { label: 'Em andamento', value: agendaStore.registros.filter((sessao) => sessao.status === 'EM_ANDAMENTO').length },
+  ];
 });
 
-function handleNotifications() {
-  console.log('Notifications opened');
-}
-
-function handleProfile() {
-  console.log('Profile opened');
-}
-
-function onCardAction(payload: { action: string; card: SessionCardItem }) {
-  console.log(`Action: ${payload.action} for ${payload.card.clientName}`);
-
-  if (payload.action === 'VER TERMO' || payload.action === 'ANAMNESE') {
-    router.push({ name: 'TermoAnamnese' });
-    return;
-  }
-
-  if (payload.action === 'INICIAR' || payload.action === 'PREPARAR BANCADA') {
-    // Redireciona para o Kit Cirúrgico & Insumos com contexto da sessão e cliente
-    const clientId = payload.card.id === 2 ? 'cli-lucas' : (payload.card.id === 1 ? 'cli-beatriz' : 'cli-helena');
-    router.push({
-      path: '/alocacao-materiais',
-      query: {
-        clientId,
-        sessionId: String(payload.card.id),
-        from: 'agenda',
-      },
-    });
-    return;
-  }
+async function alterarStatus({ action, card }: { action: string; card: SessionCardItem }) {
+  const status: Record<string, StatusAgendamento> = { INICIAR: 'EM_ANDAMENTO', CONCLUIR: 'CONCLUIDO', CANCELAR: 'CANCELADO' };
+  const proximo = status[action];
+  if (!proximo) return;
+  if (action === 'CANCELAR' && !window.confirm(`Cancelar a sessão de ${card.clientName}?`)) return;
+  aviso.value = '';
+  if (await agendaStore.updateSessionStatus(card.id, proximo)) aviso.value = `Sessão #${card.id} atualizada com sucesso.`;
 }
 </script>
+
+<style scoped>
+button { min-height: 40px; padding: 8px 12px; }
+</style>

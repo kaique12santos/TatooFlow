@@ -17,6 +17,9 @@ Para configurar o sandbox da Meta e validar o webhook de teste (F2-INFRA-01), co
 Para simular mensagens recebidas sem conta ou credenciais Meta (F2-INFRA-02), consulte
 [Mock local do WhatsApp](../docs/whatsapp-mock.md).
 
+Para configurar os jobs, prazos e templates de cuidados pré/pós-sessão (F2-BACK-04 / UC08),
+consulte [Notificações automáticas de cuidados](../docs/notificacoes-cuidados.md).
+
 ```bash
 # Executar a aplicação
 mvn spring-boot:run
