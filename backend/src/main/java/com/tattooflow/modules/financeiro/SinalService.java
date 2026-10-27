@@ -53,9 +53,14 @@ public class SinalService {
         byte[] conteudo = lerComprovante(comprovante);
         String contentType = identificarContentType(conteudo);
         String tipoInformado = comprovante.getContentType();
-        if (tipoInformado != null && !"application/octet-stream".equalsIgnoreCase(tipoInformado)
-                && !contentType.equals(tipoInformado.toLowerCase(Locale.ROOT))) {
-            throw new BusinessException("O conteúdo do comprovante não corresponde ao tipo de arquivo informado");
+        if (tipoInformado != null) {
+            String mimeLimpo = tipoInformado.split(";")[0].trim().toLowerCase(Locale.ROOT);
+            if ("image/jpg".equals(mimeLimpo) || "image/pjpeg".equals(mimeLimpo)) {
+                mimeLimpo = "image/jpeg";
+            }
+            if (!"application/octet-stream".equals(mimeLimpo) && !contentType.equals(mimeLimpo)) {
+                throw new BusinessException("O conteúdo do comprovante não corresponde ao tipo de arquivo informado");
+            }
         }
         Pagamento sinal = financeiroRepository.save(Pagamento.builder()
                 .agendamentoId(agendamentoId).valor(valorSinal).tipo("SINAL")

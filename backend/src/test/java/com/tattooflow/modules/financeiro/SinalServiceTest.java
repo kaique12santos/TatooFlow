@@ -167,7 +167,7 @@ class SinalServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"image/png", "image/jpeg"})
+    @ValueSource(strings = {"image/png", "image/jpeg", "image/jpg"})
     void deveAceitarComprovanteEmImagem(String tipo) {
         encontrarAgendamento();
         byte[] conteudo = "image/png".equals(tipo)
@@ -176,7 +176,8 @@ class SinalServiceTest {
         when(pagamentos.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         Pagamento sinal = service.registrar(1L, new BigDecimal("175.00"), "PIX",
                 new MockMultipartFile("comprovante", "imagem", tipo, conteudo));
-        assertEquals(tipo, sinal.getComprovanteContentType());
+        String esperado = "image/png".equals(tipo) ? "image/png" : "image/jpeg";
+        assertEquals(esperado, sinal.getComprovanteContentType());
     }
 
     @ParameterizedTest
