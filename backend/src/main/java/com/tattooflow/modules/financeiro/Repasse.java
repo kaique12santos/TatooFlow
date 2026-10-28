@@ -21,8 +21,15 @@ public class Repasse {
     @Column(nullable = false)
     private Long tatuadorId;
 
+    private Long agendamentoId;
+
     @Column(nullable = false)
     private BigDecimal valorRepasse;
+
+    private BigDecimal valorLiquido;
+
+    @Builder.Default
+    private BigDecimal custoInsumos = BigDecimal.ZERO;
 
     private BigDecimal porcentagemEstudio;
     private LocalDateTime dataRepasse;

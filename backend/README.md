@@ -251,3 +251,48 @@ A migration `V11__adicionar_referencia_triagem_e_retencao_termos.sql` atualiza o
    - Tabela `termos_aceite` vinculada ao cliente (`cliente_id`) e ao agendamento (`agendamento_id`) por chaves estrangeiras com índices.
    - Registro de data/hora (`data_assinatura`), IP (`ip_assinatura`) e URL do PDF gerado/assinado (`url_pdf_assinado`).
    - Campo de expiração de retenção legal (`data_expiracao_retencao`): atende à **RN06**, garantindo prazo mínimo de retenção de 5 anos calculados a partir da data de assinatura.
+
+
+## F5-BANCO-01, F6-BANCO-01 e F7-BANCO-01 — Agendamentos, Financeiro e Estoque de Insumos
+
+A migration `V12__complementar_tabelas_agendamentos_financeiro_estoque.sql` complementa o esquema do banco de dados atendendo integralmente aos critérios de aceite sem duplicação de estruturas prévias:
+
+1. **[F5-BANCO-01] Agendamentos com Status e Índices**:
+   - Tabela `agendamentos` (criada em `V4` e estendida em `V6`) contempla: `cliente_id` (cliente), `tatuador_id` (artista), `data_hora` (data), `status` (confirmado, pendente, finalizado, etc.), `duracao_minutos` e `valor_estimado`.
+   - Índices para consulta: `idx_agendamentos_status_data` (composto de status e data, criado em `V10`) e `idx_agendamentos_data_hora` (índice dedicado por data adicionado em `V12`).
+
+2. **[F6-BANCO-01] Tabelas Financeiras (Sinais, Repasses, Comissões e Relacionamento com Agendamentos)**:
+   - Tabela `pagamentos` (criada em `V5` e atualizada em `V9`): suporta sinal (`tipo = 'SINAL'`), valor total (`valor`), status (`status`), comprovante e relacionamento direto com a sessão (`agendamento_id` com índice `idx_pagamentos_agendamento`).
+   - Tabela `repasses` (criada em `V5` e complementada em `V12`): registra o artista (`tatuador_id`), relacionamento com o agendamento (`agendamento_id`), valor repassado (`valor_repasse`), comissão do estúdio (`porcentagem_estudio`), custos de insumos (`custo_insumos`), data (`data_repasse`), status (`status`) e o valor líquido apurado (`valor_liquido`), suportado pelos índices `idx_repasses_agendamento` e `idx_repasses_tatuador_data`.
+
+3. **[F7-BANCO-01] Estoque de Insumos e Alertas sem Duplicação**:
+   - A tabela base `estoque_itens` (criada em `V5`) já contém `nome` (item), `quantidade`, `quantidade_minima`, `categoria` e `unidade_medida`.
+   - Para atender ao critério de aceite nominal da tarefa sem duplicar tabelas nem criar redundância de dados, a migration `V12` cria a view `estoque` mapeando `nome AS item`, `quantidade` e `quantidade_minima`.
+   - Adicionado índice `idx_estoque_itens_qtd_min` em `(quantidade, quantidade_minima)` para otimização de consultas e rotinas de alerta de insumos críticos.
+
+
+## V13 — Script Completo Consolidado do Banco de Dados (Versão Final para MySQL)
+
+O arquivo [`V13__script_completo.sql`](file:///c:/Users/dti/TatooFlow/backend/src/main/resources/db/migration/V13__script_completo.sql) consolida **toda a arquitetura de banco de dados do TattooFlow em um único script DDL unificado**, projetado tanto para execução automatizada pelo Flyway quanto para implantação direta via cliente MySQL / MySQL Workbench em ambientes novos:
+
+### Como Utilizar para Implantação Direta no MySQL:
+```bash
+# Execução direta em banco novo ou recriação total:
+mysql -u <usuario> -p <banco_de_dados> < backend/src/main/resources/db/migration/V13__script_completo.sql
+```
+
+### Características do Script Consolidado:
+1. **Idempotência**: Todas as tabelas são declaradas com `CREATE TABLE IF NOT EXISTS` e a view com `CREATE OR REPLACE VIEW`.
+2. **Todas as 11 tabelas e 1 view incluídas**:
+   - `usuarios` (com suporte a `aparelho_id`)
+   - `convites` (tokens de cadastro)
+   - `clientes` (cadastro e histórico de saúde)
+   - `pre_agendamentos` (triagem do bot com `referencia`, `etapa_bot`, etc.)
+   - `agendamentos` (com status, duração e índices otimizados por data e status)
+   - `termos_aceite` (com URLs de PDF assinado e retenção mínima de 5 anos - RN06)
+   - `estoque_itens` (com limites mínimos e categorias de insumos)
+   - `pagamentos` (com suporte a sinais, comprovantes LONGBLOB e status)
+   - `repasses` (comissionamento de artistas, valor líquido e insumos vinculados ao agendamento)
+   - `midias` (galeria e upload de fotos da sessão)
+   - `notificacao_envios` (rastreamento de envios pré/pós sessão via WhatsApp)
+   - `estoque` (View de compatibilidade projetando `nome AS item`, `quantidade` e `quantidade_minima`)
