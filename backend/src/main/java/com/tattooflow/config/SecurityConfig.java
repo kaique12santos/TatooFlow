@@ -47,6 +47,7 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN");
                 auth.requestMatchers(HttpMethod.POST, "/api/convites").hasRole("ADMIN");
                 auth.requestMatchers(HttpMethod.POST, "/api/convites/*/aceitar").permitAll();
+                auth.requestMatchers(HttpMethod.POST, "/api/termos/*/aceitar", "/termos/*/aceitar").permitAll();
                 auth.requestMatchers(HttpMethod.GET, "/api/convites").hasRole("ADMIN");
                 if (h2ConsoleEnabled) {
                     auth.requestMatchers(PathRequest.toH2Console()).permitAll();

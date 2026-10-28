@@ -296,3 +296,19 @@ mysql -u <usuario> -p <banco_de_dados> < backend/src/main/resources/db/migration
    - `midias` (galeria e upload de fotos da sessão)
    - `notificacao_envios` (rastreamento de envios pré/pós sessão via WhatsApp)
    - `estoque` (View de compatibilidade projetando `nome AS item`, `quantidade` e `quantidade_minima`)
+
+## F3-BACK-01 e F3-BACK-02 — Geração de PDF do Termo de Consentimento e Aceite Digital do Cliente
+
+Implementação dos critérios de aceite das tarefas backend do Termo de Consentimento e Responsabilidade:
+
+1. **[F3-BACK-01] Geração de PDF do Termo de Consentimento (RN04)**:
+   - Geração de documento PDF oficial com OpenPDF em layout padrão A4 contendo dados cadastrais do cliente, dados da sessão/agendamento, histórico de anamnese/saúde, cláusulas legais de consentimento e área de aceite com carimbo digital e data/hora.
+   - Validação de tamanho máximo de 5MB (**RES02**) tanto na geração quanto no armazenamento.
+   - Armazenamento seguro de arquivos em diretório configurável (TermoStorageService), com sanitização contra Path Traversal, hash de integridade SHA-256 e nomenclatura protegida.
+   - Endpoint de download GET /api/termos/{id}/pdf com headers Content-Disposition e integridade X-Termo-Integridade-SHA256.
+
+2. **[F3-BACK-02] Endpoint de Aceite Digital do Cliente**:
+   - Endpoint POST /termos/{id}/aceitar e POST /api/termos/{id}/aceitar para registro do aceite digital com IP, data/hora da assinatura, renovação da retenção legal de 5 anos (**RN06**) e geração automática do PDF seguro.
+   - **Bloqueio de upload de mídia (Fase 4)**: No MidiaService, qualquer upload de foto/mídia sem o aceite prévio do termo de consentimento correspondente é estritamente bloqueado, disparando BusinessException.
+   - **Vínculo ao histórico do cliente**: Endpoints GET /api/clientes/{id}/termos e GET /api/termos/cliente/{clienteId} para auditoria e histórico de termos aceitos.
+
