@@ -5,10 +5,12 @@ on:
     branches: [ main, develop ]
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   build:
@@ -28,16 +30,29 @@ jobs:
         run: |
           cd backend
           mvn clean test
-          
+
   security-scan:
-     runs-on: ubuntu-latest
-     steps:
-       - uses: actions/checkout@v3
-       - name: Initialize CodeQL (Análise Estática)
-         uses: github/codeql-action/init@v2
-         with:
-           languages: java
-       - name: Autobuild
-         uses: github/codeql-action/autobuild@v2
-       - name: Perform CodeQL Analysis
-         uses: github/codeql-action/analyze@v2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Initialize CodeQL (Análise Estática)
+        uses: github/codeql-action/init@v2
+        with:
+          languages: java
+
+      - name: Build Java Code
+        run: |
+          cd backend
+          mvn clean compile -DskipTests
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
