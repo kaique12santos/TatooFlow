@@ -7,12 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,6 +131,70 @@ class AgendamentoServiceTest {
 
         assertThrows(BusinessException.class, () -> service.salvar(editar));
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    void deveCalcularIntervaloCorretamenteParaPeriodoDia() {
+        LocalDate dataRef = LocalDate.of(2026, 10, 14);
+        ArgumentCaptor<LocalDateTime> inicioCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<LocalDateTime> fimCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+
+        when(repository.listarPorPeriodoEStatus(inicioCaptor.capture(), fimCaptor.capture(), eq(null), eq(null)))
+                .thenReturn(List.of());
+
+        service.listarAgenda("dia", dataRef, null, null);
+
+        assertEquals(LocalDateTime.of(2026, 10, 14, 0, 0, 0), inicioCaptor.getValue());
+        assertEquals(2026, fimCaptor.getValue().getYear());
+        assertEquals(10, fimCaptor.getValue().getMonthValue());
+        assertEquals(14, fimCaptor.getValue().getDayOfMonth());
+        assertEquals(23, fimCaptor.getValue().getHour());
+        assertEquals(59, fimCaptor.getValue().getMinute());
+    }
+
+    @Test
+    void deveCalcularIntervaloCorretamenteParaPeriodoSemana() {
+        // 2026-10-14 é quarta-feira -> semana começa 2026-10-12 (segunda) e termina 2026-10-18 (domingo)
+        LocalDate dataRef = LocalDate.of(2026, 10, 14);
+        ArgumentCaptor<LocalDateTime> inicioCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<LocalDateTime> fimCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+
+        when(repository.listarPorPeriodoEStatus(inicioCaptor.capture(), fimCaptor.capture(), eq("CONFIRMADO"), eq(5L)))
+                .thenReturn(List.of());
+
+        service.listarAgenda("semana", dataRef, "confirmado", 5L);
+
+        assertEquals(LocalDateTime.of(2026, 10, 12, 0, 0, 0), inicioCaptor.getValue());
+        assertEquals(2026, fimCaptor.getValue().getYear());
+        assertEquals(10, fimCaptor.getValue().getMonthValue());
+        assertEquals(18, fimCaptor.getValue().getDayOfMonth());
+    }
+
+    @Test
+    void deveCalcularIntervaloCorretamenteParaPeriodoMes() {
+        LocalDate dataRef = LocalDate.of(2026, 10, 14);
+        ArgumentCaptor<LocalDateTime> inicioCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<LocalDateTime> fimCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+
+        when(repository.listarPorPeriodoEStatus(inicioCaptor.capture(), fimCaptor.capture(), eq(null), eq(null)))
+                .thenReturn(List.of());
+
+        service.listarAgenda("mes", dataRef, null, null);
+
+        assertEquals(LocalDateTime.of(2026, 10, 1, 0, 0, 0), inicioCaptor.getValue());
+        assertEquals(2026, fimCaptor.getValue().getYear());
+        assertEquals(10, fimCaptor.getValue().getMonthValue());
+        assertEquals(31, fimCaptor.getValue().getDayOfMonth());
+    }
+
+    @Test
+    void deveLancarExcecaoParaPeriodoInvalido() {
+        assertThrows(BusinessException.class, () -> service.listarAgenda("trimestre", LocalDate.now(), null, null));
+    }
+
+    @Test
+    void deveLancarExcecaoParaStatusInvalido() {
+        assertThrows(BusinessException.class, () -> service.listarAgenda("dia", LocalDate.now(), "INVALIDO", null));
     }
 
     private Pagamento sinalRegistrado() {

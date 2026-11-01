@@ -1,6 +1,7 @@
 package com.tattooflow.common.exception;
 
 import com.tattooflow.common.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        if (request != null && request.getRequestURI() != null && request.getRequestURI().contains("midia")) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body(ApiResponse.error("Arquivo excede o tamanho máximo permitido de 10MB"));
+        }
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(ApiResponse.error("O comprovante deve ter no máximo 5 MB e a requisição no máximo 6 MB"));
     }

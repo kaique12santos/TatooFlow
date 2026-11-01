@@ -1,8 +1,8 @@
 spring:
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 6MB
+      max-file-size: 10MB
+      max-request-size: 10MB
   profiles:
     active: dev
   application:
@@ -10,6 +10,20 @@ spring:
 
 server:
   port: 8080
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  api-url: ${GEMINI_API_URL:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent}
+
+instagram:
+  account-id: ${INSTAGRAM_ACCOUNT_ID:}
+  access-token: ${INSTAGRAM_ACCESS_TOKEN:}
+  api-version: ${INSTAGRAM_API_VERSION:v21.0}
 
 integrations:
   whatsapp:

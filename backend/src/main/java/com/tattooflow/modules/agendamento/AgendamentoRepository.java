@@ -56,4 +56,16 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Agendamento> buscarCandidatosConflito(@Param("tatuadorId") Long tatuadorId,
                                                @Param("inicioJanela") LocalDateTime inicioJanela,
                                                @Param("fim") LocalDateTime fim);
+
+    @Query("""
+        SELECT a FROM Agendamento a
+        WHERE a.dataHora >= :inicio AND a.dataHora <= :fim
+          AND (:status IS NULL OR a.status = :status)
+          AND (:tatuadorId IS NULL OR a.tatuadorId = :tatuadorId)
+        ORDER BY a.dataHora ASC, a.id ASC
+        """)
+    List<Agendamento> listarPorPeriodoEStatus(@Param("inicio") LocalDateTime inicio,
+                                             @Param("fim") LocalDateTime fim,
+                                             @Param("status") String status,
+                                             @Param("tatuadorId") Long tatuadorId);
 }

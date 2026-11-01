@@ -58,6 +58,7 @@ Alternativa local às variáveis de ambiente, em PowerShell, a partir de `backen
 Copy-Item -LiteralPath ./whatsapp-local.properties.example -Destination ./whatsapp-local.properties
 ```
 
+
 Preencha o arquivo copiado no seu editor. Ele é ignorado pelo Git. O `.example` deve
 permanecer sem credenciais. Gere um verify token aleatório, por exemplo:
 

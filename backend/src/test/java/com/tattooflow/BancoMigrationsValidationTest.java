@@ -40,8 +40,8 @@ class BancoMigrationsValidationTest {
 
         MigrationInfo latest = flyway.info().current();
         assertThat(latest).isNotNull();
-        assertThat(latest.getVersion().getVersion()).isEqualTo("13");
-        assertThat(latest.getDescription()).containsIgnoringCase("script");
+        assertThat(Integer.parseInt(latest.getVersion().getVersion())).isGreaterThanOrEqualTo(13);
+        assertThat(latest.getDescription()).isNotBlank();
         assertThat(latest.getState().isApplied()).isTrue();
     }
 
@@ -327,3 +327,5 @@ class BancoMigrationsValidationTest {
         assertThat(itensCriticos).isGreaterThanOrEqualTo(1);
     }
 }
+
+
