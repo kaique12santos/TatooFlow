@@ -9,7 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Set;
 
@@ -37,6 +41,49 @@ public class AgendamentoService {
     public Agendamento buscarPorId(Long id) {
         return agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado com ID: " + id));
+    }
+
+    /**
+     * Consulta a agenda filtrada por período (dia, semana, mês) e status opcional [F5-BACK-01].
+     */
+    public List<Agendamento> listarAgenda(String periodo, LocalDate dataRef, String status, Long tatuadorId) {
+        if (periodo == null || periodo.isBlank()) {
+            periodo = "dia";
+        }
+        String p = periodo.trim().toLowerCase();
+        LocalDate base = dataRef != null ? dataRef : LocalDate.now();
+
+        LocalDateTime inicio;
+        LocalDateTime fim;
+
+        switch (p) {
+            case "dia":
+            case "dia|semana|mes":
+                inicio = base.atStartOfDay();
+                fim = base.atTime(LocalTime.MAX);
+                break;
+            case "semana":
+                inicio = base.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+                fim = base.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).atTime(LocalTime.MAX);
+                break;
+            case "mes":
+            case "mês":
+                inicio = base.with(TemporalAdjusters.firstDayOfMonth()).atStartOfDay();
+                fim = base.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX);
+                break;
+            default:
+                throw new BusinessException("Período inválido: '" + periodo + "'. Valores permitidos: dia, semana, mes");
+        }
+
+        String statusNormalizado = null;
+        if (status != null && !status.isBlank() && !status.equalsIgnoreCase("TODOS")) {
+            statusNormalizado = status.trim().toUpperCase();
+            if (!Set.of("AGENDADO", "CONFIRMADO", "EM_ANDAMENTO", "CONCLUIDO", "CANCELADO").contains(statusNormalizado)) {
+                throw new BusinessException("Status de agendamento inválido: " + status);
+            }
+        }
+
+        return agendamentoRepository.listarPorPeriodoEStatus(inicio, fim, statusNormalizado, tatuadorId);
     }
 
     @Transactional

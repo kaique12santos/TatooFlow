@@ -6,7 +6,9 @@ import com.tattooflow.modules.financeiro.SinalService;
 import com.tattooflow.modules.financeiro.Pagamento;
 import com.tattooflow.modules.financeiro.ComprovanteSinal;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -37,6 +40,18 @@ public class AgendamentoController {
                     + "Quando não há registros, retorna uma lista vazia. Requer JWT informado em Authorize.")
     public ResponseEntity<ApiResponse<List<Agendamento>>> listarTodos() {
         return ResponseEntity.ok(ApiResponse.success(agendamentoService.listarTodos()));
+    }
+
+    @GetMapping("/agenda")
+    @Operation(summary = "Listar agenda filtrada por período e status [F5-BACK-01]",
+            description = "Retorna os agendamentos filtrados por período (dia/semana/mês) e status.")
+    public ResponseEntity<ApiResponse<List<Agendamento>>> listarAgenda(
+            @RequestParam(required = false, defaultValue = "dia") String periodo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long tatuadorId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(agendamentoService.listarAgenda(periodo, data, status, tatuadorId)));
     }
 
     @GetMapping("/tatuador/{tatuadorId}")

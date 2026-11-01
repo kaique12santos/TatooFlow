@@ -32,6 +32,19 @@ export const listarAgendamentos = () => apiRequest<Agendamento[]>('/api/agendame
 export const listarClientesAgenda = () => apiRequest<ClienteAgenda[]>('/api/clientes');
 export const listarUsuariosAgenda = () => apiRequest<UsuarioAgenda[]>('/api/usuarios');
 
+/**
+ * Consulta a agenda filtrando por período (dia/semana/mês) e filtros opcionais [F5-BACK-01].
+ */
+export const consultarAgenda = (params?: { periodo?: 'dia' | 'semana' | 'mes'; data?: string; status?: string; tatuadorId?: number }) => {
+  const query = new URLSearchParams();
+  if (params?.periodo) query.set('periodo', params.periodo);
+  if (params?.data) query.set('data', params.data);
+  if (params?.status) query.set('status', params.status);
+  if (params?.tatuadorId) query.set('tatuadorId', params.tatuadorId.toString());
+  const qs = query.toString();
+  return apiRequest<Agendamento[]>(`/api/agenda${qs ? `?${qs}` : ''}`);
+};
+
 // O endpoint existente salva um novo registro ou atualiza o registro identificado por id.
 export const salvarAgendamento = (agendamento: NovoAgendamento | Agendamento) =>
   apiRequest<Agendamento>('/api/agendamentos', { method: 'POST', body: JSON.stringify(agendamento) });
