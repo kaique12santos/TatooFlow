@@ -12,4 +12,5 @@ public interface PreAgendamentoRepository extends JpaRepository<PreAgendamento, 
     Optional<PreAgendamento> findFirstByClienteAndStatusTriagemOrderByDataCriacaoDesc(Cliente cliente, String statusTriagem);
     List<PreAgendamento> findByStatusTriagem(String statusTriagem);
     List<PreAgendamento> findByCliente(Cliente cliente);
+    List<PreAgendamento> findByClienteOrderByDataCriacaoDesc(Cliente cliente);
 }

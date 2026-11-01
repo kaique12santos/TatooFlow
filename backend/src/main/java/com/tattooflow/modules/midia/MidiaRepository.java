@@ -8,4 +8,8 @@ import java.util.List;
 @Repository
 public interface MidiaRepository extends JpaRepository<Midia, Long> {
     List<Midia> findByAgendamentoId(Long agendamentoId);
+
+    List<Midia> findByAgendamentoIdOrderByDataUploadDesc(Long agendamentoId);
+
+    List<Midia> findByAgendamentoIdInOrderByDataUploadDesc(List<Long> agendamentoIds);
 }

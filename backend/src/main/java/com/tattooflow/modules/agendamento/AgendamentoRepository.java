@@ -14,6 +14,12 @@ import java.util.Optional;
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
 
+    List<Agendamento> findByClienteId(Long clienteId);
+
+    List<Agendamento> findByClienteIdOrderByDataHoraDesc(Long clienteId);
+
+    List<Agendamento> findByClienteIdIn(List<Long> clienteIds);
+
     List<Agendamento> findByTatuadorId(Long tatuadorId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
