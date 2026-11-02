@@ -331,3 +331,23 @@ Implementação dos critérios de aceite das regras de negócio financeiras da F
    - **Sessões Ultrapassadas**: Sessões já ocorridas no passado não são elegíveis a reembolso (retenção de 100%).
    - **Consulta e Simulação**: `GET /api/agendamentos/{id}/reembolso` e `GET /api/financeiro/reembolso/{id}` retornam o demonstrativo detalhado de antecedência, elegibilidade e valor reembolsável.
    - **Efetivação de Cancelamento**: `POST /api/agendamentos/{id}/cancelar` atualiza o status do agendamento para `CANCELADO` e registra no histórico financeiro o estorno com tipo `REEMBOLSO` e status `CONCLUIDO`.
+
+
+## F7-BACK-01 e F7-BACK-02 — CRUD de Estoque e Alerta Automático de Estoque Mínimo (UC05.1)
+
+Implementação dos critérios de aceite do controle de estoque e notificações de reposição:
+
+1. **[F7-BACK-01] CRUD de Itens de Estoque**:
+   - Endpoints completos para gerenciamento de materiais e insumos:
+     - `POST /api/estoque`: Cadastro de item com validação de campos obrigatórios (`nome`, `categoria`, `unidadeMedida`) e validação estrita de quantidades não-negativas (`quantidade >= 0`, `quantidadeMinima >= 0`).
+     - `GET /api/estoque`: Listagem com filtros opcionais por termo de busca (`termo`), categoria e paginação (`page`, `size`).
+     - `GET /api/estoque/{id}`: Consulta detalhada de insumo por ID.
+     - `PUT /api/estoque/{id}`: Atualização de dados cadastrais, quantidade e nível mínimo de reposição, rejeitando quantidades negativas (`BusinessException`).
+     - `DELETE /api/estoque/{id}`: Exclusão com validação de existência.
+
+2. **[F7-BACK-02] Alerta Automático de Estoque Mínimo (UC05.1)**:
+   - **Gatilho Automático na Baixa**: Ao dar baixa de insumo via `POST /api/estoque/{id}/baixa` ou por alocação de sessão via `POST /api/estoque/alocar`, o sistema verifica automaticamente se `quantidade <= quantidadeMinima`.
+   - **Disparo de Notificação aos Administradores**: Caso o estoque atinja o nível crítico, um alerta detalhado é emitido para os administradores ativos do sistema e registrado no histórico de auditoria de alertas.
+   - **Monitoramento e Auditoria**:
+     - `GET /api/estoque/alertas/minimo`: Consulta direta dos insumos que atingiram ou estão abaixo do estoque mínimo.
+     - `GET /api/estoque/alertas/historico`: Consulta de todos os alertas disparados pela rotina de verificação.
