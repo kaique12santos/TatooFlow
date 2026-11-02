@@ -8,13 +8,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Serviço responsável pela integração com a Instagram Graph API [F4-INFRA-02, F4-BACK-03, UC03.2].
@@ -128,15 +134,19 @@ public class InstagramService {
             String mediaContainerBaseUrl = String.format("https://graph.facebook.com/%s/%s/media",
                     getVersaoEfetiva(), accountId);
 
-            URI mediaUri = UriComponentsBuilder.fromHttpUrl(mediaContainerBaseUrl)
-                    .queryParam("image_url", imageUrl)
-                    .queryParam("caption", legenda)
-                    .queryParam("access_token", accessToken)
-                    .build()
-                    .toUri();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> containerParams = new LinkedMultiValueMap<>();
+            containerParams.add("image_url", imageUrl);
+            containerParams.add("caption", legenda);
+            containerParams.add("access_token", accessToken);
 
             log.info("Iniciando publicação no Instagram Graph API. Etapa 1: Criar Container. AccountId={}", accountId);
-            ResponseEntity<String> containerResponse = restTemplate.postForEntity(mediaUri, null, String.class);
+            ResponseEntity<String> containerResponse = restTemplate.postForEntity(
+                    mediaContainerBaseUrl,
+                    new HttpEntity<>(containerParams, headers),
+                    String.class);
 
             if (!containerResponse.getStatusCode().is2xxSuccessful() || containerResponse.getBody() == null) {
                 log.error("Falha ao criar container no Instagram: Status={}", containerResponse.getStatusCode());
@@ -154,20 +164,28 @@ public class InstagramService {
 
             log.info("Container criado com sucesso no Instagram Graph API: containerId={}", containerId);
 
+            // Aguarda processamento da imagem pelo Instagram Graph API antes do publish
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
             // ===================================================================
             // ETAPA 2: Publicação do Container (POST /{accountId}/media_publish)
             // ===================================================================
             String publishBaseUrl = String.format("https://graph.facebook.com/%s/%s/media_publish",
                     getVersaoEfetiva(), accountId);
 
-            URI publishUri = UriComponentsBuilder.fromHttpUrl(publishBaseUrl)
-                    .queryParam("creation_id", containerId)
-                    .queryParam("access_token", accessToken)
-                    .build()
-                    .toUri();
+            MultiValueMap<String, String> publishParams = new LinkedMultiValueMap<>();
+            publishParams.add("creation_id", containerId);
+            publishParams.add("access_token", accessToken);
 
             log.info("Etapa 2: Publicando Container no Instagram Feed. ContainerId={}", containerId);
-            ResponseEntity<String> publishResponse = restTemplate.postForEntity(publishUri, null, String.class);
+            ResponseEntity<String> publishResponse = restTemplate.postForEntity(
+                    publishBaseUrl,
+                    new HttpEntity<>(publishParams, headers),
+                    String.class);
 
             if (!publishResponse.getStatusCode().is2xxSuccessful() || publishResponse.getBody() == null) {
                 log.error("Falha ao publicar container no Instagram: Status={}", publishResponse.getStatusCode());

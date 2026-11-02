@@ -51,3 +51,4 @@ public class RelatorioMensalDTO {
     // Resumo consolidado de estoque de insumos
     private RelatorioEstoqueResumoDTO resumoEstoque;
 }
+

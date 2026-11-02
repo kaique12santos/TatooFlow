@@ -236,3 +236,4 @@ class RelatorioServiceTest {
         assertEquals("Tatuador #30", relatorio.getDetalhamentoArtistas().get(0).getNomeTatuador());
     }
 }
+

@@ -21,3 +21,4 @@ public class RelatorioArtistaDTO {
     private BigDecimal repasseArtista;
     private BigDecimal custoInsumos;
 }
+
