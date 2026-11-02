@@ -312,3 +312,22 @@ Implementação dos critérios de aceite das tarefas backend do Termo de Consent
    - **Bloqueio de upload de mídia (Fase 4)**: No MidiaService, qualquer upload de foto/mídia sem o aceite prévio do termo de consentimento correspondente é estritamente bloqueado, disparando BusinessException.
    - **Vínculo ao histórico do cliente**: Endpoints GET /api/clientes/{id}/termos e GET /api/termos/cliente/{clienteId} para auditoria e histórico de termos aceitos.
 
+
+
+## F6-BACK-01 e F6-BACK-02 — Divisão 30/70 de Sessão e Política de Cancelamento/Reembolso (RN02, RN05, RN07)
+
+Implementação dos critérios de aceite das regras de negócio financeiras da Fase 6:
+
+1. **[F6-BACK-01] Cálculo Automático de Divisão 30/70 com Dedução Prévia de Insumos (RN02, RN07)**:
+   - **Dedução de Insumos (RN07)**: O custo de insumos é deduzido integralmente do valor da sessão *antes* da partilha financeira (`Base de Cálculo = Valor Total - Insumos`).
+   - **Divisão 30% Estúdio / 70% Artista (RN02)**: Sobre a base líquida apurada, 30% é retido como taxa do estúdio e 70% é repassado ao tatuador, garantindo conservação exata de centavos após arredondamento.
+   - **Finalização de Sessão**: Endpoint `POST /api/agendamentos/{id}/finalizar` (e `POST /api/financeiro/repasses/finalizar-sessao/{id}`) conclui o agendamento (`status = 'CONCLUIDO'`) e persiste automaticamente o repasse na tabela `repasses` com status `PENDENTE`.
+   - **Simulação da Divisão**: Endpoint `POST /api/financeiro/divisao/calcular` permite prever o valor líquido e a divisão entre estúdio e artista antes de efetivar o fechamento.
+   - **Consultas de Repasses**: Endpoints `GET /api/financeiro/repasses`, `GET /api/financeiro/repasses/{id}`, `GET /api/financeiro/repasses/agendamento/{id}` e `GET /api/financeiro/repasses/tatuador/{id}`.
+
+2. **[F6-BACK-02] Regra de Cancelamento e Reembolso (< 48h) (RN05)**:
+   - **Antecedência >= 48 horas**: O cliente tem direito a reembolso integral (100% dos valores pagos/sinal) com taxa de desconto zerada.
+   - **Antecedência < 48 horas**: Aplicação estrita da política de bloqueio de reembolso integral. É aplicada retenção padrão de 50% (ou percentual estipulado > 0%), e tentativas de forçar reembolso integral são bloqueadas com `BusinessException`.
+   - **Sessões Ultrapassadas**: Sessões já ocorridas no passado não são elegíveis a reembolso (retenção de 100%).
+   - **Consulta e Simulação**: `GET /api/agendamentos/{id}/reembolso` e `GET /api/financeiro/reembolso/{id}` retornam o demonstrativo detalhado de antecedência, elegibilidade e valor reembolsável.
+   - **Efetivação de Cancelamento**: `POST /api/agendamentos/{id}/cancelar` atualiza o status do agendamento para `CANCELADO` e registra no histórico financeiro o estorno com tipo `REEMBOLSO` e status `CONCLUIDO`.

@@ -4,6 +4,9 @@ import com.tattooflow.common.exception.BusinessException;
 import com.tattooflow.common.exception.ResourceNotFoundException;
 import com.tattooflow.modules.financeiro.FinanceiroRepository;
 import com.tattooflow.modules.financeiro.Pagamento;
+import com.tattooflow.modules.financeiro.Repasse;
+import com.tattooflow.modules.financeiro.RepasseRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +27,19 @@ public class AgendamentoService {
 
     private final AgendamentoRepository agendamentoRepository;
     private final FinanceiroRepository financeiroRepository;
+    private final RepasseRepository repasseRepository;
 
-    public AgendamentoService(AgendamentoRepository agendamentoRepository, FinanceiroRepository financeiroRepository) {
+    @Autowired
+    public AgendamentoService(AgendamentoRepository agendamentoRepository,
+                              FinanceiroRepository financeiroRepository,
+                              @Autowired(required = false) RepasseRepository repasseRepository) {
         this.agendamentoRepository = agendamentoRepository;
         this.financeiroRepository = financeiroRepository;
+        this.repasseRepository = repasseRepository;
+    }
+
+    public AgendamentoService(AgendamentoRepository agendamentoRepository, FinanceiroRepository financeiroRepository) {
+        this(agendamentoRepository, financeiroRepository, null);
     }
 
     public List<Agendamento> listarTodos() {
@@ -114,7 +126,33 @@ public class AgendamentoService {
         if (!"CANCELADO".equals(agendamento.getStatus())) {
             validarConflito(agendamento);
         }
-        return agendamentoRepository.save(agendamento);
+
+        Agendamento salvo = agendamentoRepository.save(agendamento);
+
+        // Aplicação automática de repasse na conclusão de sessão (RN02)
+        if ("CONCLUIDO".equals(salvo.getStatus()) && repasseRepository != null) {
+            if (!repasseRepository.existsByAgendamentoId(salvo.getId())) {
+                BigDecimal total = salvo.getValorEstimado();
+                if (total != null && total.compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal base = total.setScale(2, RoundingMode.HALF_UP);
+                    BigDecimal valorEstudio = base.multiply(new BigDecimal("0.30")).setScale(2, RoundingMode.HALF_UP);
+                    BigDecimal valorArtista = base.subtract(valorEstudio);
+                    Repasse repasse = Repasse.builder()
+                            .tatuadorId(salvo.getTatuadorId())
+                            .agendamentoId(salvo.getId())
+                            .valorRepasse(valorArtista)
+                            .valorLiquido(valorArtista)
+                            .custoInsumos(BigDecimal.ZERO)
+                            .porcentagemEstudio(new BigDecimal("30.00"))
+                            .dataRepasse(LocalDateTime.now())
+                            .status("PENDENTE")
+                            .build();
+                    repasseRepository.save(repasse);
+                }
+            }
+        }
+
+        return salvo;
     }
 
     private void validarSinal(Agendamento agendamento, Pagamento sinal) {
