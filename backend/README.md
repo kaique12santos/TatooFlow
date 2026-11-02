@@ -351,3 +351,23 @@ Implementação dos critérios de aceite do controle de estoque e notificações
    - **Monitoramento e Auditoria**:
      - `GET /api/estoque/alertas/minimo`: Consulta direta dos insumos que atingiram ou estão abaixo do estoque mínimo.
      - `GET /api/estoque/alertas/historico`: Consulta de todos os alertas disparados pela rotina de verificação.
+
+
+## F8-BACK-01 — Geração de Relatório Mensal Consolidado
+
+Implementação dos critérios de aceite da tarefa de consolidação financeira e operacional:
+
+1. **[F8-BACK-01] Endpoint de Geração de Relatório Mensal**:
+   - **Rotas Disponíveis**: `GET /api/relatorios/mensal?mes=&ano=` e `GET /relatorios/mensal?mes=&ano=`.
+   - **Autenticação**: Protegido por JWT (`@SecurityRequirement(name = BEARER_AUTH)`), exigindo perfil autorizado.
+   - **Consolidação Financeira e Operacional**:
+     - `totalFaturamento` / `faturamentoBruto`: Valor total das sessões finalizadas e faturadas no mês.
+     - `faturamentoRecebido`: Total de pagamentos com status `CONCLUIDO` computados no período (com dedução de reembolsos).
+     - `totalComissoes` / `comissaoEstudio`: Total de comissão do estúdio (30% sobre a base líquida após dedução de insumos - RN02).
+     - `totalRepasses` / `totalRepasseArtistas`: Total repassado aos tatuadores (70% sobre a base líquida após dedução de insumos - RN02).
+     - `totalGastos` / `totalGastosInsumos`: Total de insumos deduzidos das sessões concluídas no mês (RN07).
+     - `lucroLiquido` / `lucroLiquidoEstudio`: Lucro líquido apurado pelo estúdio.
+     - `totalSessoes` / `totalSessoesConcluidas`: Quantidade de atendimentos concluídos no período.
+     - `detalhamentoArtistas`: Relatório individualizado por tatuador com total faturado, comissão do estúdio, repasse devido e insumos consumidos.
+     - `detalhamentoRepasses`: Rastreamento individualizado de cada repasse do mês.
+     - `resumoEstoque`: Visão geral do estoque com contagem de itens cadastrados, itens em limite crítico e alerta ativo de reposição (F7-BANCO-01).
