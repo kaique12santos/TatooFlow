@@ -25,3 +25,4 @@ public class RelatorioRepasseItemDTO {
     private BigDecimal valorRepasseArtista;
     private String status;
 }
+

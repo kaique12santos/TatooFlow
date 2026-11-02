@@ -14,3 +14,4 @@ public class RelatorioEstoqueResumoDTO {
     private long itensEmEstoqueCritico;
     private boolean alertaEstoqueAtivo;
 }
+
