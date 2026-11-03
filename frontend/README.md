@@ -81,8 +81,25 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 ## Project Setup
 
+Use Node.js 22.22.2+, 24.15.0+ ou 26+. O CI utiliza Node.js 24.
+Para reproduzir a instalação utilizada no CI:
+
 ```sh
-bun install
+npm ci
+npm audit --audit-level=high
+```
+
+Os `overrides` do `package.json` mantêm `glob`, `minimatch` e `tar` nas versões
+corrigidas, preservando Capacitor 6 e ESLint 10. O `postinstall` aplica o patch
+`patches/@capacitor+cli+6.2.2.patch` para compatibilizar a importação do `tar`
+atualizado com a extração de templates do Capacitor. Mantenha esse diretório
+disponível antes de executar `npm ci` em imagens Docker ou no CI.
+
+O lockfile do Bun também está sincronizado. Para utilizá-lo, use Bun 1.4.4+
+e preserve as versões resolvidas:
+
+```sh
+bun install --frozen-lockfile
 ```
 
 ### Compile and Hot-Reload for Development
