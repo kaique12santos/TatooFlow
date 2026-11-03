@@ -11,6 +11,6 @@ CREATE TABLE convites (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     codigo VARCHAR(100) NOT NULL UNIQUE,
     email_convidado VARCHAR(255) NOT NULL,
-    utilzado BOOLEAN DEFAULT FALSE,
+    utilizado BOOLEAN DEFAULT FALSE,
     data_expiracao DATETIME
 );

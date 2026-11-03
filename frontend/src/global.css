@@ -1,0 +1,587 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&display=swap');
+@import "tailwindcss";
+
+/* =============================================================================
+   DESIGN SYSTEM GLOBAL - TATTOOFLOW (NEW CONCEPT TATTOO)
+   Padronização Mobile-First com Variáveis Nativas do Ionic & Dark Luxury Gold
+   ============================================================================= */
+
+:root {
+  /* ---------------------------------------------------------------------------
+     1. PALETA DE CORES PRINCIPAIS (HEX & RGB)
+     Identidade Dark Mode: Obsidian Profundo, Superfícies Grafite e Ouro Imperial
+     --------------------------------------------------------------------------- */
+  --bg-obsidian: #09090b;
+  --bg-obsidian-rgb: 9, 9, 11;
+  --bg-card: #141416;
+  --bg-card-rgb: 20, 20, 22;
+  --bg-subcard: #09090b;
+  --bg-subcard-rgb: 9, 9, 11;
+  --bg-surface-elevated: #1a1a1e;
+  --bg-surface-badge: #1d1a15;
+
+  /* Ouros de Alta Joalheria */
+  --gold-primary: #c9a86a;
+  --gold-primary-rgb: 201, 168, 106;
+  --gold-light: #e6c383;
+  --gold-light-rgb: 230, 195, 131;
+  --gold-accent: #d6b77e;
+  --gold-accent-rgb: 214, 183, 126;
+  --gold-dark: #b89355;
+  --gold-dark-rgb: 184, 147, 85;
+  --gold-metallic: #eedaa2;
+  --gold-muted: #5e4f35;
+
+  /* Tipografia & Textos Nobres */
+  --text-primary: #f2ebd9;
+  --text-primary-rgb: 242, 235, 217;
+  --text-muted: #a39e93;
+  --text-muted-rgb: 163, 158, 147;
+  --text-subtle: #7a766f;
+  --text-secondary: #b8afa0;
+
+  /* Bordas de Precisão */
+  --border-gold-subtle: rgba(201, 168, 106, 0.15);
+  --border-gold-medium: rgba(201, 168, 106, 0.35);
+  --border-gold-highlight: #b89355;
+  --border-card-subtle: rgba(255, 255, 255, 0.06);
+
+  /* ---------------------------------------------------------------------------
+     2. IONIC APPLICATION THEME & BACKGROUNDS
+     Sobrescreve o tema padrão do Ionic com o Dark Obsidian & Gold
+     --------------------------------------------------------------------------- */
+  --ion-background-color: #09090b;
+  --ion-background-color-rgb: 9, 9, 11;
+  --ion-text-color: #f2ebd9;
+  --ion-text-color-rgb: 242, 235, 217;
+  --ion-border-color: rgba(201, 168, 106, 0.15);
+
+  /* Superfícies de componentes estruturais */
+  --ion-item-background: #141416;
+  --ion-item-color: #f2ebd9;
+  --ion-card-background: #141416;
+  --ion-card-color: #f2ebd9;
+  --ion-toolbar-background: #09090b;
+  --ion-toolbar-color: #f2ebd9;
+  --ion-toolbar-border-color: rgba(201, 168, 106, 0.12);
+  --ion-tab-bar-background: #09090b;
+  --ion-tab-bar-color: #7a766f;
+  --ion-tab-bar-color-selected: #d6b77e;
+
+  /* ---------------------------------------------------------------------------
+     3. IONIC PALETTE DE CORES DO SISTEMA (HEX)
+     Garante que ion-button, badges e alertas usem a paleta TattooFlow
+     --------------------------------------------------------------------------- */
+  /* Primary: Dourado Imperial */
+  --ion-color-primary: #c9a86a;
+  --ion-color-primary-rgb: 201, 168, 106;
+  --ion-color-primary-contrast: #09090b;
+  --ion-color-primary-contrast-rgb: 9, 9, 11;
+  --ion-color-primary-shade: #b1945d;
+  --ion-color-primary-tint: #d6b77e;
+
+  /* Secondary: Ouro Acento */
+  --ion-color-secondary: #d6b77e;
+  --ion-color-secondary-rgb: 214, 183, 126;
+  --ion-color-secondary-contrast: #09090b;
+  --ion-color-secondary-contrast-rgb: 9, 9, 11;
+  --ion-color-secondary-shade: #bc9f6f;
+  --ion-color-secondary-tint: #e6c383;
+
+  /* Tertiary: Ouro Iluminado / Champagne */
+  --ion-color-tertiary: #e6c383;
+  --ion-color-tertiary-rgb: 230, 195, 131;
+  --ion-color-tertiary-contrast: #09090b;
+  --ion-color-tertiary-contrast-rgb: 9, 9, 11;
+  --ion-color-tertiary-shade: #caac73;
+  --ion-color-tertiary-tint: #eedaa2;
+
+  /* Success: Verde Esmeralda Sanitário / Aprovado */
+  --ion-color-success: #4ade80;
+  --ion-color-success-rgb: 74, 222, 128;
+  --ion-color-success-contrast: #09090b;
+  --ion-color-success-contrast-rgb: 9, 9, 11;
+  --ion-color-success-shade: #3cb86c;
+  --ion-color-success-tint: #86efac;
+
+  /* Warning: Ouro Alerta */
+  --ion-color-warning: #eab308;
+  --ion-color-warning-rgb: 234, 179, 8;
+  --ion-color-warning-contrast: #09090b;
+  --ion-color-warning-contrast-rgb: 9, 9, 11;
+  --ion-color-warning-shade: #ce9d07;
+  --ion-color-warning-tint: #facc15;
+
+  /* Danger: Rubi / Alerta Crítico */
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d23c3c;
+  --ion-color-danger-tint: #f87171;
+
+  /* Dark: Obsidian */
+  --ion-color-dark: #09090b;
+  --ion-color-dark-rgb: 9, 9, 11;
+  --ion-color-dark-contrast: #f2ebd9;
+  --ion-color-dark-contrast-rgb: 242, 235, 217;
+  --ion-color-dark-shade: #050507;
+  --ion-color-dark-tint: #1c1c20;
+
+  /* Medium: Grafite / Cinza Nobre */
+  --ion-color-medium: #a39e93;
+  --ion-color-medium-rgb: 163, 158, 147;
+  --ion-color-medium-contrast: #09090b;
+  --ion-color-medium-contrast-rgb: 9, 9, 11;
+  --ion-color-medium-shade: #8e8a82;
+  --ion-color-medium-tint: #b8afa0;
+
+  /* Light: Off-White Nobre */
+  --ion-color-light: #f2ebd9;
+  --ion-color-light-rgb: 242, 235, 217;
+  --ion-color-light-contrast: #09090b;
+  --ion-color-light-contrast-rgb: 9, 9, 11;
+  --ion-color-light-shade: #d5cfbf;
+  --ion-color-light-tint: #faf6ed;
+
+  /* ---------------------------------------------------------------------------
+     4. TIPOGRAFIA BASE DO DESIGN SYSTEM
+     --------------------------------------------------------------------------- */
+  --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-family-display: 'Playfair Display', serif;
+  --font-family-brand: 'Cinzel', serif;
+  --font-family-body: 'Inter', sans-serif;
+  --font-family-desc: 'Montserrat', sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+
+  /* ---------------------------------------------------------------------------
+     5. PADRONIZAÇÃO GLOBAL DE ARREDONDAMENTOS (--ion-border-radius)
+     Formato consistente, facetado e refinado de 4px para componentes
+     --------------------------------------------------------------------------- */
+  --ion-border-radius: 4px;
+  --app-radius-xs: 2px;
+  --app-radius-sm: 4px;
+  --app-radius-md: 6px;
+  --app-radius-lg: 8px;
+  --app-radius-full: 9999px;
+
+  /* ---------------------------------------------------------------------------
+     6. ESPAÇAMENTO SEGURO GLOBAL & RESPIRO LATERAL (--ion-margin, --ion-padding)
+     Previne colisão de conteúdo com as bordas do aparelho e notch móvel
+     --------------------------------------------------------------------------- */
+  --ion-safe-area-top: env(safe-area-inset-top, 0px);
+  --ion-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --ion-safe-area-left: env(safe-area-inset-left, 0px);
+  --ion-safe-area-right: env(safe-area-inset-right, 0px);
+
+  --ion-padding: 16px;
+  --ion-margin: 16px;
+
+  /* Tokens do container móvel de tela */
+  --app-screen-padding-x: max(16px, env(safe-area-inset-left, 0px));
+  --app-screen-safe-top: max(12px, env(safe-area-inset-top, 0px));
+  --app-screen-safe-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  --app-screen-max-width: 480px;
+}
+
+/* Tablet (iPad Mini, iPad 10.2", iPad Air, iPad Pro em orientação vertical) */
+@media (min-width: 768px) {
+  :root {
+    --app-screen-max-width: 960px;
+    --app-screen-padding-x: max(24px, env(safe-area-inset-left, 0px));
+  }
+}
+
+/* Desktop e telas amplas */
+@media (min-width: 1024px) {
+  :root {
+    --app-screen-max-width: 1040px;
+    --app-screen-padding-x: 32px;
+  }
+}
+
+/* =============================================================================
+   CLASSES AUXILIARES DO IONIC (PALETTE UTILITY CLASSES)
+   ============================================================================= */
+.ion-color-primary {
+  --ion-color-base: var(--ion-color-primary);
+  --ion-color-base-rgb: var(--ion-color-primary-rgb);
+  --ion-color-contrast: var(--ion-color-primary-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-primary-contrast-rgb);
+  --ion-color-shade: var(--ion-color-primary-shade);
+  --ion-color-tint: var(--ion-color-primary-tint);
+}
+
+.ion-color-secondary {
+  --ion-color-base: var(--ion-color-secondary);
+  --ion-color-base-rgb: var(--ion-color-secondary-rgb);
+  --ion-color-contrast: var(--ion-color-secondary-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-secondary-contrast-rgb);
+  --ion-color-shade: var(--ion-color-secondary-shade);
+  --ion-color-tint: var(--ion-color-secondary-tint);
+}
+
+.ion-color-tertiary {
+  --ion-color-base: var(--ion-color-tertiary);
+  --ion-color-base-rgb: var(--ion-color-tertiary-rgb);
+  --ion-color-contrast: var(--ion-color-tertiary-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-tertiary-contrast-rgb);
+  --ion-color-shade: var(--ion-color-tertiary-shade);
+  --ion-color-tint: var(--ion-color-tertiary-tint);
+}
+
+.ion-color-success {
+  --ion-color-base: var(--ion-color-success);
+  --ion-color-base-rgb: var(--ion-color-success-rgb);
+  --ion-color-contrast: var(--ion-color-success-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-success-contrast-rgb);
+  --ion-color-shade: var(--ion-color-success-shade);
+  --ion-color-tint: var(--ion-color-success-tint);
+}
+
+.ion-color-warning {
+  --ion-color-base: var(--ion-color-warning);
+  --ion-color-base-rgb: var(--ion-color-warning-rgb);
+  --ion-color-contrast: var(--ion-color-warning-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-warning-contrast-rgb);
+  --ion-color-shade: var(--ion-color-warning-shade);
+  --ion-color-tint: var(--ion-color-warning-tint);
+}
+
+.ion-color-danger {
+  --ion-color-base: var(--ion-color-danger);
+  --ion-color-base-rgb: var(--ion-color-danger-rgb);
+  --ion-color-contrast: var(--ion-color-danger-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-danger-contrast-rgb);
+  --ion-color-shade: var(--ion-color-danger-shade);
+  --ion-color-tint: var(--ion-color-danger-tint);
+}
+
+.ion-color-dark {
+  --ion-color-base: var(--ion-color-dark);
+  --ion-color-base-rgb: var(--ion-color-dark-rgb);
+  --ion-color-contrast: var(--ion-color-dark-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-dark-contrast-rgb);
+  --ion-color-shade: var(--ion-color-dark-shade);
+  --ion-color-tint: var(--ion-color-dark-tint);
+}
+
+.ion-color-medium {
+  --ion-color-base: var(--ion-color-medium);
+  --ion-color-base-rgb: var(--ion-color-medium-rgb);
+  --ion-color-contrast: var(--ion-color-medium-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-medium-contrast-rgb);
+  --ion-color-shade: var(--ion-color-medium-shade);
+  --ion-color-tint: var(--ion-color-medium-tint);
+}
+
+.ion-color-light {
+  --ion-color-base: var(--ion-color-light);
+  --ion-color-base-rgb: var(--ion-color-light-rgb);
+  --ion-color-contrast: var(--ion-color-light-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-light-contrast-rgb);
+  --ion-color-shade: var(--ion-color-light-shade);
+  --ion-color-tint: var(--ion-color-light-tint);
+}
+
+/* =============================================================================
+   REGRAS GLOBAIS DE BASE, TIPOGRAFIA E ESTRUTURA
+   ============================================================================= */
+html,
+body,
+ion-app {
+  background-color: var(--ion-background-color);
+  color: var(--ion-text-color);
+  font-family: var(--ion-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Títulos com a nobreza do Design System */
+h1,
+h2,
+h3,
+.ion-title-display {
+  font-family: var(--font-family-display);
+  letter-spacing: -0.01em;
+}
+
+/* =============================================================================
+   IONIC CONTENT & RESPIRO LATERAL AUTOMÁTICO EM TODAS AS TELAS
+   ============================================================================= */
+ion-content {
+  --background: var(--ion-background-color);
+  --color: var(--ion-text-color);
+  --padding-start: var(--app-screen-padding-x);
+  --padding-end: var(--app-screen-padding-x);
+  --padding-top: var(--app-screen-safe-top);
+  --padding-bottom: var(--app-screen-safe-bottom);
+}
+
+/* Container padrão centralizado para garantir visual limpo e sofisticado em mobile/desktop */
+.screen-container,
+.app-screen-content {
+  width: 100%;
+  max-width: var(--app-screen-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--app-screen-padding-x);
+  padding-right: var(--app-screen-padding-x);
+  box-sizing: border-box;
+}
+
+/* Evita padding duplicado quando a view utiliza .screen-container */
+ion-content:has(.screen-container),
+ion-content:has(.app-screen-content) {
+  --padding-start: 0px;
+  --padding-end: 0px;
+}
+
+/* Padronização do ion-grid com o Design System Obsidian & Gold */
+ion-grid {
+  --ion-grid-padding: 0px;
+  --ion-grid-column-padding: 6px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  ion-grid {
+    --ion-grid-column-padding: 10px;
+  }
+}
+
+/* =============================================================================
+   PADRONIZAÇÃO AUTOMÁTICA DE COMPONENTES IONIC & HTML
+   ============================================================================= */
+
+/* 1. Botões (ion-button e botões nativos) */
+ion-button {
+  --border-radius: var(--ion-border-radius);
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+ion-button::part(native) {
+  border-radius: var(--ion-border-radius);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+ion-button:active::part(native) {
+  transform: scale(0.98);
+}
+
+/* Botões HTML gerais consistentes */
+button:not(.rounded-full):not([class*="rounded-"]) {
+  border-radius: var(--ion-border-radius);
+}
+
+/* 2. Cards (ion-card e cartões estruturais) */
+ion-card {
+  --background: var(--bg-card);
+  --color: var(--text-primary);
+  border-radius: var(--ion-border-radius);
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+  margin-bottom: var(--ion-margin);
+  border: 1px solid var(--border-card-subtle);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+}
+
+ion-card-header {
+  padding: 14px 16px;
+}
+
+ion-card-content {
+  color: var(--text-muted);
+  font-family: var(--font-family-desc);
+  font-size: 13px;
+  padding: 0 16px 16px 16px;
+}
+
+/* 3. Inputs & Textareas (ion-input, ion-textarea e formulários nativos) */
+ion-item {
+  --background: var(--bg-card);
+  --color: var(--text-primary);
+  --border-color: var(--border-card-subtle);
+  --highlight-color-focused: var(--gold-primary);
+  --border-radius: var(--ion-border-radius);
+  border-radius: var(--ion-border-radius);
+}
+
+ion-input,
+ion-textarea,
+ion-select {
+  --border-radius: var(--ion-border-radius);
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-muted);
+  --placeholder-opacity: 0.65;
+  font-family: var(--font-family-desc);
+  font-size: 13px;
+}
+
+/* Inputs HTML nativos para manter fidelidade em views com Tailwind */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+textarea,
+select {
+  border-radius: var(--ion-border-radius);
+}
+
+/* 4. Checkboxes (ion-checkbox e inputs de verificação) */
+ion-checkbox {
+  --size: 18px;
+  --border-radius: var(--app-radius-xs);
+  --checkbox-background: var(--bg-obsidian);
+  --checkbox-background-checked: var(--gold-primary);
+  --checkmark-color: var(--bg-obsidian);
+  --border-color: rgba(201, 168, 106, 0.4);
+  --border-color-checked: var(--gold-primary);
+  --border-width: 1px;
+}
+
+ion-checkbox::part(container) {
+  border-radius: var(--app-radius-xs);
+}
+
+/* Checkbox HTML nativo */
+input[type="checkbox"] {
+  border-radius: var(--app-radius-xs);
+  accent-color: var(--gold-primary);
+}
+
+/* 5. Toolbars, Headers e Títulos */
+ion-toolbar {
+  --background: var(--bg-obsidian);
+  --color: var(--text-primary);
+  --border-color: var(--border-gold-subtle);
+  --border-width: 0 0 1px 0;
+  --padding-start: var(--app-screen-padding-x);
+  --padding-end: var(--app-screen-padding-x);
+}
+
+ion-title {
+  font-family: var(--font-family-brand);
+  letter-spacing: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-accent);
+  text-transform: uppercase;
+}
+
+/* 6. Searchbars */
+ion-searchbar {
+  --background: var(--bg-card);
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-muted);
+  --icon-color: var(--text-muted);
+  --clear-button-color: var(--text-muted);
+  --border-radius: var(--ion-border-radius);
+  --box-shadow: none;
+  border: 1px solid var(--border-card-subtle);
+  border-radius: var(--ion-border-radius);
+  padding: 0;
+}
+
+/* 7. Badges e Chips */
+ion-badge,
+ion-chip {
+  --border-radius: var(--app-radius-xs);
+  font-family: var(--font-family-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* 8. Tab Bar inferior */
+ion-tab-bar {
+  --background: var(--bg-obsidian);
+  --border: 1px solid rgba(255, 255, 255, 0.06);
+  --color: var(--text-subtle);
+  --color-selected: var(--gold-accent);
+}
+
+/* =============================================================================
+   CLASSES UTILITÁRIAS DE TIPOGRAFIA DO PROJETO
+   ============================================================================= */
+.font-cinzel {
+  font-family: var(--font-family-brand);
+}
+
+.font-playfair {
+  font-family: var(--font-family-display);
+}
+
+.font-montserrat {
+  font-family: var(--font-family-desc);
+}
+
+.font-jetbrains {
+  font-family: var(--font-family-mono);
+}
+
+.font-inter {
+  font-family: var(--font-family-body);
+}
+
+/* Classes utilitárias de cores TattooFlow */
+.text-gold-primary {
+  color: var(--gold-primary);
+}
+
+.text-gold-accent {
+  color: var(--gold-accent);
+}
+
+.text-gold-light {
+  color: var(--gold-light);
+}
+
+.text-gold-dark {
+  color: var(--gold-dark);
+}
+
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-muted {
+  color: var(--text-muted);
+}
+
+.bg-obsidian {
+  background-color: var(--bg-obsidian);
+}
+
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.bg-subcard {
+  background-color: var(--bg-subcard);
+}
+
+.border-gold-subtle {
+  border-color: var(--border-gold-subtle);
+}
+
+.border-card-subtle {
+  border-color: var(--border-card-subtle);
+}
+
+/* Ocultação de barras de rolagem nativas para experiência mobile fluida */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

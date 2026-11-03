@@ -23,4 +23,12 @@ public class ItemEstoque {
     private Integer quantidade;
     private Integer quantidadeMinima;
     private String unidadeMedida;
+
+    public String getItem() {
+        return nome;
+    }
+
+    public void setItem(String item) {
+        this.nome = item;
+    }
 }

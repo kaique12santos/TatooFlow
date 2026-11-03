@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   profiles:
     active: dev
   application:
@@ -6,3 +10,40 @@ spring:
 
 server:
   port: 8080
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  api-url: ${GEMINI_API_URL:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent}
+
+instagram:
+  account-id: ${INSTAGRAM_ACCOUNT_ID:}
+  access-token: ${INSTAGRAM_ACCESS_TOKEN:}
+  api-version: ${INSTAGRAM_API_VERSION:v21.0}
+
+integrations:
+  whatsapp:
+    enabled: ${WHATSAPP_ENABLED:false}
+    mock:
+      enabled: ${WHATSAPP_MOCK_ENABLED:false}
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:}
+    app-secret: ${WHATSAPP_APP_SECRET:}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    business-account-id: ${WHATSAPP_BUSINESS_ACCOUNT_ID:}
+    graph-api-version: ${WHATSAPP_GRAPH_API_VERSION:}
+
+notificacoes:
+  cuidados:
+    enabled: ${NOTIFICACOES_CUIDADOS_ENABLED:true}
+    pre-horas: ${NOTIFICACOES_CUIDADOS_PRE_HORAS:24}
+    pos-horas: ${NOTIFICACOES_CUIDADOS_POS_HORAS:2}
+    intervalo-ms: ${NOTIFICACOES_CUIDADOS_INTERVALO_MS:60000}
+    zona: ${NOTIFICACOES_CUIDADOS_ZONA:America/Sao_Paulo}
+    whatsapp-template-pre: ${NOTIFICACOES_CUIDADOS_WHATSAPP_TEMPLATE_PRE:cuidados_pre_sessao}
+    whatsapp-template-pos: ${NOTIFICACOES_CUIDADOS_WHATSAPP_TEMPLATE_POS:cuidados_pos_sessao}
+    whatsapp-idioma: ${NOTIFICACOES_CUIDADOS_WHATSAPP_IDIOMA:pt_BR}

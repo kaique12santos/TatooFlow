@@ -23,6 +23,6 @@ public class Convite {
     @Column(nullable = false)
     private String emailConvidado;
 
-    private Boolean utilzado;
+    private Boolean utilizado;
     private LocalDateTime dataExpiracao;
 }

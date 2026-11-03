@@ -27,7 +27,10 @@ public class Agendamento {
     @Column(nullable = false)
     private LocalDateTime dataHora;
 
+    @Column (nullable = false)
+    private Integer duracaoMinutos;
+
     private String descricaoSessao;
     private BigDecimal valorEstimado;
-    private String status; // AGENDADO, EM_ANDAMENTO, CONCLUIDO, CANCELADO
+    private String status; // AGENDADO, CONFIRMADO, EM_ANDAMENTO, CONCLUIDO, CANCELADO
 }
