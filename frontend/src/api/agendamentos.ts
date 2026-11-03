@@ -1,6 +1,6 @@
-import { apiRequest } from './http';
+import { apiRequest, apiRequestBlob } from './http';
 
-export type StatusAgendamento = 'AGENDADO' | 'EM_ANDAMENTO' | 'CONCLUIDO' | 'CANCELADO';
+export type StatusAgendamento = 'AGENDADO' | 'CONFIRMADO' | 'EM_ANDAMENTO' | 'CONCLUIDO' | 'CANCELADO';
 
 export interface ClienteAgenda {
   id: number;
@@ -31,6 +31,25 @@ export type NovoAgendamento = Omit<Agendamento, 'id'>;
 export const listarAgendamentos = () => apiRequest<Agendamento[]>('/api/agendamentos');
 export const listarClientesAgenda = () => apiRequest<ClienteAgenda[]>('/api/clientes');
 export const listarUsuariosAgenda = () => apiRequest<UsuarioAgenda[]>('/api/usuarios');
+export const buscarComprovanteSinal = (id: number) => apiRequestBlob(`/api/agendamentos/${id}/sinal/comprovante`);
+
+export interface PagamentoSinal {
+  id: number;
+  agendamentoId: number;
+  valor: number;
+  tipo: string;
+  status: string;
+  comprovanteNome?: string;
+  dataPagamento?: string;
+}
+
+export const registrarSinalAgendamento = (id: number, valor: number, comprovante: File) => {
+  const body = new FormData();
+  body.set('valor', valor.toFixed(2));
+  body.set('formaPagamento', 'PIX');
+  body.set('comprovante', comprovante);
+  return apiRequest<PagamentoSinal>(`/api/agendamentos/${id}/sinal`, { method: 'POST', body });
+};
 
 /**
  * Consulta a agenda filtrando por período (dia/semana/mês) e filtros opcionais [F5-BACK-01].

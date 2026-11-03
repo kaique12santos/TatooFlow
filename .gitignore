@@ -33,4 +33,6 @@ yarn-error.log*
 Thumbs.db
 
 backend/storage/
+backend/data/
+.local/
 

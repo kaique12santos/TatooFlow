@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -39,7 +40,7 @@ class AgendamentoServiceTest {
     private Agendamento agendamento(Long id, LocalDateTime inicio, int duracao) {
         return Agendamento.builder()
                 .id(id).clienteId(1L).tatuadorId(1L)
-                .dataHora(inicio).duracaoMinutos(duracao).status("AGENDADO")
+                .dataHora(inicio).duracaoMinutos(duracao).status("AGENDADO").valorEstimado(new BigDecimal("350.00"))
                 .build();
     }
 
@@ -81,11 +82,35 @@ class AgendamentoServiceTest {
         when(repository.buscarCandidatosConflito(any(), any(), any())).thenReturn(List.of());
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Agendamento novo = Agendamento.builder().clienteId(1L).tatuadorId(1L).dataHora(base).build();
+        Agendamento novo = Agendamento.builder().clienteId(1L).tatuadorId(1L).dataHora(base).valorEstimado(new BigDecimal("350.00")).build();
         Agendamento salvo = service.salvar(novo);
 
         assertEquals(60, salvo.getDuracaoMinutos());
         assertEquals("AGENDADO", salvo.getStatus());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"0", "-1", "350.001"})
+    void deveRecusarValorEstimadoAusenteOuInvalido(String valor) {
+        Agendamento novo = agendamento(null, base, 60);
+        novo.setValorEstimado(valor == null ? null : new BigDecimal(valor));
+
+        BusinessException erro = assertThrows(BusinessException.class, () -> service.salvar(novo));
+
+        assertTrue(erro.getMessage().contains("valor estimado"));
+        verify(repository, never()).save(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0.01", "350.00", "350.010"})
+    void deveAceitarValorEstimadoPositivoComPrecisaoDeCentavos(String valor) {
+        Agendamento novo = agendamento(null, base, 60);
+        novo.setValorEstimado(new BigDecimal(valor));
+        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        assertEquals(new BigDecimal(valor), service.salvar(novo).getValorEstimado());
+        verify(repository).save(novo);
     }
 
     @ParameterizedTest

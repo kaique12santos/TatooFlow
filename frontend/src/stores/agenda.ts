@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { computed, markRaw, ref } from 'vue';
-import { Calendar, CheckCircle2, Play, Syringe, X } from '@lucide/vue';
+import { Calendar, CheckCircle2, FileText, FileUp, Play, Syringe, X } from '@lucide/vue';
 import type { SessionCardItem } from '@/components/SessionCard.vue';
 import {
   listarAgendamentos, listarClientesAgenda, listarUsuariosAgenda, salvarAgendamento,
@@ -18,7 +18,8 @@ export const useAgendaStore = defineStore('agenda', () => {
   const updatingId = ref<number | null>(null);
 
   const statusInfo = {
-    AGENDADO: { label: 'AGENDADO', category: 'confirmados', icon: Calendar, color: 'text-[#e6c383]' },
+    AGENDADO: { label: 'AGENDADO', category: 'agendados', icon: Calendar, color: 'text-[#e6c383]' },
+    CONFIRMADO: { label: 'CONFIRMADO', category: 'confirmados', icon: CheckCircle2, color: 'text-[#c8e6c9]' },
     EM_ANDAMENTO: { label: 'EM ANDAMENTO', category: 'andamento', icon: Syringe, color: 'text-[#b8d5f5]' },
     CONCLUIDO: { label: 'CONCLUÍDO', category: 'concluidos', icon: CheckCircle2, color: 'text-[#c8e6c9]' },
     CANCELADO: { label: 'CANCELADO', category: 'cancelados', icon: X, color: 'text-[#ef8b83]' },
@@ -29,7 +30,8 @@ export const useAgendaStore = defineStore('agenda', () => {
     const inicio = new Date(registro.dataHora);
     const fim = new Date(inicio.getTime() + registro.duracaoMinutos * 60000);
     const hora = (data: Date) => data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const podeAlterar = registro.status === 'AGENDADO' || registro.status === 'EM_ANDAMENTO';
+    const podeAlterar = registro.status === 'AGENDADO' || registro.status === 'CONFIRMADO' || registro.status === 'EM_ANDAMENTO';
+    const podeVerSinal = ['CONFIRMADO', 'EM_ANDAMENTO', 'CONCLUIDO'].includes(registro.status);
     return {
       id: registro.id,
       category: status.category,
@@ -49,11 +51,13 @@ export const useAgendaStore = defineStore('agenda', () => {
         `${registro.duracaoMinutos} min`,
         `#${registro.id}`,
       ],
-      actions: podeAlterar ? [
-        ...(registro.status === 'AGENDADO' ? [{ label: 'INICIAR', icon: markRaw(Play) }] : []),
-        { label: 'CONCLUIR', icon: markRaw(CheckCircle2), primary: true },
-        { label: 'CANCELAR', icon: markRaw(X) },
-      ] : [],
+      actions: [
+        ...(podeVerSinal ? [{ label: 'VER SINAL', icon: markRaw(FileText) }] : []),
+        ...(registro.status === 'AGENDADO' ? [{ label: 'ANEXAR COMPROVANTE', icon: markRaw(FileUp), primary: true }] : []),
+        ...(registro.status === 'CONFIRMADO' ? [{ label: 'INICIAR', icon: markRaw(Play), primary: true }] : []),
+        ...(registro.status === 'CONFIRMADO' || registro.status === 'EM_ANDAMENTO' ? [{ label: 'CONCLUIR', icon: markRaw(CheckCircle2) }] : []),
+        ...(podeAlterar ? [{ label: 'CANCELAR', icon: markRaw(X) }] : []),
+      ],
     };
   }));
 
@@ -68,6 +72,9 @@ export const useAgendaStore = defineStore('agenda', () => {
       clientes.value = pessoas;
       usuarios.value = equipe;
     } catch (err) {
+      registros.value = [];
+      clientes.value = [];
+      usuarios.value = [];
       error.value = err instanceof Error ? err.message : 'Não foi possível carregar a agenda.';
     } finally {
       isLoading.value = false;
