@@ -55,7 +55,7 @@
           {{ triageStore.error }}
           <button type="button" @click="carregar" class="block underline mt-2">Tentar novamente</button>
         </div>
-        <p v-if="triageStore.isLoading" role="status" class="py-8 text-sm text-[#a39e93]">Carregando triagem...</p>
+        <output v-if="triageStore.isLoading" class="block py-8 text-sm text-[#a39e93]">Carregando triagem...</output>
         <div v-else-if="!triageStore.error && !triageStore.clients.length" class="rounded-[4px] border border-white/5 bg-[#141416] p-5 mb-4 text-center">
           <h2 class="font-playfair text-xl">Nenhum atendimento em triagem</h2>
           <p class="font-inter text-xs text-[#a39e93] mt-2">Cadastre um cliente ou crie um novo agendamento para iniciar o atendimento.</p>

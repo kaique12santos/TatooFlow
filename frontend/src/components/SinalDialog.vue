@@ -11,7 +11,7 @@
           <div><dt class="text-[#a39e93]">Status</dt><dd>Recebido</dd></div>
           <div><dt class="text-[#a39e93]">Comprovante</dt><dd class="break-words">{{ sinal.receiptName || 'Nome do arquivo não disponível' }}</dd></div>
         </dl>
-        <p v-if="loading" role="status" class="mt-5 text-sm text-[#a39e93]">Carregando comprovante...</p>
+        <output v-if="loading" class="block mt-5 text-sm text-[#a39e93]">Carregando comprovante...</output>
         <div v-if="error" role="alert" class="mt-5 text-sm text-[#ef8b83]">
           <p>{{ error }}</p>
           <button type="button" @click="$emit('retry')" class="mt-2 underline">Tentar novamente</button>

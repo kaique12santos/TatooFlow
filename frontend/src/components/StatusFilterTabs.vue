@@ -1,8 +1,9 @@
 <template>
-  <div ref="scrollContainer" class="status-filter-scroll mb-5" :class="{ 'is-dragging': isDragging }"
-    role="group" aria-label="Filtros por status" tabindex="0" @wheel="scrollWithWheel"
+  <fieldset ref="scrollContainer" class="status-filter-scroll" :class="{ 'is-dragging': isDragging }"
+    @keydown="navigateFilters" @wheel="scrollWithWheel"
     @pointerdown="startDrag" @pointermove="dragFilters" @pointerup="endDrag" @pointercancel="endDrag"
     @lostpointercapture="endDrag" @click.capture="cancelDragClick" @dragstart.prevent>
+    <legend class="sr-only">Filtros por status</legend>
     <div class="flex flex-nowrap items-center gap-1.5 w-max pb-2">
       <button
         v-for="tab in tabs"
@@ -30,7 +31,7 @@
         </span>
       </button>
     </div>
-  </div>
+  </fieldset>
 </template>
 
 <script setup lang="ts">
@@ -63,8 +64,12 @@ function revealSelectedFilter() {
   if (!container || !selected) return;
   const viewport = container.getBoundingClientRect();
   const button = selected.getBoundingClientRect();
-  const left = button.left < viewport.left ? button.left - viewport.left
-    : button.right > viewport.right ? button.right - viewport.right : 0;
+  let left = 0;
+  if (button.left < viewport.left) {
+    left = button.left - viewport.left;
+  } else if (button.right > viewport.right) {
+    left = button.right - viewport.right;
+  }
   if (left) container.scrollBy({ left, behavior: 'smooth' });
 }
 
@@ -72,9 +77,31 @@ function scrollWithWheel(event: WheelEvent) {
   const container = scrollContainer.value;
   if (!container || event.ctrlKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
   const previous = container.scrollLeft;
-  const step = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? container.clientWidth : 1;
+  let step = 1;
+  if (event.deltaMode === 1) {
+    step = 16;
+  } else if (event.deltaMode === 2) {
+    step = container.clientWidth;
+  }
   container.scrollLeft += event.deltaY * step;
   if (container.scrollLeft !== previous) event.preventDefault();
+}
+
+function navigateFilters(event: KeyboardEvent) {
+  if (!(event.target instanceof HTMLButtonElement) || event.altKey || event.ctrlKey || event.metaKey) return;
+  const buttons = Array.from(scrollContainer.value?.querySelectorAll<HTMLButtonElement>('button') || []);
+  const current = buttons.indexOf(event.target);
+  if (current < 0) return;
+  let next = current;
+  switch (event.key) {
+    case 'ArrowLeft': next = Math.max(0, current - 1); break;
+    case 'ArrowRight': next = Math.min(buttons.length - 1, current + 1); break;
+    case 'Home': next = 0; break;
+    case 'End': next = buttons.length - 1; break;
+    default: return;
+  }
+  event.preventDefault();
+  buttons[next]?.focus();
 }
 
 function startDrag(event: PointerEvent) {
@@ -127,6 +154,10 @@ function selectFilter(id: string) {
 
 <style scoped>
 .status-filter-scroll {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
   width: 100%;
   max-width: 100%;
   min-width: 0;
