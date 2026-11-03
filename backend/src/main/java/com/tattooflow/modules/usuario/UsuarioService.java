@@ -23,9 +23,34 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
+    public List<ArtistaEquipeResponse> listarArtistasEquipe() {
+        return usuarioRepository.findByPerfil("TATUADOR").stream()
+                .map(ArtistaEquipeResponse::from)
+                .toList();
+    }
+
     public Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + id));
+    }
+
+    @Transactional
+    public ArtistaEquipeResponse alterarAtivo(Long id, boolean ativo) {
+        Usuario usuario = buscarPorId(id);
+        if (!"TATUADOR".equals(usuario.getPerfil())) {
+            throw new ResourceNotFoundException("Artista não encontrado com ID: " + id);
+        }
+        usuario.setAtivo(ativo);
+        return ArtistaEquipeResponse.from(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public void excluirArtista(Long id) {
+        Usuario usuario = buscarPorId(id);
+        if (!"TATUADOR".equals(usuario.getPerfil())) {
+            throw new ResourceNotFoundException("Artista não encontrado com ID: " + id);
+        }
+        usuarioRepository.delete(usuario);
     }
 
     @Transactional

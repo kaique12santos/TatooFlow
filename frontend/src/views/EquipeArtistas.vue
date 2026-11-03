@@ -320,7 +320,6 @@ const filterOptions = computed(() => [
   { id: 'inativos', label: `INATIVOS (${artistsStore.stats.inativos})` },
 ]);
 
-// Sincroniza corpo de artistas do backend com fallback mock
 onMounted(async () => {
   await artistsStore.fetchArtists();
 });

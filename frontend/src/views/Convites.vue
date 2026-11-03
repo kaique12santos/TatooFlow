@@ -284,9 +284,9 @@ function handleBack() {
 const heroImage = 'https://s3-alpha-sig.figma.com/img/e50a/06e1/5f90aaa2ed7535632339e8df873aa5f4?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=XPkhlwiepG0U5OxiSEy64vwkVwDhYHK59hL6n6cAnw1YnN0pm25i~ITQ-8HC8YD-ke17dTGdB7dUICNheaTE5wKyyqIy-Pt4BmV~1gC5~5sWoBwvWAckylOfnMNvk4ZEUNJtwO3-C8LL2HhaNWIDpUYxnXsYbLRhuZm-BCQbx71HTGuJCEsuqPQocMEpR0Ix0EOvcsqX65rTLHzbXgkFPGIkJ193Kyxk6AzvH84PQIVBRiU1IUm8iCtmcVEeMkwUx3sLi9g28BvL2SGiukCSQQpd2oC5RmiHegx7X3h6hUrCLPK1iglTx~q8-mStOaK3Vi6ZY~Odo8YMeia6rpGhAg__';
 
 // Form state
-const artistName = ref('Gabriel D. Marcenna');
-const artistEmail = ref('gabriel@newconcept.art');
-const artistPhone = ref('+55 (11) 98765-4321');
+const artistName = ref('');
+const artistEmail = ref('');
+const artistPhone = ref('');
 const autoPin = ref(true);
 const generatedPin = ref('749 • 201');
 const selectedValidity = ref('48h');
@@ -298,7 +298,6 @@ const validityOptions = [
   { label: '7 DIAS', value: '7d' },
 ];
 
-// Sincroniza convites do backend ou mantém fallback mock local
 onMounted(async () => {
   await invitesStore.fetchInvites();
 });
@@ -319,7 +318,6 @@ async function sendInvite() {
 
   isSubmitting.value = true;
   try {
-    // Executa disparo com verificação condicional (backend se disponível vs fallback mock)
     const result = await invitesStore.createInvite({
       name: artistName.value,
       email: artistEmail.value,
@@ -338,8 +336,12 @@ async function sendInvite() {
 }
 
 function copyLink() {
-  const token = `token-${Date.now().toString(36)}`;
-  const link = `${window.location.origin}/#/definir-pin-ativacao?token=${token}&pin=${encodeURIComponent(generatedPin.value)}`;
+  const token = recentInvites.value[0]?.token;
+  if (!token) {
+    alert('Crie um convite antes de copiar o link de ativação.');
+    return;
+  }
+  const link = `${window.location.origin}/#/definir-pin-ativacao?token=${encodeURIComponent(token)}`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(link).catch(() => {});
   }

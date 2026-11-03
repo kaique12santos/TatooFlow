@@ -26,6 +26,12 @@ public class ConviteService {
         return conviteRepository.findAll();
     }
 
+    public List<EquipeConviteResponse> listarConvitesEquipe() {
+        return conviteRepository.findAll().stream()
+                .map(EquipeConviteResponse::from)
+                .toList();
+    }
+
     @Transactional
     public Convite buscarPorCodigo(String codigo) {
     return conviteRepository
@@ -43,6 +49,17 @@ public class ConviteService {
                 .build();
 
         return conviteRepository.save(novoConvite);
+    }
+
+    @Transactional
+    public Convite reenviarConvite(Long id) {
+        Convite convite = conviteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Convite não encontrado com ID: " + id));
+        if (Boolean.TRUE.equals(convite.getUtilizado())) {
+            throw new com.tattooflow.common.exception.BusinessException("Convite já utilizado não pode ser reenviado");
+        }
+        convite.setDataExpiracao(LocalDateTime.now().plusDays(7));
+        return conviteRepository.save(convite);
     }
 
     @Transactional
