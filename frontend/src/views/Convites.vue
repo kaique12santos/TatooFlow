@@ -268,9 +268,11 @@ import { Shield, UserCheck, Mail, MessageSquare, RefreshCw, Lock, Send, Copy, Cl
 import { useRouter } from 'vue-router';
 import AppHeader from '../components/AppHeader.vue';
 import { useInvitesStore, type InviteItem } from '@/stores/invites';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const invitesStore = useInvitesStore();
+const alert = useAlert();
 
 function handleBack() {
   if (window.history.length > 1) {
@@ -313,7 +315,7 @@ function regeneratePin() {
 
 async function sendInvite() {
   if (!artistName.value.trim()) {
-    alert('Por favor, informe o nome do artista convidado.');
+    await alert.warning('Por favor, informe o nome do artista convidado antes de emitir a credencial.', 'Nome Obrigatório');
     return;
   }
 
@@ -329,25 +331,26 @@ async function sendInvite() {
       validity: selectedValidity.value,
     });
 
-    alert(result.message);
+    await alert.success(result.message, 'Convite Emitido');
   } catch (err) {
     console.warn('[Convites] Erro no envio do convite:', err);
+    await alert.error('Falha ao processar o envio do convite.', 'Erro');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-function copyLink() {
+async function copyLink() {
   const token = `token-${Date.now().toString(36)}`;
   const link = `${window.location.origin}/#/definir-pin-ativacao?token=${token}&pin=${encodeURIComponent(generatedPin.value)}`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(link).catch(() => {});
   }
-  alert(`Link de ativação copiado:\n${link}`);
+  await alert.info(`Link de ativação copiado para a área de transferência:\n\n${link}`, 'Link de Ativação');
 }
 
 async function resendInvite(inviteIdOrName: string) {
   const result = await invitesStore.resendInvite(inviteIdOrName);
-  alert(result.message);
+  await alert.success(result.message, 'Reenvio de Convite');
 }
 </script>

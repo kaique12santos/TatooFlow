@@ -280,10 +280,12 @@ import {
 } from '@lucide/vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const alert = useAlert();
 
 // Brand & Studio Assets
 const imgLogo =
@@ -357,8 +359,8 @@ function handleProfile() {
   console.log('Profile opened');
 }
 
-function handleBiometric() {
-  alert(`Biometria validada com sucesso para ${artistName.value}. Terminal liberado para configuração.`);
+async function handleBiometric() {
+  await alert.success(`Biometria validada com sucesso para ${artistName.value}. Terminal liberado para configuração.`, 'Biometria Aprovada');
 }
 
 function accessTerminal() {
@@ -374,7 +376,7 @@ function accessTerminal() {
 async function resendWhatsapp() {
   // Callback com verificação condicional (backend se configurado vs simulação local)
   const result = await authStore.resendTemporaryPin(token.value);
-  alert(result.message);
+  await alert.info(result.message, 'Código Temporário');
 }
 
 // Bottom Navigation

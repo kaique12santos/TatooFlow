@@ -693,10 +693,12 @@ import {
 } from '@lucide/vue';
 import AppHeader from '../components/AppHeader.vue';
 import { useClientsStore, type ClientArtwork } from '@/stores/clients';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const route = useRoute();
 const clientsStore = useClientsStore();
+const alert = useAlert();
 
 // Client ID dinâmico vindo da rota ou padrão
 const clientId = computed(() => (route.query.id as string) || '1');
@@ -765,12 +767,12 @@ function openNovaSessaoModal() {
 
 async function openDisparoTermoModal() {
   const result = await clientsStore.dispatchTermoWhatsapp(clientId.value);
-  alert(result.message);
+  await alert.success(result.message, 'Termo Notarial');
 }
 
-function exportPdf() {
+async function exportPdf() {
   const c = client.value;
-  alert(`Exportando Dossiê Artístico ${c?.dossierNumber || ''} de ${c?.name || 'Cliente'} em PDF de alta resolução...`);
+  await alert.info(`Exportando Dossiê Artístico ${c?.dossierNumber || ''} de ${c?.name || 'Cliente'} em PDF notarial de alta resolução...`, 'Exportação de Dossiê');
 }
 
 async function savePosMessage() {

@@ -31,9 +31,11 @@ import { ref } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const alert = useAlert();
 const pin = ref('');
 const deviceId = ref(authStore.deviceId);
 const errorMessage = ref('');
@@ -49,6 +51,16 @@ async function submitLogin() {
     errorMessage.value = result.message;
     return;
   }
+
+  // Notificação personalizada de boas-vindas e governança antes do redirecionamento
+  await alert.showLoginSuccess({
+    userName: authStore.user.name,
+    userRole: authStore.user.role,
+    userStation: authStore.user.station,
+    deviceId: deviceId.value.trim(),
+    message: result.message,
+  });
+
   router.replace('/');
 }
 </script>

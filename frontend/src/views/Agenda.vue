@@ -3,7 +3,7 @@
     <ion-content class="bg-[#09090b] text-[#f2ebd9]" fullscreen>
       <main class="min-h-screen bg-[#09090b] pb-28 max-w-[560px] mx-auto px-5 pt-4">
         <AppHeader @click-profile="router.push('/perfil')" />
-        <router-link to="/triagem" class="inline-flex items-center gap-2 text-sm text-[#c9a86a] py-2 mt-3">
+        <router-link v-if="authStore.isAdmin" to="/triagem" class="inline-flex items-center gap-2 text-sm text-[#c9a86a] py-2 mt-3">
           <ArrowLeft class="w-4 h-4" /> Retornar para triagem
         </router-link>
         <div class="flex items-end justify-between gap-3 mt-6 mb-5">
@@ -72,11 +72,15 @@ import SessionCard, { type SessionCardItem } from '@/components/SessionCard.vue'
 import StatusFilterTabs from '@/components/StatusFilterTabs.vue';
 import SinalDialog, { type SinalDetails } from '@/components/SinalDialog.vue';
 import { useAgendaStore } from '@/stores/agenda';
+import { useAuthStore } from '@/stores/auth';
+import { useAlert } from '@/composables/useAlert';
 import { buscarComprovanteSinal, type StatusAgendamento } from '@/api/agendamentos';
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 const agendaStore = useAgendaStore();
+const alert = useAlert();
 const busca = ref('');
 const filtro = ref('todos');
 const dataSelecionada = ref('');
@@ -142,9 +146,23 @@ async function alterarStatus({ action, card }: { action: string; card: SessionCa
   const status: Record<string, StatusAgendamento> = { INICIAR: 'EM_ANDAMENTO', CONCLUIR: 'CONCLUIDO', CANCELAR: 'CANCELADO' };
   const proximo = status[action];
   if (!proximo) return;
-  if (action === 'CANCELAR' && !window.confirm(`Cancelar a sessão de ${card.clientName}?`)) return;
+
+  if (action === 'CANCELAR') {
+    const confirmou = await alert.confirmDestructive({
+      title: 'Cancelar Atendimento',
+      description: `Tem certeza que deseja cancelar a sessão de ${card.clientName} (${card.time})? O horário na bancada será liberado.`,
+      confirmLabel: 'Sim, Cancelar Sessão',
+      cancelLabel: 'Manter Agendamento',
+    });
+    if (!confirmou) return;
+  }
+
   aviso.value = '';
-  if (await agendaStore.updateSessionStatus(card.id, proximo)) aviso.value = `Sessão #${card.id} atualizada com sucesso.`;
+  if (await agendaStore.updateSessionStatus(card.id, proximo)) {
+    const msg = proximo === 'CANCELADO' ? `Sessão #${card.id} foi cancelada.` : `Sessão #${card.id} atualizada com sucesso.`;
+    aviso.value = msg;
+    await alert.success(msg);
+  }
 }
 
 async function carregarComprovante() {

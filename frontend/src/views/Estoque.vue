@@ -218,8 +218,6 @@
         </ion-grid>
       </div>
 
-      <!-- Bottom Navigation Bar -->
-     
     </ion-content>
   </ion-page>
 </template>
@@ -231,13 +229,7 @@ import {
   Package,
   Wallet,
   AlertTriangle,
-  Syringe,
-  Pipette,
-  BadgeCheck,
   FileText,
-  ClipboardList,
-  Layers,
-  ScrollText,
 } from '@lucide/vue';
 import { useRouter } from 'vue-router';
 import AppHeader from '../components/AppHeader.vue';
@@ -258,19 +250,5 @@ const activeSection = ref<'insumos' | 'repasses'>('insumos');
 
 function cadastrarInsumos() {
   router.push('/cadastrar-insumo');
-}
-
-// Navigation Tabs
-const navItems = [
-  { id: 'triagem', label: 'TRIAGEM', icon: ClipboardList, path: '/triagem' },
-  { id: 'midia', label: 'MÍDIA & IA', icon: Layers, path: '/performance-artistas' },
-  { id: 'termo', label: 'TERMO', icon: ScrollText, path: '/termo' },
-  { id: 'gestao', label: 'GESTÃO', icon: Wallet, path: '/fechamento' },
-];
-
-function navigate(item: typeof navItems[0]) {
-  if (item.path) {
-    router.push(item.path).catch(() => {});
-  }
 }
 </script>

@@ -322,7 +322,9 @@
       </div>
       <div v-if="!client" class="p-6 text-sm text-[#a39e93]">
         <p>Selecione um cliente cadastrado para continuar.</p>
-        <router-link to="/triagem" class="block mt-4 text-[#c9a86a]">Retornar para triagem</router-link>
+        <router-link :to="authStore.isAdmin ? '/triagem' : '/agenda'" class="block mt-4 text-[#c9a86a]">
+          {{ authStore.isAdmin ? 'Retornar para triagem' : 'Retornar para agenda' }}
+        </router-link>
       </div>
     </ion-content>
   </ion-page>
@@ -345,11 +347,15 @@ import {
 } from '@lucide/vue';
 import { useTriageStore } from '@/stores/triage';
 import { useInventoryStore } from '@/stores/inventory';
+import { useAuthStore } from '@/stores/auth';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const route = useRoute();
 const triageStore = useTriageStore();
 const inventoryStore = useInventoryStore();
+const authStore = useAuthStore();
+const alert = useAlert();
 
 // Contexto da sessão recebido via query ou padrão
 const sessionId = computed(() => {
@@ -451,15 +457,26 @@ function handleBack() {
   }
 }
 
-function handleMenu() {
+async function handleMenu() {
   if (!client.value) return;
-  alert(`Opções do Kit ${client.value.lotId}: Duplicar kit cirúrgico, redefinir para o padrão ou alterar almoxarifado.`);
+  await alert.info(
+    `Lote Cirúrgico: ${client.value.lotId || 'Ativo'}\n• Duplicação de kit liberada\n• Padrão da bancada configurado\n• Saldo sincronizado em tempo real`,
+    'Opções do Kit'
+  );
 }
 
 async function confirmarReserva() {
   if (!client.value) return;
-  isReserving.value = true;
 
+  const confirmed = await alert.confirm({
+    title: 'Confirmar Alocação de Insumos',
+    description: `Deseja baixar ${kitItems.value.length} insumos cirúrgicos do almoxarifado para a bancada de ${client.value.name}?`,
+    confirmLabel: 'Confirmar Baixa',
+    cancelLabel: 'Revisar Kit',
+  });
+  if (!confirmed) return;
+
+  isReserving.value = true;
   try {
     const result = await inventoryStore.allocateMaterials(
       sessionId.value,
@@ -472,15 +489,21 @@ async function confirmarReserva() {
     showSuccessModal.value = true;
   } catch (err: any) {
     console.error('[AlocacaoMateriais] Erro ao alocar materiais via store:', err);
-    alert(err?.message || 'Falha ao registrar alocação de estoque no servidor.');
+    await alert.error(err?.message || 'Falha ao registrar alocação de estoque no servidor.', 'Erro na Alocação');
   } finally {
     isReserving.value = false;
   }
 }
 
-function enviarGuiaWhatsApp() {
+async function enviarGuiaWhatsApp() {
   if (!client.value) return;
-  alert(`Guia Oficial de Pré e Pós-Cuidados do Atelier disparado para o WhatsApp de ${client.value.name} (${client.value.phone}).`);
+  const cleanPhone = (client.value.phone || '').replace(/\D/g, '');
+  if (cleanPhone) {
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
+    await alert.success(`Guia Oficial de Pré e Pós-Cuidados do Atelier preparado para envio a ${client.value.name}.`, 'Guia Disparado');
+  } else {
+    await alert.info(`Guia Oficial de Pré e Pós-Cuidados do Atelier disparado para o contato de ${client.value.name}.`, 'Guia de Cuidados');
+  }
 }
 
 function irParaAgenda() {
