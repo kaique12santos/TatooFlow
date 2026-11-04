@@ -26,9 +26,25 @@
         </div>
 
         <!-- Search Bar Input -->
-        <div class="flex gap-3 mb-5">
+        <div class="flex gap-3 mb-3">
           <router-link to="/agenda" class="flex-1 text-center rounded border border-[#c9a86a]/40 py-3 text-xs font-bold text-[#e6c383]">Ver agenda</router-link>
           <router-link to="/agendamento-sessao" class="flex-1 text-center rounded bg-[#c9a86a] py-3 text-xs font-bold text-[#09090b]">Novo agendamento</router-link>
+        </div>
+
+        <!-- Webhook WhatsApp Live Status & Test Button -->
+        <div class="flex items-center justify-between bg-[#141416] border border-[#25D366]/25 rounded-[4px] px-3 py-1.5 mb-3 text-[10px] shadow-sm">
+          <div class="flex items-center gap-1.5 text-[#25D366]">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-pulse"></span>
+            <span class="font-jetbrains font-bold tracking-wider uppercase text-[9px]">WEBHOOK WHATSAPP ATIVO</span>
+          </div>
+          <button
+            @click="simularNovaMensagemWhatsApp"
+            class="font-jetbrains text-[9.5px] font-bold text-[#e6c383] hover:text-[#d6b77e] underline decoration-[#c9a86a]/40 cursor-pointer flex items-center gap-1"
+            title="Disparar simulação de webhook push para testar toast de notificação móvel"
+          >
+            <span>SIMULAR PUSH</span>
+            <ArrowRight class="w-2.5 h-2.5" />
+          </button>
         </div>
 
         <div class="bg-[#141416] border border-[rgba(255,255,255,0.08)] rounded-[4px] px-3.5 py-2.5 flex items-center gap-2.5 mb-3 shadow-sm">
@@ -361,7 +377,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, onIonViewWillEnter, onIonViewWillLeave } from '@ionic/vue';
-import { CheckCircle2, Clock, CreditCard, FileText, FileUp, Lock, PlusCircle, Search, ShieldCheck, RefreshCw, X } from '@lucide/vue';
+import { CheckCircle2, Clock, CreditCard, FileText, FileUp, Lock, PlusCircle, Search, ShieldCheck, RefreshCw, X, ArrowRight } from '@lucide/vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppHeader from '@/components/AppHeader.vue';
 import StatusFilterTabs from '@/components/StatusFilterTabs.vue';
@@ -369,10 +385,12 @@ import CompactModal from '@/components/CompactModal.vue';
 import SinalDialog, { type SinalDetails } from '@/components/SinalDialog.vue';
 import { buscarComprovanteSinal, criarClienteAgenda } from '@/api/agendamentos';
 import { useTriageStore, type TriageClient } from '@/stores/triage';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const route = useRoute();
 const triageStore = useTriageStore();
+const alert = useAlert();
 const searchQuery = ref('');
 const activeFilter = ref('todos');
 const attachedFile = ref<File | null>(null);
@@ -391,6 +409,10 @@ const sinalAgendamentoId = ref<number | null>(null);
 const carregandoSinal = ref(false);
 const erroSinal = ref('');
 
+// Controle de Polling & Push Notifications
+let pollInterval: ReturnType<typeof setInterval> | null = null;
+const previousClientIds = ref<Set<string>>(new Set());
+
 const filterPills = computed(() => [
   { id: 'todos', label: 'TODOS' }, { id: 'agendados', label: 'AGENDADOS' },
   { id: 'aguardando', label: 'AGUARDANDO ORÇAMENTO' },
@@ -407,7 +429,7 @@ const featuredClient = computed(() => filteredClients.value.find(c => c.id === t
 const filteredQueueClients = computed(() => filteredClients.value.filter(c => c.id !== featuredClient.value?.id));
 watch(() => featuredClient.value?.id, () => { attachedFile.value = null; depositError.value = ''; });
 onIonViewWillEnter(async () => {
-  await carregar();
+  await carregarComVerificacaoPush();
   const id = Number(route.query.agendamentoId);
   const client = triageStore.clients.find(c => c.agendamentoId === id);
   if (client) {
@@ -415,13 +437,83 @@ onIonViewWillEnter(async () => {
     searchQuery.value = '';
     await selecionarCliente(client);
   }
+
+  // Inicia polling periódico (a cada 25 segundos) enquanto a visualização da triagem estiver ativa
+  if (!pollInterval) {
+    pollInterval = setInterval(carregarComVerificacaoPush, 25000);
+  }
 });
-onIonViewWillLeave(() => { fecharSinal(); showClienteModal.value = false; depositoRegistrado.value = null; });
-onUnmounted(fecharSinal);
+onIonViewWillLeave(() => {
+  fecharSinal();
+  showClienteModal.value = false;
+  depositoRegistrado.value = null;
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
+});
+onUnmounted(() => {
+  fecharSinal();
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
+});
 
 function valor(amount: number | null) { return amount == null ? 'Não informado' : amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function moeda(valor: number | null) { return valor == null ? 'Não informado' : valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-async function carregar() { await triageStore.fetchTriageQueue(); }
+
+async function carregar() {
+  await carregarComVerificacaoPush();
+}
+
+async function carregarComVerificacaoPush() {
+  const prevIds = new Set(previousClientIds.value);
+  await triageStore.fetchTriageQueue();
+
+  // Se já havia registros conhecidos, verifica se surgiu um novo da integração WhatsApp
+  if (prevIds.size > 0) {
+    const novos = triageStore.clients.filter(c => !prevIds.has(c.id));
+    const rec = novos[0];
+    if (rec) {
+      alert.notifyWhatsAppTriage({
+        clientName: rec.name,
+        text: rec.projectTitle || rec.conceptDescription || 'Novo orçamento via WhatsApp',
+        timeAgo: 'Agora',
+        onAction: () => {
+          activeFilter.value = 'todos';
+          searchQuery.value = '';
+          void selecionarCliente(rec);
+        },
+      });
+    }
+  }
+
+  previousClientIds.value = new Set(triageStore.clients.map(c => c.id));
+}
+
+function simularNovaMensagemWhatsApp() {
+  const mockCandidates = [
+    { name: 'Isabela Fontes', project: 'Fechamento de antebraço Neotradicional botânico' },
+    { name: 'Thiago Albuquerque', project: 'Cobertura (blast-over) em Blackwork geométrico' },
+    { name: 'Renata Vasconcellos', project: 'Micro-realismo floral fine line no pulso' },
+    { name: 'Lucas Brandão', project: 'Lettering Chicano na clavícula' },
+  ];
+  const item = mockCandidates[Math.floor(Math.random() * mockCandidates.length)] || mockCandidates[0]!;
+
+  alert.notifyWhatsAppTriage({
+    clientName: item.name,
+    text: `Orçamento solicitado: ${item.project}`,
+    timeAgo: 'Agora',
+    onAction: () => {
+      searchQuery.value = item.name.split(' ')[0] || '';
+      const match = triageStore.clients.find(c => c.name.toLowerCase().includes(item.name.toLowerCase()));
+      if (match) {
+        void selecionarCliente(match);
+      }
+    },
+  });
+}
 async function selecionarCliente(client: TriageClient) {
   triageStore.setSelectedClient(client.id);
   await nextTick();

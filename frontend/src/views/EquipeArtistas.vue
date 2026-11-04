@@ -3,37 +3,7 @@
     <ion-content class="bg-[#09090b] text-[#f2ebd9] select-none font-sans" fullscreen>
       <div class="min-h-screen bg-[#09090b] pb-28 max-w-[480px] mx-auto px-4 pt-3 sm:px-6">
         <!-- Top App Header -->
-        <header class="flex items-center justify-between py-3 mb-4 border-b border-[rgba(201,168,106,0.12)]">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-[2px] bg-[#09090b] border border-[rgba(201,168,106,0.3)] flex items-center justify-center text-[#c9a86a] shadow-md">
-              <Shield class="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <div class="font-cinzel text-[10px] font-semibold text-[#d6b77e] tracking-[1.8px] leading-tight uppercase">
-                TATTOOFLOW ATELIER
-              </div>
-              <div class="font-playfair text-[17px] font-semibold text-[#f2ebd9] leading-none mt-0.5">
-                Equipe Artistas
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2.5">
-            <button
-              @click="handleAuditLogs"
-              class="w-9 h-9 bg-[#141416] border border-[rgba(201,168,106,0.2)] rounded-full flex items-center justify-center text-[#a39e93] hover:text-[#d6b77e] transition-colors cursor-pointer"
-            >
-              <ShieldCheck class="w-4.5 h-4.5" />
-            </button>
-
-            <button
-              @click="handleProfile"
-              class="w-9 h-9 bg-[#c9a86a] border border-[#b89355] rounded-full flex items-center justify-center text-[#09090b] shadow-inner cursor-pointer hover:bg-[#d6b77e] transition-colors"
-            >
-              <User class="w-4.5 h-4.5" />
-            </button>
-          </div>
-        </header>
+        <AppHeader @click-profile="router.push('/perfil')" />
 
         <!-- Administrative Breadcrumb -->
         <div class="flex items-center gap-1.5 mb-1.5">
@@ -277,8 +247,6 @@
         </div>
       </div>
 
-      <!-- Reusable Adapted Bottom Navigation -->
-      <!-- <AccessControlNavigation :items="navItems" active-tab="artistas" /> -->
     </ion-content>
   </ion-page>
 </template>
@@ -287,9 +255,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import {
-  Shield,
-  ShieldCheck,
-  User,
   KeyRound,
   Ticket,
   Search,
@@ -298,17 +263,16 @@ import {
   RefreshCw,
   Trash2,
   Scissors,
-  Calendar,
   Users,
-  Landmark,
-  Package,
 } from '@lucide/vue';
 import { useRouter } from 'vue-router';
-import AccessControlNavigation, { type NavItem } from '../components/AccessControlNavigation.vue';
+import AppHeader from '../components/AppHeader.vue';
 import { useArtistsStore, type ArtistUser } from '@/stores/artists';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const artistsStore = useArtistsStore();
+const alert = useAlert();
 
 // Search & Filter State
 const searchQuery = ref('');
@@ -361,27 +325,39 @@ function editPermissions(artist: ArtistUser) {
 }
 
 async function revokeAccess(artist: ArtistUser) {
+  const confirmed = await alert.confirmDestructive({
+    title: 'Revogar Credenciais',
+    description: `Deseja revogar o acesso de ${artist.name}? O login via PIN será imediatamente bloqueado nos tablets de bancada.`,
+    confirmLabel: 'Sim, Revogar Acesso',
+    cancelLabel: 'Manter Ativo',
+  });
+  if (!confirmed) return;
   const result = await artistsStore.revokeAccess(artist.id);
-  console.log('[EquipeArtistas]', result.message);
+  await alert.warning(result.message, 'Acesso Suspenso');
 }
 
 async function reactivateProfile(artist: ArtistUser) {
+  const confirmed = await alert.confirm({
+    title: 'Reativar Artista',
+    description: `Deseja restabelecer as credenciais e liberar a bancada para ${artist.name}?`,
+    confirmLabel: 'Sim, Reativar',
+    cancelLabel: 'Cancelar',
+    variant: 'success',
+  });
+  if (!confirmed) return;
   const result = await artistsStore.reactivateProfile(artist.id);
-  console.log('[EquipeArtistas]', result.message);
+  await alert.success(result.message, 'Artista Reativado');
 }
 
 async function deletePermanently(artist: ArtistUser) {
-  if (confirm(`Deseja realmente remover em definitivo o cadastro de ${artist.name}?`)) {
-    const result = await artistsStore.deletePermanently(artist.id);
-    console.log('[EquipeArtistas]', result.message);
-  }
+  const confirmed = await alert.confirmDestructive({
+    title: 'Exclusão Notarial Definitiva',
+    description: `Deseja realmente remover em definitivo o cadastro de ${artist.name}? Esta ação apagará registros e logs do dispositivo.`,
+    confirmLabel: 'Excluir Definitivamente',
+    cancelLabel: 'Cancelar',
+  });
+  if (!confirmed) return;
+  const result = await artistsStore.deletePermanently(artist.id);
+  await alert.success(result.message, 'Cadastro Excluído');
 }
-
-// Adapted Bottom Navigation Items for Atelier Management
-const navItems: NavItem[] = [
-  { id: 'agenda', label: 'AGENDA', icon: Calendar, path: '/agenda' },
-  { id: 'artistas', label: 'ARTISTAS', icon: Users, path: '/equipe-artistas' },
-  { id: 'gestao', label: 'GESTÃO', icon: Landmark, path: '/fechamento' },
-  { id: 'estoque', label: 'ESTOQUE', icon: Package, path: '/estoque' },
-];
 </script>

@@ -258,7 +258,7 @@
       </div>
 
       <!-- Barra de Ação Ancorada no Rodapé Mobile -->
-      <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-[rgba(201,168,106,0.2)] px-4 py-3 shadow-[0_-8px_25px_rgba(0,0,0,0.8)]">
+      <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-[rgba(201,168,106,0.2)] px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-8px_25px_rgba(0,0,0,0.8)]">
         <div class="max-w-[480px] mx-auto flex items-center gap-3">
           <button
             @click="voltarParaUpload"

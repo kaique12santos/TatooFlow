@@ -394,7 +394,9 @@
       </div>
       <div v-if="!client" class="p-6 text-sm text-[#a39e93]">
         <p>{{ triageStore.error || 'Selecione um cliente cadastrado para continuar.' }}</p>
-        <router-link to="/triagem" class="block mt-4 text-[#c9a86a]">Retornar para triagem</router-link>
+        <router-link :to="authStore.isAdmin ? '/triagem' : '/agenda'" class="block mt-4 text-[#c9a86a]">
+          {{ authStore.isAdmin ? 'Retornar para triagem' : 'Retornar para agenda' }}
+        </router-link>
       </div>
     </ion-content>
   </ion-page>
@@ -421,10 +423,14 @@ import {
 } from '@lucide/vue';
 import AppHeader from '../components/AppHeader.vue';
 import { useTriageStore } from '@/stores/triage';
+import { useAuthStore } from '@/stores/auth';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const route = useRoute();
 const triageStore = useTriageStore();
+const authStore = useAuthStore();
+const alert = useAlert();
 
 // Dynamic client from Route Query or Store
 const clientId = computed(() => {
@@ -508,7 +514,7 @@ onMounted(async () => {
     await nextTick();
     setupCanvas();
   } catch (err) {
-    alert(err instanceof Error ? err.message : 'Não foi possível carregar o termo.');
+    await alert.error(err instanceof Error ? err.message : 'Não foi possível carregar o termo.', 'Erro no Carregamento');
   }
 });
 
@@ -624,11 +630,11 @@ function handleProfile() {
 async function autenticarTermo() {
   if (!client.value) return;
   if (!isAgreed.value) {
-    alert('Por favor, assinale a declaração de conferência e leitura do termo antes de autenticar.');
+    await alert.warning('Por favor, assinale a declaração de conferência e leitura do termo antes de autenticar.', 'Declaração Obrigatória');
     return;
   }
   if (!hasSignature.value) {
-    alert('Por favor, colete a assinatura digital na área demarcada antes de autenticar.');
+    await alert.warning('Por favor, colete a assinatura digital na área demarcada antes de autenticar.', 'Assinatura Pendente');
     return;
   }
 
@@ -648,7 +654,7 @@ async function autenticarTermo() {
     authFeedbackMessage.value = result.message;
     showAuthModal.value = true;
   } catch (err) {
-    alert(err instanceof Error ? err.message : 'Não foi possível autenticar o termo.');
+    await alert.error(err instanceof Error ? err.message : 'Não foi possível autenticar o termo.', 'Falha na Autenticação');
   } finally {
     isSubmittingTerm.value = false;
   }
@@ -656,7 +662,7 @@ async function autenticarTermo() {
 
 function concluirParaRecepcao() {
   showAuthModal.value = false;
-  router.push('/triagem');
+  router.push(authStore.isAdmin ? '/triagem' : '/agenda');
 }
 
 async function enviarWhatsapp() {
@@ -665,7 +671,7 @@ async function enviarWhatsapp() {
     const result = await triageStore.sendTermoWhatsapp();
     whatsappFeedbackMessage.value = result.message;
   } catch (err) {
-    alert(err instanceof Error ? err.message : 'Não foi possível enviar o termo.');
+    await alert.error(err instanceof Error ? err.message : 'Não foi possível enviar o termo.', 'Falha no Envio');
     return;
   }
   showWhatsappModal.value = true;

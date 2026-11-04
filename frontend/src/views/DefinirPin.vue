@@ -170,10 +170,12 @@ import { useRouter, useRoute } from 'vue-router';
 import PinIndicator from '../components/PinIndicator.vue';
 import PinKeypad, { type KeypadItem } from '../components/PinKeypad.vue';
 import { useAuthStore } from '@/stores/auth';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const alert = useAlert();
 
 const token = computed(() => (route.query.token as string) || '');
 
@@ -205,7 +207,7 @@ function handleKeyPress(key: KeypadItem) {
 
 async function activatePin() {
   if (pin.value.length !== 6) {
-    alert('O PIN deve conter exatamente 6 dígitos numéricos.');
+    await alert.warning('O PIN deve conter exatamente 6 dígitos numéricos.', 'PIN Incompleto');
     return;
   }
 
@@ -219,12 +221,13 @@ async function activatePin() {
     });
 
     console.log('[DefinirPin] Resposta da ativação:', result);
-    alert(result.message);
+    await alert.success(result.message, 'Credencial Ativada');
 
     const destination = authStore.currentRole === 'admin' ? '/triagem' : '/agenda';
     router.push(destination);
   } catch (err) {
     console.warn('[DefinirPin] Erro ao ativar credencial:', err);
+    await alert.error('Não foi possível ativar o PIN no momento.', 'Erro');
     const destination = authStore.currentRole === 'admin' ? '/triagem' : '/agenda';
     router.push(destination);
   } finally {

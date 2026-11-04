@@ -119,7 +119,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     };
 
     try {
-      const response = await apiRequest<any>('/api/estoque/alocar', {
+      await apiRequest<any>('/api/estoque/alocar', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
