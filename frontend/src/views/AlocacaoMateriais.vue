@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-content class="bg-[#09090b] text-[#f2ebd9] font-sans" fullscreen>
-      <div class="screen-container min-h-screen pb-10 pt-3">
+      <div v-if="client" class="screen-container min-h-screen pb-10 pt-3">
         <!-- Compact Session Header (Back button, More menu, Studio logo) -->
         <header class="flex items-center justify-between py-2 mb-3">
           <button
@@ -57,7 +57,7 @@
             </div>
             <!-- Station Badge -->
             <div class="bg-[#2d2417] text-[#d6b77e] border border-[rgba(201,168,106,0.3)] font-jetbrains text-[9px] font-bold px-2.5 py-1 rounded-[2px] tracking-wider uppercase shrink-0">
-              {{ client.station || 'BANCADA 01' }}
+              {{ client.station || 'Bancada não informada' }}
             </div>
           </div>
 
@@ -70,7 +70,7 @@
                 <span>DATA &amp; HORA</span>
               </div>
               <div class="font-inter text-[12px] text-[#f2ebd9] mt-0.5 font-medium truncate">
-                {{ client.scheduledSlot ? (client.scheduledSlot.dayLabel + ' • ' + client.scheduledSlot.time.split(' — ')[0]) : 'Qua, 29/Mai • 14:30' }}
+                {{ client.scheduledSlot ? (client.scheduledSlot.dayLabel + ' • ' + client.scheduledSlot.time.split(' — ')[0]) : 'Horário não informado' }}
               </div>
             </div>
 
@@ -219,7 +219,7 @@
 
       <!-- SUCCESS MODAL: KIT & HORÁRIO CONFIRMADOS -->
       <div
-        v-if="showSuccessModal"
+        v-if="showSuccessModal && client"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity"
         @click.self="showSuccessModal = false"
       >
@@ -241,10 +241,10 @@
 
           <div class="bg-[#09090b] p-3 rounded-[2px] border border-[rgba(255,255,255,0.05)] text-[12px] space-y-2 mb-4">
             <div class="text-[#c9a86a] font-jetbrains text-[10.5px] uppercase font-bold tracking-wider">
-              RESERVA {{ client.station || 'BANCADA 01' }} · {{ client.assignedArtist }}
+              RESERVA {{ client.station || 'Bancada não informada' }} · {{ client.assignedArtist }}
             </div>
             <p class="text-[#f2ebd9] font-inter text-[12px] leading-relaxed">
-              Agendamento de <strong>{{ client.name }}</strong> concluído para <strong>{{ client.scheduledSlot ? (client.scheduledSlot.dayLabel + ' às ' + client.scheduledSlot.time.split(' — ')[0]) : 'Qua, 29/Mai às 14:30' }}</strong>. Todos os {{ kitItems.length }} insumos foram alocados.
+              Agendamento de <strong>{{ client.name }}</strong> concluído para <strong>{{ client.scheduledSlot ? (client.scheduledSlot.dayLabel + ' às ' + client.scheduledSlot.time.split(' — ')[0]) : 'horário não informado' }}</strong>. Todos os {{ kitItems.length }} insumos foram alocados.
             </p>
             <div class="text-[#a39e93] font-jetbrains text-[10px] space-y-1 pt-1.5 border-t border-[rgba(255,255,255,0.05)]">
               <div>LOTE NOTARIAL: {{ client.lotId }}</div>
@@ -320,6 +320,10 @@
           </button>
         </div>
       </div>
+      <div v-if="!client" class="p-6 text-sm text-[#a39e93]">
+        <p>Selecione um cliente cadastrado para continuar.</p>
+        <router-link to="/triagem" class="block mt-4 text-[#c9a86a]">Retornar para triagem</router-link>
+      </div>
     </ion-content>
   </ion-page>
 </template>
@@ -354,7 +358,7 @@ const sessionId = computed(() => {
 
 // Dynamic client from Route Query or Store
 const clientId = computed(() => {
-  return (route.query.clientId as string) || triageStore.selectedClientId || 'cli-beatriz';
+  return (route.query.clientId as string) || triageStore.selectedClientId;
 });
 
 const client = computed(() => {
@@ -467,6 +471,7 @@ function addExtraItem(extra: typeof extraItemsPool[0]) {
 }
 
 function handleBack() {
+  if (!client.value) return;
   if (route.query.from === 'agenda') {
     router.push('/agenda');
   } else {
@@ -478,10 +483,12 @@ function handleBack() {
 }
 
 function handleMenu() {
+  if (!client.value) return;
   alert(`Opções do Kit ${client.value.lotId}: Duplicar kit cirúrgico, redefinir para o padrão ou alterar almoxarifado.`);
 }
 
 async function confirmarReserva() {
+  if (!client.value) return;
   isReserving.value = true;
 
   try {
@@ -506,6 +513,7 @@ async function confirmarReserva() {
 }
 
 function enviarGuiaWhatsApp() {
+  if (!client.value) return;
   alert(`Guia Oficial de Pré e Pós-Cuidados do Atelier disparado para o WhatsApp de ${client.value.name} (${client.value.phone}).`);
 }
 
@@ -515,6 +523,7 @@ function irParaAgenda() {
 }
 
 function irParaTermo() {
+  if (!client.value) return;
   showSuccessModal.value = false;
   router.push({
     path: '/termo',

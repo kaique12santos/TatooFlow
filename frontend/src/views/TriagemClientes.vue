@@ -4,8 +4,7 @@
       <div class="screen-container min-h-screen pb-24 pt-3">
         <!-- Reusable App Header -->
         <AppHeader
-          @click-notifications="handleNotifications"
-          @click-profile="handleProfile"
+          @click-profile="router.push('/perfil')"
         />
 
         <!-- Reception Protocol Badge -->
@@ -41,36 +40,35 @@
             class="font-inter text-[12px] text-[#f2ebd9] placeholder-[#5a5852] bg-transparent outline-none flex-1"
           />
           <button
-            @click="toggleFilter"
+            @click="carregar"
+            :disabled="triageStore.isLoading"
+            aria-label="Atualizar triagem"
             class="text-[#8e8a82] hover:text-[#f2ebd9] transition-colors cursor-pointer shrink-0"
-            title="Filtros avançados"
+            title="Atualizar triagem"
           >
-            <SlidersHorizontal class="w-4 h-4" />
+            <RefreshCw class="w-4 h-4" />
           </button>
         </div>
 
-        <!-- Filter Tabs / Pills -->
-        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 mb-5">
-          <button
-            v-for="pill in filterPills"
-            :key="pill.id"
-            @click="activeFilter = pill.id"
-            :class="[
-              'px-3 py-1.5 rounded-[2px] font-jetbrains text-[10px] font-bold tracking-wider uppercase whitespace-nowrap cursor-pointer transition-all',
-              activeFilter === pill.id
-                ? 'bg-[#c9a86a] text-[#09090b] shadow-sm'
-                : 'bg-[#141416] border border-[rgba(255,255,255,0.08)] text-[#a39e93] hover:text-[#f2ebd9]'
-            ]"
-          >
-            {{ pill.label }} ({{ pill.count }})
-          </button>
+        <StatusFilterTabs v-model="activeFilter" :tabs="filterPills" />
+        <div v-if="triageStore.error" role="alert" class="rounded-[4px] border border-red-300/30 bg-[#141416] p-4 text-sm text-[#ef8b83] mb-4">
+          {{ triageStore.error }}
+          <button type="button" @click="carregar" class="block underline mt-2">Tentar novamente</button>
+        </div>
+        <output v-if="triageStore.isLoading" class="block py-8 text-sm text-[#a39e93]">Carregando triagem...</output>
+        <div v-else-if="!triageStore.error && !triageStore.clients.length" class="rounded-[4px] border border-white/5 bg-[#141416] p-5 mb-4 text-center">
+          <h2 class="font-playfair text-xl">Nenhum atendimento em triagem</h2>
+          <p class="font-inter text-xs text-[#a39e93] mt-2">Cadastre um cliente ou crie um novo agendamento para iniciar o atendimento.</p>
+          <FileUp class="w-6 h-6 text-[#c9a86a] mx-auto mt-4 mb-2" />
+          <p class="font-jetbrains text-[10px] text-[#c9a86a] uppercase">Anexar comprovante do sinal</p>
+          <router-link to="/agendamento-sessao" class="inline-block text-xs text-[#e6c383] underline mt-3">Criar agendamento</router-link>
         </div>
 
         <!-- Main Responsive Content Grid (Cards & Listas) -->
-        <ion-grid class="ion-no-padding">
-          <ion-row>
-            <!-- COLUNA 1: FEATURED ACTIVE TRIAGE CARD (Helena Vasco) -->
-            <ion-col size="12" size-md="6" class="ion-no-padding mb-4 md:mb-0 md:pr-3">
+        <ion-grid v-if="!triageStore.isLoading && !triageStore.error" class="ion-no-padding">
+          <ion-row class="triage-row">
+            <!-- Atendimento selecionado -->
+            <ion-col v-if="featuredClient" size="12" size-md="6" class="ion-no-padding flex flex-col md:pr-3">
               <div class="flex items-center justify-between mb-2 px-0.5">
                 <span class="font-jetbrains text-[9px] font-bold tracking-[1.5px] text-[#c9a86a] uppercase">
                   ATENDIMENTO EM DESTAQUE
@@ -80,17 +78,13 @@
                 </span>
               </div>
 
-              <div class="bg-[#141416] border border-[rgba(255,255,255,0.07)] rounded-[4px] p-4 shadow-lg flex flex-col justify-between h-full">
+              <div ref="atendimentoRef" class="bg-[#141416] border border-[rgba(255,255,255,0.07)] rounded-[4px] p-4 shadow-lg flex flex-1 flex-col justify-between">
                 <div>
-                  <!-- Card Header: Client & Priority Badge -->
+                  <!-- Cliente selecionado -->
                   <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center gap-3">
                       <div class="w-11 h-11 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.1)] shrink-0 bg-[#09090b]">
-                        <img
-                          :src="featuredClient.avatar"
-                          :alt="featuredClient.name"
-                          class="w-full h-full object-cover"
-                        />
+                        <span class="w-full h-full flex items-center justify-center font-playfair text-xl text-[#c9a86a]">{{ featuredClient.name.slice(0, 1).toUpperCase() }}</span>
                       </div>
                       <div>
                         <div class="flex items-center gap-1.5">
@@ -105,19 +99,12 @@
                         </div>
                       </div>
                     </div>
-
-                    <!-- Priority Badge -->
-                    <div class="bg-[#381617] border border-[#752629] px-2.5 py-0.5 rounded-[2px] shrink-0">
-                      <span class="font-jetbrains text-[8.5px] font-bold text-[#f87171] tracking-[1.2px] uppercase">
-                        ALTA PRIORIDADE
-                      </span>
-                    </div>
                   </div>
 
                   <!-- Project Details -->
                   <div class="bg-[#09090b] border border-[rgba(255,255,255,0.05)] rounded-[3px] p-2.5 mb-2.5">
                     <div class="flex items-center justify-between text-[10px] font-jetbrains text-[#a39e93]">
-                      <span>PROJETO: {{ featuredClient.style }}</span>
+                      <span>PROJETO: {{ featuredClient.style || featuredClient.projectTitle || 'Não informado' }}</span>
                       <span class="text-[#c9a86a]">{{ featuredClient.lotId }}</span>
                     </div>
                     <div class="font-inter text-[12px] text-[#f2ebd9] mt-0.5 font-medium">
@@ -140,25 +127,25 @@
                     <!-- Price Tag Display -->
                     <div class="text-right">
                       <div class="flex items-baseline justify-end gap-1">
-                        <span class="font-jetbrains text-[13px] font-bold text-[#d6b77e] leading-none">R$</span>
+                        <span v-if="featuredClient.depositAmount != null" class="font-jetbrains text-[13px] font-bold text-[#d6b77e] leading-none">R$</span>
                         <span class="font-playfair text-[24px] font-bold text-[#f2ebd9] leading-none">
-                          {{ featuredClient.depositAmount.toFixed(2).replace('.', ',') }}
+                          {{ valor(featuredClient.depositAmount) }}
                         </span>
                       </div>
                       <div class="font-jetbrains text-[8px] text-[#8e8a82] uppercase tracking-wider mt-0.5">
-                        REF: 50% DE R$ {{ featuredClient.priceTotal.toFixed(2).replace('.', ',') }}
+                        {{ featuredClient.priceTotal == null ? 'VALOR ESTIMADO NÃO INFORMADO' : 'REF: 50% DE ' + moeda(featuredClient.priceTotal) }}
                       </div>
                     </div>
                   </div>
 
                   <!-- Attach Receipt Box (Dotted Border) -->
-                  <div class="bg-[#09090b] border border-dashed border-[rgba(201,168,106,0.3)] rounded-[4px] p-4 text-center my-3 relative">
+                  <div v-if="featuredClient.status !== 'confirmados'" class="bg-[#09090b] border border-dashed border-[rgba(201,168,106,0.3)] rounded-[4px] p-4 text-center my-3 relative">
                     <FileUp class="w-6 h-6 text-[#c9a86a] mx-auto mb-1.5" />
                     <div class="font-jetbrains text-[10px] font-bold text-[#f2ebd9] tracking-[1px] uppercase">
-                      ANEXAR COMPROVANTE (JPG/PDF)
+                      ANEXAR COMPROVANTE (JPG/PNG/PDF)
                     </div>
                     <p class="font-inter text-[10.5px] text-[#8e8a82] mt-0.5 mb-3">
-                      Comprovante de transferência bancária ou PIX
+                      Comprovante de transferência bancária ou PIX · até 5 MB
                     </p>
 
                     <!-- File Input Row -->
@@ -166,47 +153,57 @@
                       <div class="flex items-center gap-2 truncate pr-2">
                         <FileText class="w-3.5 h-3.5 text-[#8e8a82] shrink-0" />
                         <span class="font-inter text-[10.5px] text-[#8e8a82] italic truncate">
-                          {{ attachedFileName || 'Nenhum arquivo selecionado' }}
+                          {{ attachedFile?.name || 'Nenhum arquivo selecionado' }}
                         </span>
                       </div>
                       <button
-                        @click="triggerFileSelect"
+                        @click="fileInputRef?.click()"
+                        :disabled="isSubmittingDeposit || !featuredClient.agendamentoId"
                         class="bg-[#1c1a17] hover:bg-[#25221d] border border-[rgba(201,168,106,0.3)] px-3 py-1 rounded-[2px] font-jetbrains text-[9.5px] font-bold text-[#c9a86a] tracking-[1px] uppercase cursor-pointer shrink-0 transition-colors"
                       >
                         PROCURAR
                       </button>
                     </div>
                     <input
+                      :key="featuredClient.id"
                       ref="fileInputRef"
+                      :disabled="isSubmittingDeposit || !featuredClient.agendamentoId"
+                      aria-label="Anexar comprovante do sinal"
                       type="file"
                       accept=".jpg,.jpeg,.png,.pdf"
                       class="hidden"
-                      @change="handleFileChange"
+                      @change="selecionarComprovante"
                     />
                   </div>
                 </div>
 
-                <!-- Main CTA: Registrar Sinal e Liberar Maca -->
-                <button
-                  @click="registrarSinal"
-                  :disabled="isSubmittingDeposit"
-                  class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.4px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99] mt-2 disabled:opacity-75"
-                >
-                  <Lock class="w-3.5 h-3.5 stroke-[2.2] text-[#09090b]" />
+                <p v-if="depositError" role="alert" class="font-inter text-xs text-[#ef8b83] mt-2">{{ depositError }}</p>
+                <button v-if="featuredClient.status === 'sinal'" type="button" @click="registrarSinal"
+                  :disabled="isSubmittingDeposit || !attachedFile || featuredClient.depositAmount == null"
+                  class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.4px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 mt-2 disabled:opacity-40">
+                  <Lock class="w-3.5 h-3.5" />
                   <span>{{ isSubmittingDeposit ? 'REGISTRANDO NO SERVIDOR...' : 'REGISTRAR SINAL E LIBERAR MACA' }}</span>
                 </button>
+                <button v-else-if="featuredClient.status === 'confirmados'" type="button" @click="verSinal(featuredClient)"
+                  class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.4px] uppercase py-3.5 px-4 rounded-[2px] flex items-center justify-center gap-2 mt-2">
+                  <FileText class="w-3.5 h-3.5" /> VER SINAL
+                </button>
+                <template v-else>
+                  <p class="font-inter text-xs text-[#a39e93] mt-2">Crie o agendamento para vincular o comprovante à sessão.</p>
+                  <button type="button" @click="iniciarAgendamento(featuredClient)" class="w-full bg-[#c9a86a] text-[#09090b] font-inter text-[11px] font-bold uppercase py-3.5 px-4 rounded-[2px] mt-2">AGENDAR SESSÃO</button>
+                </template>
               </div>
             </ion-col>
 
             <!-- COLUNA 2: FILA GERAL DE ATENDIMENTO -->
-            <ion-col size="12" size-md="6" class="ion-no-padding md:pl-3 flex flex-col justify-between">
+            <ion-col size="12" :size-md="featuredClient ? '6' : '12'" class="ion-no-padding md:pl-3 flex flex-col justify-between">
               <div>
                 <!-- Section Header Row -->
-                <div class="flex items-center justify-between mb-2.5 px-0.5">
-                  <span class="font-jetbrains text-[9px] font-bold tracking-[1.5px] text-[#8e8a82] uppercase">
+                <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-2.5 px-0.5">
+                  <span class="min-w-0 font-jetbrains text-[9px] font-bold tracking-[1.5px] text-[#8e8a82] uppercase">
                     FILA GERAL DE ATENDIMENTO
                   </span>
-                  <span class="font-jetbrains text-[9px] text-[#8e8a82] flex items-center gap-1">
+                  <span class="shrink-0 font-jetbrains text-[9px] text-[#8e8a82] flex items-center gap-1">
                     <span class="text-[#4ade80] text-[10px] leading-none">●</span>
                     {{ filteredQueueClients.length }} na fila
                   </span>
@@ -222,11 +219,7 @@
                     <div class="flex items-start justify-between">
                       <div class="flex items-center gap-2.5">
                         <div class="w-10 h-10 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] shrink-0 bg-[#09090b]">
-                          <img
-                            :src="item.avatar"
-                            :alt="item.name"
-                            class="w-full h-full object-cover"
-                          />
+                          <span class="w-full h-full flex items-center justify-center font-playfair text-lg text-[#c9a86a]">{{ item.name.slice(0, 1).toUpperCase() }}</span>
                         </div>
                         <div>
                           <h3 class="font-playfair text-[15px] font-semibold text-[#f2ebd9] leading-tight">
@@ -278,27 +271,28 @@
                       <div class="flex items-center gap-1 text-[11px] text-[#8e8a82] font-inter">
                         <template v-if="item.status === 'confirmados'">
                           <CheckCircle2 class="w-3.5 h-3.5 text-[#4ade80]" />
-                          <span>Sinal Recebido: <strong class="text-[#f2ebd9] font-semibold">R$ {{ item.depositAmount.toFixed(2).replace('.', ',') }}</strong></span>
+                          <span>Sinal Recebido: <strong class="text-[#f2ebd9] font-semibold">{{ moeda(item.depositAmount) }}</strong></span>
                         </template>
                         <template v-else-if="item.status === 'aguardando'">
                           <FileText class="w-3.5 h-3.5 text-[#8e8a82]" />
-                          <span>Orçamento enviado (R$ {{ item.priceTotal.toFixed(2).replace('.', ',') }})</span>
+                          <span>{{ item.priceTotal == null ? 'Aguardando orçamento' : 'Orçamento: ' + moeda(item.priceTotal) }}</span>
                         </template>
                         <template v-else>
                           <Clock class="w-3.5 h-3.5 text-[#c9a86a]" />
-                          <span>Sinal pendente (R$ {{ item.depositAmount.toFixed(2).replace('.', ',') }})</span>
+                          <span>Sinal pendente ({{ moeda(item.depositAmount) }})</span>
                         </template>
                       </div>
 
-                      <!-- CTA AGENDAR SESSÃO / ALOCAR HORÁRIO (Passa clientId via Vue Router) -->
-                      <button
-                        @click="iniciarAgendamento(item)"
-                        class="font-jetbrains text-[9.5px] font-bold text-[#c9a86a] hover:text-[#d6b77e] tracking-[1px] uppercase flex items-center gap-1 cursor-pointer transition-colors"
-                        :title="'Iniciar agendamento para ' + item.name"
-                      >
-                        <span>AGENDAR SESSÃO</span>
-                        <span class="text-[12px] leading-none">→</span>
-                      </button>
+                      <div class="flex flex-wrap justify-end gap-2">
+                        <button v-if="item.status === 'confirmados'" type="button" @click="verSinal(item)" :aria-label="'Ver sinal de ' + item.name"
+                          class="font-jetbrains text-[9.5px] font-bold text-[#c9a86a] tracking-[1px] uppercase flex items-center gap-1">
+                          <FileText class="w-3.5 h-3.5" /> VER SINAL
+                        </button>
+                        <button v-else-if="item.agendamentoId" type="button" @click="selecionarCliente(item)" :disabled="isSubmittingDeposit"
+                          class="font-jetbrains text-[9.5px] font-bold text-[#c9a86a] tracking-[1px] uppercase">ANEXAR COMPROVANTE →</button>
+                        <button v-else type="button" @click="iniciarAgendamento(item)"
+                          class="font-jetbrains text-[9.5px] font-bold text-[#c9a86a] tracking-[1px] uppercase">AGENDAR SESSÃO →</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -308,19 +302,19 @@
                   v-else
                   class="bg-[#141416] border border-[rgba(255,255,255,0.05)] rounded-[4px] p-8 text-center my-3"
                 >
-                  <p class="font-playfair text-[15px] text-[#f2ebd9]">Nenhum atendimento neste filtro</p>
-                  <p class="font-inter text-[11px] text-[#8e8a82] mt-1">Selecione outra categoria ou limpe a busca.</p>
+                  <p class="font-playfair text-[15px] text-[#f2ebd9]">{{ featuredClient ? 'Nenhum outro atendimento na fila' : 'Nenhum atendimento neste filtro' }}</p>
+                  <p class="font-inter text-[11px] text-[#8e8a82] mt-1">{{ featuredClient ? 'O atendimento deste filtro está em destaque acima.' : 'Selecione outra categoria ou limpe a busca.' }}</p>
                 </div>
               </div>
 
-              <!-- ACTION BUTTON: + NOVO CLIENTE / LINK DIRETO -->
+              <!-- ACTION BUTTON: + NOVO CLIENTE -->
               <button
-                @click="openNovoClienteModal"
+                @click="showClienteModal = true"
                 class="w-full bg-[#09090b] hover:bg-[#141416] border border-[rgba(201,168,106,0.35)] hover:border-[#c9a86a] py-3.5 px-4 rounded-[2px] flex items-center justify-center gap-2 my-4 transition-all cursor-pointer active:scale-[0.99]"
               >
                 <PlusCircle class="w-4 h-4 text-[#c9a86a]" />
                 <span class="font-jetbrains text-[10px] font-bold text-[#e6c383] tracking-[1.5px] uppercase">
-                  + NOVO CLIENTE / LINK DIRETO
+                  + NOVO CLIENTE
                 </span>
               </button>
             </ion-col>
@@ -328,309 +322,175 @@
         </ion-grid>
       </div>
 
-      <!-- SUCCESS MODAL: SINAL REGISTRADO & MACA LIBERADA -->
-      <div
-        v-if="showSuccessModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity"
-        @click.self="showSuccessModal = false"
-      >
-        <div class="bg-[#141416] border border-[rgba(201,168,106,0.4)] rounded-[4px] max-w-sm w-full p-4 shadow-2xl relative">
-          <div class="flex items-center justify-between pb-3 border-b border-[rgba(255,255,255,0.06)] mb-3">
-            <div class="flex items-center gap-2">
-              <CheckCircle2 class="w-5 h-5 text-[#86efac]" />
-              <h3 class="font-playfair text-[18px] font-semibold text-[#f2ebd9]">
-                Sinal Confirmado
-              </h3>
-            </div>
-            <button
-              @click="showSuccessModal = false"
-              class="text-[#a39e93] hover:text-[#f2ebd9] p-1 cursor-pointer"
-            >
-              <X class="w-4 h-4" />
-            </button>
+      <CompactModal :is-open="depositoRegistrado !== null" labelled-by="titulo-confirmacao" @close="depositoRegistrado = null">
+        <template v-if="depositoRegistrado">
+          <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+            <div class="flex items-center gap-2"><CheckCircle2 class="w-5 h-5 text-[#86efac]" /><h2 id="titulo-confirmacao" class="font-playfair text-[18px] font-semibold">Sinal Confirmado</h2></div>
+            <button type="button" @click="depositoRegistrado = null" aria-label="Fechar confirmação do sinal" class="text-[#a39e93] p-1"><X class="w-4 h-4" /></button>
           </div>
-
-          <div class="bg-[#09090b] p-3 rounded-[2px] border border-[rgba(255,255,255,0.05)] text-[12px] space-y-2 mb-4">
-            <div class="text-[#c9a86a] font-jetbrains text-[10.5px] uppercase font-bold tracking-wider">
-              BANCADA LIBERADA · SINAL R$ {{ featuredClient.depositAmount.toFixed(2).replace('.', ',') }}
-            </div>
-            <p class="text-[#f2ebd9] font-inter text-[12px] leading-relaxed">
-              {{ depositFeedbackMessage || ('O pagamento do sinal de ' + featuredClient.name + ' foi autenticado com sucesso. A maca e agenda foram sincronizadas.') }}
-            </p>
-            <div class="text-[#a39e93] font-jetbrains text-[10px] space-y-0.5 pt-1 border-t border-[rgba(255,255,255,0.05)]">
-              <div>COMPROVANTE: {{ attachedFileName || 'PIX_HELENA_VASCO.PDF' }}</div>
+          <div class="bg-[#09090b] p-3 rounded-[2px] border border-white/5 space-y-2 mb-4">
+            <div class="text-[#c9a86a] font-jetbrains text-[10.5px] uppercase font-bold tracking-wider">SINAL {{ moeda(depositoRegistrado.depositAmount) }} · CONFIRMADO</div>
+            <p class="font-inter text-[12px] leading-relaxed">O pagamento do sinal de {{ depositoRegistrado.name }} foi registrado e o agendamento foi confirmado.</p>
+            <div class="text-[#a39e93] font-jetbrains text-[10px] space-y-1 pt-2 border-t border-white/5">
+              <div class="break-words">COMPROVANTE: {{ depositoRegistrado.depositReceipt }}</div>
               <div>STATUS: SINAL 50% LIQUIDADO</div>
             </div>
           </div>
-
-          <div class="flex flex-col gap-2">
-            <div class="flex gap-2">
-              <button
-                @click="irParaAgendamentoDestaque"
-                class="flex-1 py-2.5 bg-[#1a1917] border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-inter text-[10.5px] font-bold uppercase rounded-[2px] cursor-pointer hover:text-[#f2ebd9]"
-              >
-                AGENDAR BANCADA
-              </button>
-              <button
-                @click="irParaTermoDestaque"
-                class="flex-1 py-2.5 bg-[#c9a86a] text-[#09090b] font-inter text-[10.5px] font-bold tracking-[1px] uppercase rounded-[2px] cursor-pointer hover:bg-[#d6b77e]"
-              >
-                GERAR TERMO
-              </button>
-            </div>
-            <button
-              @click="showSuccessModal = false"
-              class="w-full py-2 bg-transparent text-[#8e8a82] hover:text-[#f2ebd9] font-inter text-[10px] uppercase font-semibold cursor-pointer"
-            >
-              FECHAR
-            </button>
+          <button type="button" @click="irParaTermo" class="w-full py-2.5 bg-[#c9a86a] text-[#09090b] font-inter text-[10.5px] font-bold tracking-[1px] uppercase rounded-[2px] hover:bg-[#d6b77e]">GERAR TERMO</button>
+          <button type="button" @click="depositoRegistrado = null" class="w-full py-2 mt-2 text-[#8e8a82] font-inter text-[10px] uppercase font-semibold">FECHAR</button>
+        </template>
+      </CompactModal>
+      <CompactModal :is-open="showClienteModal" labelled-by="titulo-cliente" @close="showClienteModal = false">
+        <form @submit.prevent="cadastrarCliente" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-white/5">
+            <h2 id="titulo-cliente" class="font-playfair text-[18px] font-semibold">Novo Cliente</h2>
+            <button type="button" @click="showClienteModal = false" aria-label="Fechar cadastro de cliente" class="text-[#a39e93] p-1"><X class="w-4 h-4" /></button>
           </div>
-        </div>
-      </div>
-
-      <!-- MODAL: LINK DIRETO / NOVO CLIENTE -->
-      <div
-        v-if="showLinkModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity"
-        @click.self="showLinkModal = false"
-      >
-        <div class="bg-[#141416] border border-[rgba(201,168,106,0.4)] rounded-[4px] max-w-sm w-full p-4 shadow-2xl relative">
-          <div class="flex items-center justify-between pb-3 border-b border-[rgba(255,255,255,0.06)] mb-3">
-            <div class="flex items-center gap-2">
-              <PlusCircle class="w-5 h-5 text-[#c9a86a]" />
-              <h3 class="font-playfair text-[18px] font-semibold text-[#f2ebd9]">
-                Novo Link de Triagem
-              </h3>
-            </div>
-            <button
-              @click="showLinkModal = false"
-              class="text-[#a39e93] hover:text-[#f2ebd9] p-1 cursor-pointer"
-            >
-              <X class="w-4 h-4" />
-            </button>
-          </div>
-
-          <p class="font-inter text-[12px] text-[#a39e93] mb-3">
-            Envie este link direto para o cliente preencher o pré-orçamento e o termo notarial pelo WhatsApp:
-          </p>
-
-          <div class="bg-[#09090b] p-2.5 rounded-[2px] border border-[rgba(201,168,106,0.25)] flex items-center justify-between gap-2 mb-4">
-            <span class="font-jetbrains text-[10px] text-[#e6c383] truncate">
-              {{ preAttendanceLink }}
-            </span>
-            <button
-              @click="copyLink"
-              class="bg-[#1c1a17] hover:bg-[#25221d] border border-[rgba(201,168,106,0.3)] px-2.5 py-1 rounded-[2px] font-jetbrains text-[9.5px] font-bold text-[#c9a86a] uppercase cursor-pointer shrink-0 flex items-center gap-1"
-            >
-              <Copy class="w-3 h-3" />
-              <span>COPIAR</span>
-            </button>
-          </div>
-
-          <button
-            @click="showLinkModal = false"
-            class="w-full py-2.5 bg-[#c9a86a] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.2px] uppercase rounded-[2px] cursor-pointer hover:bg-[#d6b77e]"
-          >
-            CONCLUIR
-          </button>
-        </div>
-      </div>
+          <label class="block font-inter text-xs text-[#a39e93]">Nome<input v-model="nomeCliente" required maxlength="255" autocomplete="name" class="campo mt-2" /></label>
+          <label class="block font-inter text-xs text-[#a39e93]">WhatsApp com país e DDD<input v-model="telefoneCliente" required type="tel" autocomplete="tel" placeholder="5511999999999" class="campo mt-2" /></label>
+          <p v-if="clienteError" role="alert" class="font-inter text-xs text-[#ef8b83]">{{ clienteError }}</p>
+          <button type="submit" :disabled="salvandoCliente" class="w-full bg-[#c9a86a] text-[#09090b] py-2.5 rounded-[2px] font-inter text-[11px] font-bold uppercase disabled:opacity-40">{{ salvandoCliente ? 'Salvando...' : 'Salvar cliente' }}</button>
+          <button type="button" @click="showClienteModal = false" class="w-full py-2 text-[#8e8a82] font-inter text-[10px] uppercase font-semibold">FECHAR</button>
+        </form>
+      </CompactModal>
+      <SinalDialog :sinal="sinalSelecionado" :loading="carregandoSinal" :error="erroSinal" @close="fecharSinal" @retry="carregarComprovante" />
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { IonPage, IonContent, IonGrid, IonRow, IonCol } from '@ionic/vue';
-import { useRouter } from 'vue-router';
-import {
-  Search,
-  SlidersHorizontal,
-  Clock,
-  CheckCircle2,
-  CreditCard,
-  ShieldCheck,
-  FileUp,
-  FileText,
-  Lock,
-  PlusCircle,
-  X,
-  Copy
-} from '@lucide/vue';
-import AppHeader from '../components/AppHeader.vue';
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, onIonViewWillEnter, onIonViewWillLeave } from '@ionic/vue';
+import { CheckCircle2, Clock, CreditCard, FileText, FileUp, Lock, PlusCircle, Search, ShieldCheck, RefreshCw, X } from '@lucide/vue';
+import { useRoute, useRouter } from 'vue-router';
+import AppHeader from '@/components/AppHeader.vue';
+import StatusFilterTabs from '@/components/StatusFilterTabs.vue';
+import CompactModal from '@/components/CompactModal.vue';
+import SinalDialog, { type SinalDetails } from '@/components/SinalDialog.vue';
+import { buscarComprovanteSinal, criarClienteAgenda } from '@/api/agendamentos';
 import { useTriageStore, type TriageClient } from '@/stores/triage';
 
 const router = useRouter();
+const route = useRoute();
 const triageStore = useTriageStore();
-
-// Sincroniza fila de triagem de clientes do backend (ou mantém fallback mock)
-onMounted(async () => {
-  if (typeof triageStore.fetchTriageQueue === 'function') {
-    await triageStore.fetchTriageQueue();
-  }
-});
-
-// Search & Filter state
 const searchQuery = ref('');
 const activeFilter = ref('todos');
-
-// Featured active client (Helena Vasco)
-const featuredClient = computed(() => {
-  return triageStore.getClientById('cli-helena');
-});
-
-// Dynamic filter pills with counts based on store
-const filterPills = computed(() => [
-  { id: 'todos', label: 'TODOS', count: triageStore.clients.length },
-  {
-    id: 'aguardando',
-    label: 'AGUARDANDO ORÇAMENTO',
-    count: triageStore.clients.filter((c) => c.status === 'aguardando').length,
-  },
-  {
-    id: 'sinal',
-    label: '• SINAL PENDENTE',
-    count: triageStore.clients.filter((c) => c.status === 'sinal').length,
-  },
-  {
-    id: 'confirmados',
-    label: '• CONFIRMADOS',
-    count: triageStore.clients.filter((c) => c.status === 'confirmados').length,
-  },
-]);
-
-// Queue items (excluding featured item if active in spotlight, but searchable)
-const filteredQueueClients = computed(() => {
-  return triageStore.clients.filter((item) => {
-    // Keep featured out of secondary queue if 'todos' to avoid visual duplicate,
-    // or include if user searches explicitly
-    if (activeFilter.value === 'todos' && item.id === featuredClient.value.id) {
-      return false;
-    }
-
-    const matchesFilter =
-      activeFilter.value === 'todos' || item.status === activeFilter.value;
-
-    const q = searchQuery.value.toLowerCase().trim();
-    const matchesQuery =
-      !q ||
-      item.name.toLowerCase().includes(q) ||
-      item.style.toLowerCase().includes(q) ||
-      item.projectTitle.toLowerCase().includes(q) ||
-      item.conceptDescription.toLowerCase().includes(q);
-
-    return matchesFilter && matchesQuery;
-  });
-});
-
-// File Upload state
+const attachedFile = ref<File | null>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
-const attachedFileName = ref('');
-
-// Modals & Async state
-const showSuccessModal = ref(false);
-const showLinkModal = ref(false);
+const atendimentoRef = ref<HTMLElement | null>(null);
 const isSubmittingDeposit = ref(false);
-const depositFeedbackMessage = ref('');
-const preAttendanceLink = ref('https://tattooflow.app/triagem/novo?ref=nct-8941');
+const depositError = ref('');
+const depositoRegistrado = ref<TriageClient | null>(null);
+const showClienteModal = ref(false);
+const nomeCliente = ref('');
+const telefoneCliente = ref('');
+const clienteError = ref('');
+const salvandoCliente = ref(false);
+const sinalSelecionado = ref<SinalDetails | null>(null);
+const sinalAgendamentoId = ref<number | null>(null);
+const carregandoSinal = ref(false);
+const erroSinal = ref('');
 
-function triggerFileSelect() {
-  if (fileInputRef.value) {
-    fileInputRef.value.click();
-  }
+const filterPills = computed(() => [
+  { id: 'todos', label: 'TODOS' }, { id: 'agendados', label: 'AGENDADOS' },
+  { id: 'aguardando', label: 'AGUARDANDO ORÇAMENTO' },
+  { id: 'sinal', label: 'SINAL PENDENTE' }, { id: 'confirmados', label: 'CONFIRMADOS' },
+].map(tab => ({ ...tab, count: triageStore.clients.filter(c => correspondeFiltro(c, tab.id)).length })));
+function correspondeFiltro(client: TriageClient, filtro: string) {
+  return filtro === 'todos' || (filtro === 'agendados' ? client.statusAgendamento === 'AGENDADO' : client.status === filtro);
 }
-
-function handleFileChange(e: Event) {
-  const target = e.target as HTMLInputElement;
-  if (target.files && target.files[0]) {
-    attachedFileName.value = target.files[0].name;
+const filteredClients = computed(() => triageStore.clients.filter(c => {
+  const texto = `${c.name} ${c.projectTitle} ${c.style} ${c.conceptDescription}`.toLocaleLowerCase('pt-BR');
+  return correspondeFiltro(c, activeFilter.value) && texto.includes(searchQuery.value.trim().toLocaleLowerCase('pt-BR'));
+}));
+const featuredClient = computed(() => filteredClients.value.find(c => c.id === triageStore.selectedClientId) || filteredClients.value[0]);
+const filteredQueueClients = computed(() => filteredClients.value.filter(c => c.id !== featuredClient.value?.id));
+watch(() => featuredClient.value?.id, () => { attachedFile.value = null; depositError.value = ''; });
+onIonViewWillEnter(async () => {
+  await carregar();
+  const id = Number(route.query.agendamentoId);
+  const client = triageStore.clients.find(c => c.agendamentoId === id);
+  if (client) {
+    activeFilter.value = client.status;
+    searchQuery.value = '';
+    await selecionarCliente(client);
   }
-}
+});
+onIonViewWillLeave(() => { fecharSinal(); showClienteModal.value = false; depositoRegistrado.value = null; });
+onUnmounted(fecharSinal);
 
+function valor(amount: number | null) { return amount == null ? 'Não informado' : amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function moeda(valor: number | null) { return valor == null ? 'Não informado' : valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+async function carregar() { await triageStore.fetchTriageQueue(); }
+async function selecionarCliente(client: TriageClient) {
+  triageStore.setSelectedClient(client.id);
+  await nextTick();
+  atendimentoRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function iniciarAgendamento(client: TriageClient) { triageStore.setSelectedClient(client.id); void router.push({ path: '/agendamento-sessao', query: { clientId: client.clientId } }); }
+function selecionarComprovante(event: Event) { attachedFile.value = (event.target as HTMLInputElement).files?.[0] || null; depositError.value = ''; }
 async function registrarSinal() {
-  if (!attachedFileName.value) {
-    attachedFileName.value = 'COMPROVANTE_PIX_450.PDF';
+  const client = featuredClient.value;
+  if (!client || !attachedFile.value || isSubmittingDeposit.value) return;
+  if (attachedFile.value.size > 5 * 1024 * 1024 || !/\.(pdf|png|jpe?g)$/i.test(attachedFile.value.name)) {
+    depositError.value = 'Selecione um PDF, PNG ou JPEG de até 5 MB.'; return;
   }
   isSubmittingDeposit.value = true;
+  depositError.value = '';
   try {
-    if (typeof triageStore.registerDepositWithReceipt === 'function') {
-      const result = await triageStore.registerDepositWithReceipt({
-        clientId: featuredClient.value.id,
-        receiptFileName: attachedFileName.value,
-        depositAmount: featuredClient.value.depositAmount,
-      });
-      depositFeedbackMessage.value = result.message;
-    } else if (typeof triageStore.registerDeposit === 'function') {
-      triageStore.registerDeposit(featuredClient.value.id, attachedFileName.value);
-    }
-    showSuccessModal.value = true;
-  } catch (err) {
-    console.warn('[TriagemClientes] Falha ao registrar sinal:', err);
-    showSuccessModal.value = true;
-  } finally {
-    isSubmittingDeposit.value = false;
-  }
+    await triageStore.registerDepositWithReceipt(client.id, attachedFile.value);
+    depositoRegistrado.value = { ...client };
+    attachedFile.value = null;
+  } catch (err) { depositError.value = err instanceof Error ? err.message : 'Não foi possível registrar o sinal.'; }
+  finally { isSubmittingDeposit.value = false; }
 }
-
-// ===============================================================
-// WIZARD NAVIGATION: PASSING CLIENT ID VIA ROUTE QUERY & STORE
-// ===============================================================
-function iniciarAgendamento(client: TriageClient) {
+async function cadastrarCliente() {
+  if (salvandoCliente.value) return;
+  clienteError.value = '';
+  const telefone = telefoneCliente.value.replace(/\D/g, '');
+  if (!nomeCliente.value.trim() || !/^[1-9]\d{9,14}$/.test(telefone)) { clienteError.value = 'Informe nome e WhatsApp com país e DDD (10 a 15 dígitos).'; return; }
+  salvandoCliente.value = true;
+  try {
+    const client = await criarClienteAgenda(nomeCliente.value.trim(), telefone);
+    showClienteModal.value = false;
+    nomeCliente.value = ''; telefoneCliente.value = ''; searchQuery.value = ''; activeFilter.value = 'todos';
+    await carregar(); triageStore.setSelectedClient(String(client.id));
+  } catch (err) { clienteError.value = err instanceof Error ? err.message : 'Não foi possível cadastrar o cliente.'; }
+  finally { salvandoCliente.value = false; }
+}
+function irParaTermo() {
+  const client = depositoRegistrado.value;
+  if (!client) return;
   triageStore.setSelectedClient(client.id);
-  router.push({
-    path: '/agendamento-sessao',
-    query: { clientId: client.id },
-  });
+  depositoRegistrado.value = null;
+  void router.push({ path: '/termo', query: { clientId: client.clientId, agendamentoId: client.agendamentoId } });
 }
-
-function irParaAgendamentoDestaque() {
-  showSuccessModal.value = false;
-  triageStore.setSelectedClient('cli-helena');
-  router.push({
-    path: '/agendamento-sessao',
-    query: { clientId: 'cli-helena' },
-  });
+async function verSinal(client: TriageClient) {
+  if (!client.agendamentoId) return;
+  fecharSinal(); sinalAgendamentoId.value = client.agendamentoId;
+  sinalSelecionado.value = { clientName: client.name, total: client.priceTotal, amount: client.depositAmount, receiptName: client.depositReceipt };
+  await carregarComprovante();
 }
-
-function irParaTermoDestaque() {
-  showSuccessModal.value = false;
-  triageStore.setSelectedClient('cli-helena');
-  router.push({
-    path: '/termo',
-    query: { clientId: 'cli-helena' },
-  });
+async function carregarComprovante() {
+  const sinal = sinalSelecionado.value;
+  const id = sinalAgendamentoId.value;
+  if (!sinal || id === null || carregandoSinal.value) return;
+  carregandoSinal.value = true; erroSinal.value = '';
+  try {
+    const blob = await buscarComprovanteSinal(id);
+    if (sinalSelecionado.value === sinal) sinal.receiptUrl = URL.createObjectURL(blob);
+  } catch (err) { if (sinalSelecionado.value === sinal) erroSinal.value = err instanceof Error ? err.message : 'Não foi possível carregar o comprovante.'; }
+  finally { if (sinalSelecionado.value === sinal) carregandoSinal.value = false; }
 }
-
-async function openNovoClienteModal() {
-  if (typeof triageStore.generatePreAttendanceLink === 'function') {
-    try {
-      const res = await triageStore.generatePreAttendanceLink();
-      if (res && res.link) {
-        preAttendanceLink.value = res.link;
-      }
-    } catch (err) {
-      console.warn('[TriagemClientes] Erro ao obter link:', err);
-    }
-  }
-  showLinkModal.value = true;
-}
-
-function copyLink() {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(preAttendanceLink.value).catch(() => {});
-  }
-  alert(`Link copiado para a área de transferência:\n${preAttendanceLink.value}`);
-}
-
-function toggleFilter() {
-  alert('Filtros por tatuador, estilo e valor ativados.');
-}
-
-function handleNotifications() {
-  console.log('Notificações abertas');
-}
-
-function handleProfile() {
-  console.log('Perfil aberto');
+function fecharSinal() {
+  if (sinalSelecionado.value?.receiptUrl) URL.revokeObjectURL(sinalSelecionado.value.receiptUrl);
+  sinalSelecionado.value = null; sinalAgendamentoId.value = null; carregandoSinal.value = false; erroSinal.value = '';
 }
 </script>
+
+<style scoped>
+ion-content { --background: #09090b; }
+.triage-row { row-gap: 24px; }
+button { min-height: 40px; }
+.campo { display: block; width: 100%; background: #09090b; color: #f2ebd9; border: 1px solid #c9a86a55; border-radius: 4px; padding: 12px; }
+</style>
