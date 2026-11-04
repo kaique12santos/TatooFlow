@@ -3,6 +3,9 @@
     <ion-content class="bg-[#09090b] text-[#f2ebd9]" fullscreen>
       <main class="min-h-screen bg-[#09090b] pb-28 max-w-[560px] mx-auto px-5 pt-4">
         <AppHeader @click-profile="router.push('/perfil')" />
+        <router-link to="/triagem" class="inline-flex items-center gap-2 text-sm text-[#c9a86a] py-2 mt-3">
+          <ArrowLeft class="w-4 h-4" /> Retornar para triagem
+        </router-link>
         <div class="flex items-end justify-between gap-3 mt-6 mb-5">
           <div>
             <p class="font-inter text-[10px] tracking-[2px] text-[#c9a86a] uppercase">Sessões do estúdio</p>
@@ -41,7 +44,7 @@
           </div>
         </div>
 
-        <StatusFilterTabs v-model="filtro" :tabs="filtros" @select-filter="filtro = $event" />
+        <StatusFilterTabs v-model="filtro" :tabs="filtros" />
         <p v-if="agendaStore.isLoading" role="status" class="py-5 text-center text-sm text-[#a39e93]">Carregando sessões...</p>
         <div v-else class="space-y-4">
           <SessionCard v-for="card in cards" :key="card.id" :card="card" :busy="agendaStore.updatingId !== null" @action="alterarStatus" />
@@ -54,20 +57,22 @@
         </div>
         <p class="mt-6 text-xs leading-relaxed text-[#a39e93]">Conclua a sessão para habilitar os cuidados pós-sessão. O envio respeita o prazo configurado após o término previsto.</p>
       </main>
+      <SinalDialog :sinal="sinalSelecionado" :loading="carregandoSinal" :error="erroSinal" @close="fecharSinal" @retry="carregarComprovante" />
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { IonPage, IonContent, onIonViewWillEnter } from '@ionic/vue';
-import { Calendar, Plus, RefreshCw, Search } from '@lucide/vue';
+import { computed, onUnmounted, ref } from 'vue';
+import { IonPage, IonContent, onIonViewWillEnter, onIonViewWillLeave } from '@ionic/vue';
+import { ArrowLeft, Calendar, Plus, RefreshCw, Search } from '@lucide/vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppHeader from '@/components/AppHeader.vue';
 import SessionCard, { type SessionCardItem } from '@/components/SessionCard.vue';
 import StatusFilterTabs from '@/components/StatusFilterTabs.vue';
+import SinalDialog, { type SinalDetails } from '@/components/SinalDialog.vue';
 import { useAgendaStore } from '@/stores/agenda';
-import type { StatusAgendamento } from '@/api/agendamentos';
+import { buscarComprovanteSinal, type StatusAgendamento } from '@/api/agendamentos';
 
 const router = useRouter();
 const route = useRoute();
@@ -76,6 +81,13 @@ const busca = ref('');
 const filtro = ref('todos');
 const dataSelecionada = ref('');
 const aviso = ref('');
+const sinalSelecionado = ref<SinalDetails | null>(null);
+const agendamentoSinalId = ref<number | null>(null);
+const carregandoSinal = ref(false);
+const erroSinal = ref('');
+
+onIonViewWillLeave(fecharSinal);
+onUnmounted(fecharSinal);
 
 onIonViewWillEnter(async () => {
   aviso.value = route.query.criado ? `Agendamento #${route.query.criado} salvo com sucesso.` : '';
@@ -91,7 +103,8 @@ onIonViewWillEnter(async () => {
 const daData = computed(() => agendaStore.appointments.filter((card) =>
   !dataSelecionada.value || agendaStore.registros.find((registro) => registro.id === card.id)?.dataHora.startsWith(dataSelecionada.value)));
 const filtros = computed(() => [
-  { id: 'todos', label: 'TODOS' }, { id: 'confirmados', label: 'AGENDADOS' },
+  { id: 'todos', label: 'TODOS' }, { id: 'agendados', label: 'AGENDADOS' },
+  { id: 'confirmados', label: 'CONFIRMADOS' },
   { id: 'andamento', label: 'EM ANDAMENTO' }, { id: 'concluidos', label: 'CONCLUÍDOS' },
   { id: 'cancelados', label: 'CANCELADOS' },
 ].map((item) => ({ ...item, count: daData.value.filter((card) => item.id === 'todos' || card.category === item.id).length })));
@@ -109,12 +122,56 @@ const resumo = computed(() => {
 });
 
 async function alterarStatus({ action, card }: { action: string; card: SessionCardItem }) {
+  if (action === 'ANEXAR COMPROVANTE') {
+    await router.push({ path: '/triagem', query: { agendamentoId: card.id } });
+    return;
+  }
+  if (action === 'VER SINAL') {
+    const registro = agendaStore.registros.find((sessao) => sessao.id === card.id);
+    if (!registro) return;
+    fecharSinal();
+    agendamentoSinalId.value = card.id;
+    sinalSelecionado.value = {
+      clientName: card.clientName,
+      total: registro.valorEstimado,
+      amount: registro.valorEstimado == null ? null : Math.ceil(Math.round(registro.valorEstimado * 100) / 2) / 100,
+    };
+    await carregarComprovante();
+    return;
+  }
   const status: Record<string, StatusAgendamento> = { INICIAR: 'EM_ANDAMENTO', CONCLUIR: 'CONCLUIDO', CANCELAR: 'CANCELADO' };
   const proximo = status[action];
   if (!proximo) return;
   if (action === 'CANCELAR' && !window.confirm(`Cancelar a sessão de ${card.clientName}?`)) return;
   aviso.value = '';
   if (await agendaStore.updateSessionStatus(card.id, proximo)) aviso.value = `Sessão #${card.id} atualizada com sucesso.`;
+}
+
+async function carregarComprovante() {
+  const sinal = sinalSelecionado.value;
+  const id = agendamentoSinalId.value;
+  if (!sinal || id === null || carregandoSinal.value) return;
+  carregandoSinal.value = true;
+  erroSinal.value = '';
+  try {
+    const arquivo = await buscarComprovanteSinal(id);
+    if (sinalSelecionado.value !== sinal) return;
+    sinal.receiptUrl = URL.createObjectURL(arquivo);
+    const extensao = { 'application/pdf': 'pdf', 'image/png': 'png', 'image/jpeg': 'jpg' }[arquivo.type] || 'bin';
+    sinal.receiptName = `comprovante-sinal-${id}.${extensao}`;
+  } catch (err) {
+    if (sinalSelecionado.value === sinal) erroSinal.value = err instanceof Error ? err.message : 'Não foi possível carregar o comprovante.';
+  } finally {
+    if (sinalSelecionado.value === sinal) carregandoSinal.value = false;
+  }
+}
+
+function fecharSinal() {
+  if (sinalSelecionado.value?.receiptUrl) URL.revokeObjectURL(sinalSelecionado.value.receiptUrl);
+  sinalSelecionado.value = null;
+  agendamentoSinalId.value = null;
+  carregandoSinal.value = false;
+  erroSinal.value = '';
 }
 </script>
 

@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-content class="bg-[#09090b] text-[#f2ebd9] font-sans" fullscreen>
-      <div class="screen-container min-h-screen pb-24 pt-3">
+      <div v-if="client" class="screen-container min-h-screen pb-24 pt-3">
         <!-- Reusable App Header -->
         <AppHeader
           @click-notifications="handleNotifications"
@@ -93,7 +93,7 @@
                 {{ client.assignedArtist }}
               </div>
               <div class="font-jetbrains text-[9.5px] font-bold text-[#c9a86a] tracking-[1.2px] uppercase leading-none mt-1">
-                {{ client.station || 'BANCADA 01' }}
+                {{ client.station || 'Bancada não informada' }}
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@
               </h2>
             </div>
             <!-- Status Badge: APROVADO PELO BOT -->
-            <div class="bg-[#0e2417] border border-[#225533] px-2.5 py-0.5 rounded-[2px] flex items-center gap-1">
+            <div v-if="client.anamnese.receivedAt" class="bg-[#0e2417] border border-[#225533] px-2.5 py-0.5 rounded-[2px] flex items-center gap-1">
               <CheckCircle2 class="w-3 h-3 text-[#4ade80]" />
               <span class="font-jetbrains text-[9px] font-bold text-[#4ade80] tracking-[1.2px] uppercase">
                 APROVADO VIA BOT
@@ -119,7 +119,8 @@
           </div>
 
           <!-- WhatsApp Bot Synchronization Banner -->
-          <div class="bg-[#09090b] border border-[rgba(201,168,106,0.2)] rounded-[3px] p-2.5 mb-3 flex items-start gap-2.5">
+          <p v-if="!client.anamnese.receivedAt" class="text-sm text-[#a39e93] mb-3">Não há respostas de anamnese registradas no banco para este cliente.</p>
+          <div v-else class="bg-[#09090b] border border-[rgba(201,168,106,0.2)] rounded-[3px] p-2.5 mb-3 flex items-start gap-2.5">
             <Bot class="w-4 h-4 text-[#c9a86a] shrink-0 mt-0.5" />
             <div class="min-w-0 flex-1 text-[11px] font-inter">
               <div class="font-jetbrains text-[9px] font-bold text-[#c9a86a] uppercase tracking-wider">
@@ -155,7 +156,7 @@
               <div class="shrink-0">
                 <!-- Se for resposta NÃO (Seguro/Aprovado) -->
                 <div
-                  v-if="!item.value"
+                  v-if="item.value === false"
                   class="bg-[#0e2417] border border-[#225533] px-2.5 py-0.5 rounded-[2px]"
                 >
                   <span class="font-jetbrains text-[9.5px] font-bold text-[#4ade80] uppercase tracking-wider">
@@ -165,7 +166,7 @@
 
                 <!-- Se for resposta SIM (Alerta ou detalhe) -->
                 <div
-                  v-else
+                  v-else-if="item.value === true"
                   :class="[
                     'px-2.5 py-0.5 rounded-[2px] font-jetbrains text-[9.5px] font-bold uppercase tracking-wider',
                     item.warningIfTrue
@@ -175,6 +176,7 @@
                 >
                   <span>{{ item.detailText ? item.detailText : 'SIM' }}</span>
                 </div>
+                <span v-else class="text-[10px] text-[#a39e93]">NÃO INFORMADO</span>
               </div>
             </div>
           </div>
@@ -311,7 +313,7 @@
 
       <!-- SUCCESS MODAL: TERMO AUTENTICADO -->
       <div
-        v-if="showAuthModal"
+        v-if="showAuthModal && client"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity"
         @click.self="showAuthModal = false"
       >
@@ -336,12 +338,12 @@
               REGISTRO NOTARIAL {{ client.termNumber }}
             </div>
             <p class="text-[#f2ebd9] font-inter text-[12px] leading-relaxed">
-              {{ authFeedbackMessage || `Termo assinado e carimbado digitalmente por ${client.name} na ${client.station || 'Bancada 01'} com ${client.assignedArtist}.` }}
+              {{ authFeedbackMessage }}
             </p>
             <div class="text-[#a39e93] font-jetbrains text-[10px] space-y-0.5 pt-1 border-t border-[rgba(255,255,255,0.05)]">
-              <div>PROTOCOLO: {{ authProtocol || 'SHA256:7f4c9...821b0e' }}</div>
+              <div>PROTOCOLO: {{ authProtocol }}</div>
               <div>ASSINATURA: BIOMETRIA DIGITAL CONFIRMADA</div>
-              <div>BOT WHATSAPP: REF {{ client.anamnese.botVerificationId }}</div>
+              <div v-if="client.anamnese.botVerificationId">BOT WHATSAPP: REF {{ client.anamnese.botVerificationId }}</div>
             </div>
           </div>
 
@@ -358,7 +360,7 @@
 
       <!-- SUCCESS MODAL: PDF ENVIADO WHATSAPP -->
       <div
-        v-if="showWhatsappModal"
+        v-if="showWhatsappModal && client"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity"
         @click.self="showWhatsappModal = false"
       >
@@ -390,12 +392,16 @@
           </button>
         </div>
       </div>
+      <div v-if="!client" class="p-6 text-sm text-[#a39e93]">
+        <p>{{ triageStore.error || 'Selecione um cliente cadastrado para continuar.' }}</p>
+        <router-link to="/triagem" class="block mt-4 text-[#c9a86a]">Retornar para triagem</router-link>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import { useRouter, useRoute } from 'vue-router';
 import {
@@ -422,11 +428,12 @@ const triageStore = useTriageStore();
 
 // Dynamic client from Route Query or Store
 const clientId = computed(() => {
-  return (route.query.clientId as string) || triageStore.selectedClientId || 'cli-beatriz';
+  return (route.query.clientId as string) || triageStore.selectedClientId;
 });
 
 const client = computed(() => {
-  return triageStore.getClientById(clientId.value);
+  return triageStore.clients.find(c => c.agendamentoId === Number(route.query.agendamentoId) && c.clientId === Number(clientId.value))
+    || triageStore.getClientById(clientId.value);
 });
 
 // Questions modeled with boolean answers from WhatsApp Bot
@@ -435,43 +442,43 @@ const anamneseQuestions = computed(() => [
     id: 'alergias',
     title: 'Alergia a pigmentos, látex ou cosméticos',
     subtitle: 'Reações alérgicas a derivados tópicos ou tintas',
-    value: client.value.anamnese.allergies,
+    value: client.value?.anamnese.allergies,
     warningIfTrue: true,
   },
   {
     id: 'anticoagulantes',
     title: 'Uso de anticoagulantes ou antiagregantes',
     subtitle: 'Medicamentos que interferem na coagulação sanguínea',
-    value: client.value.anamnese.anticoagulants,
+    value: client.value?.anamnese.anticoagulants,
     warningIfTrue: true,
   },
   {
     id: 'queloides',
     title: 'Histórico de queloides ou cicatrização hipertrófica',
     subtitle: 'Tendência dérmica a cicatrizes com relevo espesso',
-    value: client.value.anamnese.keloids,
+    value: client.value?.anamnese.keloids,
     warningIfTrue: true,
   },
   {
     id: 'diabetes',
     title: 'Diabetes descompensada ou coagulopatias',
     subtitle: 'Condições de cicatrização e hemostasia da pele',
-    value: client.value.anamnese.diabetesOrBleeding,
+    value: client.value?.anamnese.diabetesOrBleeding,
     warningIfTrue: true,
   },
   {
     id: 'gestante',
     title: 'Gestante ou em período de lactação',
     subtitle: 'Contraindicação sanitária temporária',
-    value: client.value.anamnese.pregnantOrLactating,
+    value: client.value?.anamnese.pregnantOrLactating,
     warningIfTrue: true,
   },
   {
     id: 'alimentacao',
     title: 'Alimentação sólida prévia (< 3h)',
     subtitle: 'Glicemia adequada para prevenção de hipotensão',
-    value: client.value.anamnese.recentMeal,
-    detailText: client.value.anamnese.recentMealDetail,
+    value: client.value?.anamnese.recentMeal,
+    detailText: client.value?.anamnese.recentMealDetail,
     warningIfTrue: false,
   },
 ]);
@@ -496,8 +503,13 @@ let ctx: CanvasRenderingContext2D | null = null;
 onMounted(async () => {
   setupCanvas();
   window.addEventListener('resize', handleCanvasResize);
-  // Sincroniza dados da anamnese e do termo do backend com fallback mock
-  await triageStore.fetchTermoAnamnese(clientId.value);
+  try {
+    await triageStore.fetchTermoAnamnese(clientId.value);
+    await nextTick();
+    setupCanvas();
+  } catch (err) {
+    alert(err instanceof Error ? err.message : 'Não foi possível carregar o termo.');
+  }
 });
 
 onBeforeUnmount(() => {
@@ -505,6 +517,7 @@ onBeforeUnmount(() => {
 });
 
 function handleBack() {
+  if (!client.value) return;
   router.push({
     path: '/alocacao-materiais',
     query: { clientId: client.value.id },
@@ -609,6 +622,7 @@ function handleProfile() {
 }
 
 async function autenticarTermo() {
+  if (!client.value) return;
   if (!isAgreed.value) {
     alert('Por favor, assinale a declaração de conferência e leitura do termo antes de autenticar.');
     return;
@@ -626,7 +640,7 @@ async function autenticarTermo() {
       signatureBase64,
       termNumber: client.value.termNumber,
       agreedAt: new Date().toISOString(),
-      botVerificationId: client.value.anamnese.botVerificationId,
+      botVerificationId: client.value?.anamnese.botVerificationId,
       clientCpf: client.value.cpf,
     });
 
@@ -634,8 +648,7 @@ async function autenticarTermo() {
     authFeedbackMessage.value = result.message;
     showAuthModal.value = true;
   } catch (err) {
-    console.warn('[TermoAnamnese] Falha na autenticação do termo:', err);
-    showAuthModal.value = true;
+    alert(err instanceof Error ? err.message : 'Não foi possível autenticar o termo.');
   } finally {
     isSubmittingTerm.value = false;
   }
@@ -647,11 +660,13 @@ function concluirParaRecepcao() {
 }
 
 async function enviarWhatsapp() {
+  if (!client.value) return;
   try {
-    const result = await triageStore.sendTermoWhatsapp(client.value.id);
+    const result = await triageStore.sendTermoWhatsapp();
     whatsappFeedbackMessage.value = result.message;
   } catch (err) {
-    console.warn('[TermoAnamnese] Falha no disparo WhatsApp:', err);
+    alert(err instanceof Error ? err.message : 'Não foi possível enviar o termo.');
+    return;
   }
   showWhatsappModal.value = true;
 }

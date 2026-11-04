@@ -111,6 +111,10 @@ public class AgendamentoService {
                 || agendamento.getDataHora() == null) {
             throw new BusinessException("Cliente, tatuador e data/hora são obrigatórios");
         }
+        BigDecimal valorEstimado = agendamento.getValorEstimado();
+        if (valorEstimado == null || valorEstimado.signum() <= 0 || valorEstimado.stripTrailingZeros().scale() > 2) {
+            throw new BusinessException("Informe um valor estimado maior que zero, com no máximo duas casas decimais");
+        }
         if (agendamento.getDuracaoMinutos() == null) {
             agendamento.setDuracaoMinutos(DURACAO_PADRAO_MINUTOS);
         }

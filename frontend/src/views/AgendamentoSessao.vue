@@ -60,12 +60,13 @@
               <label class="block text-xs text-[#a39e93]">Duração em minutos<input v-model.number="form.duracaoMinutos" required type="number" min="1" max="1440" step="1" class="campo mt-2" /></label>
               <p v-if="termino" class="text-xs text-[#c9a86a]">Término previsto: {{ termino }}</p>
               <label for="status-agendamento" class="block text-xs text-[#a39e93]">Status</label>
-              <select id="status-agendamento" v-model="form.status" class="campo"><option value="AGENDADO">Agendado</option><option value="EM_ANDAMENTO">Em andamento</option><option value="CONCLUIDO">Concluído</option></select>
+              <select id="status-agendamento" v-model="form.status" class="campo"><option value="AGENDADO">Agendado · aguardando sinal</option></select>
+              <p class="text-xs text-[#a39e93]">Registre o sinal na triagem para confirmar o agendamento e iniciar a sessão.</p>
             </section>
 
             <section class="bg-[#141416] border border-white/10 rounded-lg p-4 space-y-4">
               <label class="block text-xs text-[#a39e93]">Descrição da sessão<textarea v-model="form.descricaoSessao" maxlength="255" rows="3" class="campo mt-2" placeholder="Projeto, região do corpo ou observações" /></label>
-              <label class="block text-xs text-[#a39e93]">Valor estimado (R$) · opcional<input v-model="form.valorEstimado" type="number" min="0" step="0.01" class="campo mt-2" placeholder="0,00" /></label>
+              <label class="block text-xs text-[#a39e93]">Valor estimado (R$) · obrigatório<input v-model="form.valorEstimado" required type="number" min="0.01" step="0.01" class="campo mt-2" placeholder="0,00" /></label>
             </section>
             <p class="text-xs leading-relaxed text-[#a39e93]">Os cuidados pré-sessão são enviados antes do início. Os cuidados pós-sessão exigem status concluído e respeitam o prazo configurado após o término previsto.</p>
             <p v-if="erro" role="alert" class="text-sm text-[#ef8b83] border border-red-300/30 rounded p-3">{{ erro }}</p>
@@ -176,11 +177,17 @@ async function salvar() {
     erro.value = 'Selecione cliente, tatuador, data e horário, com duração entre 1 e 1440 minutos.';
     return;
   }
+  const valorEstimado = Number(form.valorEstimado);
+  if (form.valorEstimado === '' || !Number.isFinite(valorEstimado) || valorEstimado <= 0
+      || Math.abs(valorEstimado * 100 - Math.round(valorEstimado * 100)) > 0.000001) {
+    erro.value = 'Informe um valor estimado maior que zero, com no máximo duas casas decimais.';
+    return;
+  }
   salvando.value = true;
   try {
     const agendamento = await salvarAgendamento({ clienteId: form.clienteId, tatuadorId: form.tatuadorId,
       dataHora: `${form.data}T${form.hora}:00`, duracaoMinutos: form.duracaoMinutos, status: form.status,
-      descricaoSessao: form.descricaoSessao.trim(), valorEstimado: form.valorEstimado === '' ? null : Number(form.valorEstimado) });
+      descricaoSessao: form.descricaoSessao.trim(), valorEstimado });
     await router.push({ path: '/agenda', query: { criado: agendamento.id } });
   } catch (err) {
     erro.value = err instanceof Error ? err.message : 'Não foi possível salvar o agendamento.';

@@ -71,7 +71,7 @@
     </div>
 
     <!-- Micro Action Buttons -->
-    <div v-if="card.actions.length" class="flex items-center gap-2 pt-1">
+    <div v-if="card.actions.length" class="flex flex-wrap items-center gap-2 pt-1">
       <button
         v-for="btn in card.actions"
         :key="btn.label"
