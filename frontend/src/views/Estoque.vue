@@ -97,9 +97,14 @@
           </div>
 
           <ion-grid class="ion-no-padding">
-            <ion-row>
-              <!-- Alert Card 1: Cartuchos 03RL Cheyenne -->
-              <ion-col size="12" size-md="6" class="ion-no-padding mb-3 md:mb-0 md:pr-2">
+            <ion-row v-if="criticalItems.length > 0">
+              <ion-col
+                v-for="item in criticalItems"
+                :key="item.id"
+                size="12"
+                size-md="6"
+                class="ion-no-padding mb-3 md:pr-2"
+              >
                 <div class="bg-[#141416] border border-[rgba(239,68,68,0.4)] rounded-[2px] p-3.5 h-full shadow-xl relative">
                   <div class="flex items-start justify-between gap-3">
                     <div>
@@ -111,216 +116,78 @@
                       </div>
 
                       <h3 class="font-playfair text-[17px] font-semibold text-[#f2ebd9] leading-tight my-1">
-                        Cartuchos 03RL Cheyenne
+                        {{ item.name }}
                       </h3>
 
                       <p class="font-montserrat text-[11px] text-[#a39e93]">
-                        Estoque atual: <strong class="text-[#f2ebd9] font-medium">{{ itemCheyenne03?.currentStock ?? 4 }} unidades</strong> • Mínimo do Atelier: {{ itemCheyenne03?.minStock ?? 15 }}
+                        Estoque atual: <strong class="text-[#f2ebd9] font-medium">{{ item.currentStock }} {{ item.unit }}</strong> • Mínimo: {{ item.minStock }}
                       </p>
                     </div>
 
                     <div class="w-10 h-10 bg-[#261315] border border-[rgba(239,68,68,0.3)] rounded-[2px] flex items-center justify-center text-[#f87171] shrink-0 shadow-md">
-                      <Syringe class="w-4.5 h-4.5" />
-                    </div>
-                  </div>
-                </div>
-              </ion-col>
-
-              <!-- Alert Card 2: Tinta Dynamic Black -->
-              <ion-col size="12" size-md="6" class="ion-no-padding md:pl-2">
-                <div class="bg-[#141416] border border-[rgba(201,168,106,0.3)] rounded-[2px] p-3.5 h-full shadow-xl relative">
-                  <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <div class="flex items-center gap-1.5 mb-1">
-                        <span class="w-1.5 h-1.5 bg-[#e6c383] rounded-[1px]"></span>
-                        <span class="font-inter text-[9px] font-bold text-[#e6c383] tracking-[1.44px] uppercase">
-                          ATENÇÃO • REORDENAMENTO EM ESPERA
-                        </span>
-                      </div>
-
-                      <h3 class="font-playfair text-[17px] font-semibold text-[#f2ebd9] leading-tight my-1">
-                        Tinta Dynamic Black (240ml)
-                      </h3>
-
-                      <p class="font-montserrat text-[11px] text-[#a39e93]">
-                        Estoque: <strong class="text-[#f2ebd9] font-medium">{{ itemDynamicBlack?.currentStock ?? 2 }} frascos</strong> • Consumo estimado: 10 dias
-                      </p>
-                    </div>
-
-                    <div class="w-10 h-10 bg-[#1e1913] border border-[rgba(201,168,106,0.3)] rounded-[2px] flex items-center justify-center text-[#e6c383] shrink-0 shadow-md">
-                      <Pipette class="w-4.5 h-4.5" />
+                      <AlertTriangle class="w-4.5 h-4.5" />
                     </div>
                   </div>
                 </div>
               </ion-col>
             </ion-row>
+            <div v-else class="text-center py-6 bg-[#141416] rounded-[2px] border border-[rgba(255,255,255,0.04)] mb-4">
+              <p class="font-montserrat text-[12px] text-[#86efac]">Nenhum item em nível crítico no banco de dados.</p>
+            </div>
           </ion-grid>
         </div>
 
-        <!-- Section 2: Insumos & Autoclave (Mobile 1 coluna, Tablet 2 colunas) -->
+        <!-- Section 2: Insumos do Atelier (Todos os itens cadastrados no banco) -->
         <div class="mb-5">
-          <h2 class="font-playfair text-[19px] font-semibold text-[#f2ebd9] mb-3 px-0.5">
-            Insumos &amp; Autoclave
-          </h2>
+          <div class="flex items-center justify-between mb-3 px-0.5">
+            <h2 class="font-playfair text-[19px] font-semibold text-[#f2ebd9]">
+              Insumos em Estoque
+            </h2>
+            <span class="font-jetbrains text-[10px] text-[#c9a86a] font-bold uppercase">
+              {{ inventoryStore.stockItems.length }} ITENS CADASTRADOS
+            </span>
+          </div>
 
           <ion-grid class="ion-no-padding">
-            <ion-row>
-              <!-- Item 1: Cartuchos 07MG Magnum -->
-              <ion-col size="12" size-md="6" class="ion-no-padding mb-2.5 md:pr-2">
+            <ion-row v-if="inventoryStore.stockItems.length > 0">
+              <ion-col
+                v-for="item in inventoryStore.stockItems"
+                :key="item.id"
+                size="12"
+                size-md="6"
+                class="ion-no-padding mb-2.5 md:pr-2"
+              >
                 <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3 shadow-lg flex items-center justify-between h-full">
                   <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-[#09090b] rounded-[2px] border border-[rgba(255,255,255,0.08)] overflow-hidden shrink-0">
-                      <img :src="itemImages.needles" alt="Cartuchos 07MG Magnum" class="w-full h-full object-cover" />
+                    <div class="w-10 h-10 bg-[#09090b] rounded-[2px] border border-[rgba(201,168,106,0.25)] flex items-center justify-center text-[#c9a86a] shrink-0">
+                      <Package class="w-5 h-5" />
                     </div>
                     <div>
                       <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase block">
-                        AGULHAS KWADRON
+                        {{ item.category.toUpperCase() }}
                       </span>
                       <h3 class="font-playfair text-[15px] font-semibold text-[#f2ebd9] leading-tight">
-                        Cartuchos 07MG Magnum
+                        {{ item.name }}
                       </h3>
                       <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase mt-0.5 block">
-                        UNIDADES: {{ itemMagnum07?.currentStock ?? 28 }} / CAIXA DE 20
+                        SALDO: {{ item.currentStock }} {{ item.unit }} • MÍN: {{ item.minStock }}
                       </span>
                     </div>
                   </div>
 
-                  <!-- Quantity Stepper -->
+                  <!-- Quantity Stepper conectado ao backend -->
                   <div class="bg-[#09090b] border border-[rgba(255,255,255,0.08)] rounded-[2px] px-2.5 py-1 flex items-center gap-3 shrink-0">
                     <button
-                      @click="decrementQty('cartuchos')"
+                      @click="inventoryStore.adjustItemStock(item.id, -1)"
                       class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
                     >
                       –
                     </button>
                     <span class="font-jetbrains text-[13px] font-bold text-[#f2ebd9] min-w-[14px] text-center">
-                      {{ quantities.cartuchos }}
+                      {{ item.currentStock }}
                     </span>
                     <button
-                      @click="incrementQty('cartuchos')"
-                      class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </ion-col>
-
-              <!-- Item 2: Luvas Nitrílicas Pretas (M) -->
-              <ion-col size="12" size-md="6" class="ion-no-padding mb-2.5 md:pl-2">
-                <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3 shadow-lg flex items-center justify-between h-full">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-[#09090b] rounded-[2px] border border-[rgba(255,255,255,0.08)] overflow-hidden shrink-0">
-                      <img :src="itemImages.gloves" alt="Luvas Nitrílicas Pretas" class="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase block">
-                        BIOSSEGURANÇA
-                      </span>
-                      <h3 class="font-playfair text-[15px] font-semibold text-[#f2ebd9] leading-tight">
-                        Luvas Nitrílicas Pretas (M)
-                      </h3>
-                      <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase mt-0.5 block">
-                        UNIDADES: {{ Math.max(1, Math.floor((itemLuvasM?.currentStock ?? 180) / 15)) }} CAIXAS ({{ itemLuvasM?.currentStock ?? 180 }} PARES)
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Quantity Stepper -->
-                  <div class="bg-[#09090b] border border-[rgba(255,255,255,0.08)] rounded-[2px] px-2.5 py-1 flex items-center gap-3 shrink-0">
-                    <button
-                      @click="decrementQty('luvas')"
-                      class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
-                    >
-                      –
-                    </button>
-                    <span class="font-jetbrains text-[13px] font-bold text-[#f2ebd9] min-w-[14px] text-center">
-                      {{ quantities.luvas }}
-                    </span>
-                    <button
-                      @click="incrementQty('luvas')"
-                      class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </ion-col>
-
-              <!-- Item 3: Stencil Stuff Transfer 250ml -->
-              <ion-col size="12" size-md="6" class="ion-no-padding mb-2.5 md:pr-2">
-                <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3 shadow-lg flex items-center justify-between h-full">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-[#09090b] rounded-[2px] border border-[rgba(255,255,255,0.08)] overflow-hidden shrink-0">
-                      <img :src="itemImages.stencil" alt="Stencil Stuff Transfer" class="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase block">
-                        FIXAÇÃO &amp; DECALQUE
-                      </span>
-                      <h3 class="font-playfair text-[15px] font-semibold text-[#f2ebd9] leading-tight">
-                        Stencil Stuff Transfer 250ml
-                      </h3>
-                      <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase mt-0.5 block">
-                        UNIDADES: {{ itemStencilStuff?.currentStock ?? 7 }} FRASCOS
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Quantity Stepper -->
-                  <div class="bg-[#09090b] border border-[rgba(255,255,255,0.08)] rounded-[2px] px-2.5 py-1 flex items-center gap-3 shrink-0">
-                    <button
-                      @click="decrementQty('stencil')"
-                      class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
-                    >
-                      –
-                    </button>
-                    <span class="font-jetbrains text-[13px] font-bold text-[#f2ebd9] min-w-[14px] text-center">
-                      {{ quantities.stencil }}
-                    </span>
-                    <button
-                      @click="incrementQty('stencil')"
-                      class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </ion-col>
-
-              <!-- Item 4: Tiras Indicadoras Biológicas -->
-              <ion-col size="12" size-md="6" class="ion-no-padding mb-2.5 md:pl-2">
-                <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3 shadow-lg flex items-center justify-between h-full">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-[#09090b] rounded-[2px] border border-[rgba(201,168,106,0.3)] flex items-center justify-center text-[#e6c383] shrink-0 shadow-md">
-                      <BadgeCheck class="w-6 h-6 stroke-[1.8]" />
-                    </div>
-                    <div>
-                      <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase block">
-                        ESTERILIZAÇÃO CRISTÓFOLI
-                      </span>
-                      <h3 class="font-playfair text-[15px] font-semibold text-[#f2ebd9] leading-tight">
-                        Tiras Indicadoras Biológicas
-                      </h3>
-                      <span class="font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.2px] uppercase mt-0.5 block">
-                        CICLO #891 • {{ itemTirasBio?.currentStock ?? 48 }} FITAS RESTANTES
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Quantity Stepper -->
-                  <div class="bg-[#09090b] border border-[rgba(255,255,255,0.08)] rounded-[2px] px-2.5 py-1 flex items-center gap-3 shrink-0">
-                    <button
-                      @click="decrementQty('tiras')"
-                      class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
-                    >
-                      –
-                    </button>
-                    <span class="font-jetbrains text-[13px] font-bold text-[#f2ebd9] min-w-[20px] text-center">
-                      {{ quantities.tiras }}
-                    </span>
-                    <button
-                      @click="incrementQty('tiras')"
+                      @click="inventoryStore.adjustItemStock(item.id, 1)"
                       class="text-[#a39e93] hover:text-[#f2ebd9] font-bold text-sm cursor-pointer transition-colors active:scale-90"
                     >
                       +
@@ -329,6 +196,9 @@
                 </div>
               </ion-col>
             </ion-row>
+            <div v-else class="text-center py-8 bg-[#141416] rounded-[2px] border border-[rgba(255,255,255,0.04)]">
+              <p class="font-montserrat text-[12px] text-[#a39e93]">Nenhum item cadastrado no estoque.</p>
+            </div>
           </ion-grid>
         </div>
 
@@ -377,48 +247,14 @@ const router = useRouter();
 const inventoryStore = useInventoryStore();
 
 onMounted(async () => {
-  // Sincroniza com backend caso haja endpoint ativo, com fallback mock transparente
   await inventoryStore.fetchStock();
 });
 
-// Computed properties vinculadas à inventoryStore compartilhada
-const itemCheyenne03 = computed(() => inventoryStore.getItemById('cartuchos-03rl'));
-const itemDynamicBlack = computed(() => inventoryStore.getItemById('tinta-dynamic-black'));
-const itemMagnum07 = computed(() => inventoryStore.getItemById('cartuchos-07mg'));
-const itemLuvasM = computed(() => inventoryStore.getItemById('luvas-m'));
-const itemStencilStuff = computed(() => inventoryStore.getItemById('stencil-stuff'));
-const itemTirasBio = computed(() => inventoryStore.getItemById('tiras-biologicas'));
+// Computed properties vinculadas à inventoryStore
+const criticalItems = computed(() => inventoryStore.stockItems.filter((i) => i.currentStock <= i.minStock));
 
 // Section state
 const activeSection = ref<'insumos' | 'repasses'>('insumos');
-
-// Inventory item image URLs
-const itemImages = {
-  needles:
-    'https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?auto=format&fit=crop&w=200&q=80',
-  gloves:
-    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=200&q=80',
-  stencil:
-    'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=200&q=80',
-};
-
-// Quantities state
-const quantities = ref({
-  cartuchos: 1,
-  luvas: 1,
-  stencil: 1,
-  tiras: 48,
-});
-
-function incrementQty(key: keyof typeof quantities.value) {
-  quantities.value[key]++;
-}
-
-function decrementQty(key: keyof typeof quantities.value) {
-  if (quantities.value[key] > 0) {
-    quantities.value[key]--;
-  }
-}
 
 function cadastrarInsumos() {
   router.push('/cadastrar-insumo');

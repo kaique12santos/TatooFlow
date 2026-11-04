@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
 
 export interface AdditionalAngle {
   id: string;
@@ -63,49 +64,32 @@ export interface ArtworkSessionData {
 
 export const useMarketingStore = defineStore('marketing', () => {
   // ==========================================
-  // CONTEXTO DO CLIENTE E BANCADA
+  // CONTEXTO DO CLIENTE E BANCADA (Vindo do Banco de Dados)
   // ==========================================
   const clientContext = ref<ClientMarketingContext>({
-    clientName: 'Camila Albuquerque',
-    station: 'BANCADA 01',
-    artistName: 'Gabriel Dornelles',
-    sessionInfo: 'Sessão 03/03 • Estudo de São Jerônimo...',
-    artworkTitle: 'Estudo de São Jerônimo · FineLine Chiaroscuro',
-    artworkStyle: '03RL FINELINE • ANTEBRAÇO EXT.',
+    clientName: '',
+    station: '',
+    artistName: '',
+    sessionInfo: '',
+    artworkTitle: '',
+    artworkStyle: '',
   });
 
   // ==========================================
   // PASSO 1: FOTOGRAFIA PRINCIPAL & ÂNGULOS
   // ==========================================
-  // Se não houver upload do usuário, mantém fallback para a imagem padrão da sessão
-  const masterShotUrl = ref<string | null>('/assets/sao_jeronimo_tattoo.jpg');
+  const masterShotUrl = ref<string | null>(null);
   const masterShotFile = ref<File | null>(null);
   const colorProfileActive = ref<boolean>(true);
-
-  const additionalAngles = ref<AdditionalAngle[]>([
-    {
-      id: 'macro',
-      title: 'MACRO LINEWORK',
-      image: '/assets/macro_linework_tattoo.jpg',
-      type: 'image',
-      verified: true,
-    },
-    {
-      id: 'reels',
-      title: 'VÍDEO 4K (REELS)',
-      image: '/assets/sao_jeronimo_tattoo.jpg',
-      type: 'video',
-      verified: true,
-    },
-  ]);
+  const additionalAngles = ref<AdditionalAngle[]>([]);
 
   // ==========================================
   // PASSO 2: LEGENDA & CURADORIA IA
+  // PRESERVADO: Fallback local para caso de falha da API Gemini
   // ==========================================
   const selectedTone = ref<'chiaroscuro' | 'solene' | 'story'>('chiaroscuro');
   const isGeneratingAi = ref<boolean>(false);
 
-  // Mocks de inteligência artificial por tom
   const tonePresets: Record<'chiaroscuro' | 'solene' | 'story', TonePreset> = {
     chiaroscuro: {
       title: 'Estudo de São Jerônimo · Chiaroscuro Renascentista',
@@ -147,19 +131,20 @@ export const useMarketingStore = defineStore('marketing', () => {
     },
   };
 
-  const captionTitle = ref<string>(tonePresets.chiaroscuro.title);
-  const captionBody = ref<string>(tonePresets.chiaroscuro.body);
-  const hashtagsList = ref<string[]>([...tonePresets.chiaroscuro.hashtags]);
-  const selectedHashtags = ref<string[]>([...tonePresets.chiaroscuro.hashtags]);
+  const captionTitle = ref<string>('');
+  const captionBody = ref<string>('');
+  const hashtagsList = ref<string[]>([]);
+  const selectedHashtags = ref<string[]>([]);
 
   // ==========================================
   // PASSO 3: PUBLICAÇÃO & DISTRIBUIÇÃO
   // ==========================================
   const selectedPreset = ref<'hoje' | 'amanha' | 'melhor'>('melhor');
-  const scheduleDate = ref<string>('24/MAI/2025');
-  const scheduleDateFormatted = ref<string>('Sexta-feira, 24 de Maio de 2025');
+  const now = new Date();
+  const scheduleDate = ref<string>(now.toLocaleDateString('pt-BR'));
+  const scheduleDateFormatted = ref<string>(now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }));
   const scheduleTime = ref<string>('20:45');
-  const protocolNumber = ref<string>('#NC-2024-0524-78');
+  const protocolNumber = ref<string>('');
   const isSubmittingSchedule = ref<boolean>(false);
 
   const channels = ref({
@@ -169,46 +154,34 @@ export const useMarketingStore = defineStore('marketing', () => {
     dossie: true,
   });
 
-  const defaultSocialAccounts: SocialAccount[] = [
-    {
-      id: 'acc-inst-01',
-      handle: '@Gabriel_dornelles',
-      monogram: 'NC',
-      platform: 'instagram',
-      statusToken: 'TOKEN META GRAPH V20.0 VÁLIDO',
-      isValid: true,
-      engagementPeakTime: '20:45',
-      engagementPeakDay: 'sextas-feiras',
-    },
-    {
-      id: 'acc-inst-02',
-      handle: '@newconcept.tattoo',
-      monogram: 'AT',
-      platform: 'instagram',
-      statusToken: 'TOKEN META GRAPH V20.0 VÁLIDO',
-      isValid: true,
-      engagementPeakTime: '19:30',
-      engagementPeakDay: 'sábados',
-    },
-  ];
+  const socialAccounts = ref<SocialAccount[]>([]);
+  const activeAccountId = ref<string>('');
 
-  const socialAccounts = ref<SocialAccount[]>([...defaultSocialAccounts]);
-
-  const activeAccountId = ref<string>('acc-inst-01');
-
-  const activeSocialAccount = computed<SocialAccount>(() => {
+  const activeSocialAccount = computed<SocialAccount | null>(() => {
     const found = socialAccounts.value.find((acc) => acc.id === activeAccountId.value);
-    return found || socialAccounts.value[0] || defaultSocialAccounts[0]!;
+    return found || socialAccounts.value[0] || null;
   });
 
-  // Resumo da legenda formatada com hashtags
   const fullFormattedCaption = computed(() => {
-    return `${captionBody.value}\n\n${selectedHashtags.value.join(' ')}`;
+    if (!captionBody.value) return '';
+    return selectedHashtags.value.length
+      ? `${captionBody.value}\n\n${selectedHashtags.value.join(' ')}`
+      : captionBody.value;
   });
 
   // ==========================================
-  // ACTIONS COM SUPORTE A BACKEND & FALLBACK MOCK
+  // HELPERS DE REQUISIÇÃO
   // ==========================================
+  const apiBaseUrl = ((import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '') as string).replace(/\/$/, '');
+
+  function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+    const authStore = useAuthStore();
+    const headers: Record<string, string> = { ...extraHeaders };
+    if (authStore.token) {
+      headers['Authorization'] = `Bearer ${authStore.token}`;
+    }
+    return headers;
+  }
 
   function setMasterShot(previewUrl: string, file: File | null = null) {
     masterShotUrl.value = previewUrl;
@@ -220,39 +193,38 @@ export const useMarketingStore = defineStore('marketing', () => {
     additionalAngles.value.push({ ...angle, id });
   }
 
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string) || (import.meta.env.VITE_API_URL as string) || '';
+  // ==========================================
+  // ACTIONS DE INTEGRAÇÃO COM BACKEND
+  // ==========================================
 
-  // Action com IF: Sincroniza rascunho de curadoria da obra do backend ou mantém fallback do atelier
+  // Sincroniza rascunho de curadoria da obra do backend
   async function fetchCuradoria(sessionId?: string): Promise<void> {
-    if (apiBaseUrl) {
-      try {
-        const query = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : '';
-        const response = await fetch(`${apiBaseUrl}/api/marketing/curadoria${query}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.body) {
-            captionTitle.value = data.title || captionTitle.value;
-            captionBody.value = data.body;
-            if (Array.isArray(data.hashtags) && data.hashtags.length > 0) {
-              hashtagsList.value = data.hashtags;
-              selectedHashtags.value = [...data.hashtags];
-            }
-            if (data.client) {
-              clientContext.value = { ...clientContext.value, ...data.client };
-            }
-            console.log('[MarketingStore] Curadoria carregada do backend:', data);
-            return;
+    if (!apiBaseUrl) return;
+    try {
+      const query = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : '';
+      const response = await fetch(`${apiBaseUrl}/api/marketing/curadoria${query}`, {
+        headers: getAuthHeaders(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.body) {
+          captionTitle.value = data.title || captionTitle.value || tonePresets.chiaroscuro.title;
+          captionBody.value = data.body;
+          if (Array.isArray(data.hashtags) && data.hashtags.length > 0) {
+            hashtagsList.value = data.hashtags;
+            selectedHashtags.value = [...data.hashtags];
           }
-        } else {
-          console.warn(`[MarketingStore] Backend retornou HTTP ${response.status} na curadoria. Usando fallback.`);
+          if (data.client) {
+            clientContext.value = { ...clientContext.value, ...data.client };
+          }
         }
-      } catch (err) {
-        console.warn('[MarketingStore] Falha ao sincronizar curadoria do backend. Mantendo rascunho local:', err);
       }
+    } catch (err) {
+      console.warn('[MarketingStore] Falha ao sincronizar curadoria do backend:', err);
     }
   }
 
-  // Gera ou refina a legenda via API com fallback mock se backend estiver ausente
+  // Gera ou refina a legenda via API com fallback local para falha do Gemini
   async function generateAiCaption(tone: 'chiaroscuro' | 'solene' | 'story' = selectedTone.value) {
     selectedTone.value = tone;
     isGeneratingAi.value = true;
@@ -261,7 +233,7 @@ export const useMarketingStore = defineStore('marketing', () => {
       if (apiBaseUrl) {
         const response = await fetch(`${apiBaseUrl}/api/marketing/curadoria-ia`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({
             tone,
             imageUrl: masterShotUrl.value,
@@ -283,14 +255,13 @@ export const useMarketingStore = defineStore('marketing', () => {
         }
       }
     } catch (error) {
-      console.warn('Backend indisponível para curadoria IA. Consumindo fallback mock do Atelier:', error);
+      console.warn('[MarketingStore] Falha na API Gemini do backend. Usando fallback de curadoria IA:', error);
     } finally {
-      // Simula uma resposta fluida de geração caso caia no fallback
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       isGeneratingAi.value = false;
     }
 
-    // Fallback Mock com base no tom literário
+    // Fallback local do Gemini mantido explicitamente por solicitação
     const preset = tonePresets[tone] || tonePresets.chiaroscuro;
     captionTitle.value = preset.title;
     captionBody.value = preset.body;
@@ -323,18 +294,20 @@ export const useMarketingStore = defineStore('marketing', () => {
 
   function setPreset(preset: 'hoje' | 'amanha' | 'melhor') {
     selectedPreset.value = preset;
+    const current = new Date();
     if (preset === 'hoje') {
-      scheduleDate.value = '23/MAI/2025';
-      scheduleDateFormatted.value = 'Hoje, 23 de Maio de 2025';
+      scheduleDate.value = current.toLocaleDateString('pt-BR');
+      scheduleDateFormatted.value = `Hoje, ${current.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}`;
       scheduleTime.value = '21:30';
     } else if (preset === 'amanha') {
-      scheduleDate.value = '24/MAI/2025';
-      scheduleDateFormatted.value = 'Amanhã, 24 de Maio de 2025';
+      const tomorrow = new Date(current.getTime() + 86400000);
+      scheduleDate.value = tomorrow.toLocaleDateString('pt-BR');
+      scheduleDateFormatted.value = `Amanhã, ${tomorrow.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}`;
       scheduleTime.value = '19:00';
     } else {
-      scheduleDate.value = '24/MAI/2025';
-      scheduleDateFormatted.value = 'Sexta-feira, 24 de Maio de 2025';
-      scheduleTime.value = '20:45';
+      scheduleDate.value = current.toLocaleDateString('pt-BR');
+      scheduleDateFormatted.value = current.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+      scheduleTime.value = activeSocialAccount.value?.engagementPeakTime || '20:45';
     }
   }
 
@@ -342,88 +315,77 @@ export const useMarketingStore = defineStore('marketing', () => {
     channels.value[channel] = !channels.value[channel];
   }
 
-  // Agendamento / Publicação via API com fallback mock
+  // Agendamento / Publicação via API
   async function submitSchedule(): Promise<{ success: boolean; protocol: string }> {
     isSubmittingSchedule.value = true;
     try {
-      if (apiBaseUrl) {
-        const response = await fetch(`${apiBaseUrl}/api/marketing/schedule`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            masterShotUrl: masterShotUrl.value,
-            caption: fullFormattedCaption.value,
-            scheduleDate: scheduleDate.value,
-            scheduleTime: scheduleTime.value,
-            channels: channels.value,
-            client: clientContext.value,
-          }),
-        });
+      if (!apiBaseUrl) throw new Error('API não configurada');
+      const response = await fetch(`${apiBaseUrl}/api/marketing/schedule`, {
+        method: 'POST',
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          masterShotUrl: masterShotUrl.value,
+          caption: fullFormattedCaption.value,
+          scheduleDate: scheduleDate.value,
+          scheduleTime: scheduleTime.value,
+          channels: channels.value,
+          client: clientContext.value,
+        }),
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.protocol) {
-            protocolNumber.value = data.protocol;
-            return { success: true, protocol: data.protocol };
+      if (response.ok) {
+        const data = await response.json();
+        const protocol = data.protocol || data.protocolo || `#NC-${Date.now().toString().slice(-6)}`;
+        protocolNumber.value = protocol;
+        return { success: true, protocol };
+      } else {
+        throw new Error(`Falha HTTP ${response.status} ao agendar publicação.`);
+      }
+    } finally {
+      isSubmittingSchedule.value = false;
+    }
+  }
+
+  // Sincroniza configurações de publicação, canais e contas do backend
+  async function fetchPublishSettings(): Promise<void> {
+    if (!apiBaseUrl) return;
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/marketing/distribuicao/settings`, {
+        headers: getAuthHeaders(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data) {
+          if (Array.isArray(data.accounts)) {
+            socialAccounts.value = data.accounts;
+          }
+          if (data.activeAccountId) {
+            activeAccountId.value = data.activeAccountId;
+          }
+          if (data.protocolNumber) {
+            protocolNumber.value = data.protocolNumber;
+          }
+          if (data.channels) {
+            channels.value = { ...channels.value, ...data.channels };
           }
         }
       }
     } catch (err) {
-      console.warn('Backend indisponível para agendamento. Consumindo fallback mock do protocolo:', err);
-    } finally {
-      await new Promise(resolve => setTimeout(resolve, 400));
-      isSubmittingSchedule.value = false;
-    }
-
-    // Fallback Mock do registro
-    return { success: true, protocol: protocolNumber.value };
-  }
-
-  // Action com IF: Sincroniza configurações de publicação, canais e contas conectadas do backend
-  async function fetchPublishSettings(): Promise<void> {
-    if (apiBaseUrl) {
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/marketing/distribuicao/settings`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data) {
-            if (Array.isArray(data.accounts) && data.accounts.length > 0) {
-              socialAccounts.value = data.accounts;
-            }
-            if (data.activeAccountId) {
-              activeAccountId.value = data.activeAccountId;
-            }
-            if (data.protocolNumber) {
-              protocolNumber.value = data.protocolNumber;
-            }
-            if (data.channels) {
-              channels.value = { ...channels.value, ...data.channels };
-            }
-            console.log('[MarketingStore] Configurações de publicação sincronizadas do backend:', data);
-            return;
-          }
-        } else {
-          console.warn(`[MarketingStore] Backend HTTP ${response.status} para configurações de publicação. Mantendo mock.`);
-        }
-      } catch (err) {
-        console.warn('[MarketingStore] Erro ao carregar configurações de publicação do backend:', err);
-      }
-    } else {
-      console.info('[MarketingStore] VITE_API_URL não definida. Mantendo configurações mock de distribuição.');
+      console.warn('[MarketingStore] Erro ao carregar configurações de publicação do backend:', err);
     }
   }
 
-  // Action com IF: Alternar conta social vinculada (Instagram/Redes)
-  async function switchSocialAccount(targetId?: string): Promise<{ success: boolean; account: SocialAccount }> {
+  // Alternar conta social vinculada
+  async function switchSocialAccount(targetId?: string): Promise<{ success: boolean; account: SocialAccount | null }> {
     const currentIdx = socialAccounts.value.findIndex((acc) => acc.id === activeAccountId.value);
-    const nextAccount = socialAccounts.value[(currentIdx + 1) % socialAccounts.value.length];
-    const newId = targetId || nextAccount?.id || 'acc-inst-01';
+    const nextAccount = socialAccounts.value[(currentIdx + 1) % (socialAccounts.value.length || 1)];
+    const newId = targetId || nextAccount?.id || '';
 
-    if (apiBaseUrl) {
+    if (apiBaseUrl && newId) {
       try {
         const response = await fetch(`${apiBaseUrl}/api/marketing/instagram/switch`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ accountId: newId }),
         });
         if (response.ok) {
@@ -432,60 +394,104 @@ export const useMarketingStore = defineStore('marketing', () => {
           return { success: true, account: activeSocialAccount.value };
         }
       } catch (err) {
-        console.warn('[MarketingStore] Falha ao alternar conta no backend. Alternando localmente:', err);
+        console.warn('[MarketingStore] Falha ao alternar conta no backend:', err);
       }
     }
 
-    // Fallback Mock seguro
-    activeAccountId.value = newId;
+    if (newId) {
+      activeAccountId.value = newId;
+    }
     return { success: true, account: activeSocialAccount.value };
   }
 
-  function resetToDefaults() {
-    masterShotUrl.value = '/assets/sao_jeronimo_tattoo.jpg';
-    masterShotFile.value = null;
-    selectedTone.value = 'chiaroscuro';
-    captionTitle.value = tonePresets.chiaroscuro.title;
-    captionBody.value = tonePresets.chiaroscuro.body;
-    hashtagsList.value = [...tonePresets.chiaroscuro.hashtags];
-    selectedHashtags.value = [...tonePresets.chiaroscuro.hashtags];
-    selectedPreset.value = 'melhor';
-  }
-
-  // Action com IF: Sincroniza sessão de arte e fotografia da bancada do backend
+  // Sincroniza sessão de arte e fotografia real do backend
   async function fetchArtworkSession(sessionId?: string): Promise<void> {
-    if (apiBaseUrl) {
-      try {
-        const query = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : '';
-        const response = await fetch(`${apiBaseUrl}/api/marketing/artes${query}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data) {
-            if (data.clientContext) {
-              clientContext.value = { ...clientContext.value, ...data.clientContext };
-            }
-            if (data.masterShotUrl) {
-              masterShotUrl.value = data.masterShotUrl;
-            }
-            if (Array.isArray(data.additionalAngles) && data.additionalAngles.length > 0) {
-              additionalAngles.value = data.additionalAngles;
-            }
-            console.log('[MarketingStore] Sessão de arte carregada do backend:', data);
-            return;
+    if (!apiBaseUrl) return;
+    try {
+      let targetSessionId = sessionId;
+
+      if (!targetSessionId) {
+        const agendamentosRes = await fetch(`${apiBaseUrl}/api/agendamentos`, {
+          headers: getAuthHeaders(),
+        });
+        if (agendamentosRes.ok) {
+          const envelope = await agendamentosRes.json();
+          const list = Array.isArray(envelope) ? envelope : envelope?.data;
+          if (Array.isArray(list) && list.length > 0) {
+            targetSessionId = String(list[0].id);
           }
-        } else {
-          console.warn(`[MarketingStore] Backend HTTP ${response.status} na consulta de arte. Mantendo mock.`);
         }
-      } catch (err) {
-        console.warn('[MarketingStore] Erro ao sincronizar arte do backend:', err);
       }
-    } else {
-      console.info('[MarketingStore] VITE_API_URL não definida. Mantendo sessão mock da bancada.');
+
+      if (targetSessionId) {
+        const sessaoRes = await fetch(`${apiBaseUrl}/api/agendamentos/${targetSessionId}`, {
+          headers: getAuthHeaders(),
+        });
+        if (sessaoRes.ok) {
+          const envelope = await sessaoRes.json();
+          const sessao = envelope?.data || envelope;
+          if (sessao) {
+            let nomeCliente = 'Cliente';
+            if (sessao.clienteId) {
+              const cliRes = await fetch(`${apiBaseUrl}/api/clientes/${sessao.clienteId}`, {
+                headers: getAuthHeaders(),
+              });
+              if (cliRes.ok) {
+                const cliEnvelope = await cliRes.json();
+                const cliData = cliEnvelope?.data || cliEnvelope;
+                if (cliData?.nome) nomeCliente = cliData.nome;
+              }
+            }
+
+            let nomeTatuador = 'Artista';
+            if (sessao.tatuadorId) {
+              const userRes = await fetch(`${apiBaseUrl}/api/usuarios`, {
+                headers: getAuthHeaders(),
+              });
+              if (userRes.ok) {
+                const userEnvelope = await userRes.json();
+                const users = userEnvelope?.data || userEnvelope || [];
+                const foundUser = Array.isArray(users) ? users.find((u: any) => u.id === sessao.tatuadorId) : null;
+                if (foundUser?.nome) nomeTatuador = foundUser.nome;
+              }
+            }
+
+            clientContext.value = {
+              clientName: nomeCliente,
+              station: `BANCADA 0${sessao.tatuadorId || 1}`,
+              artistName: nomeTatuador,
+              sessionInfo: sessao.descricaoSessao || `Sessão #${sessao.id}`,
+              artworkTitle: sessao.descricaoSessao || `Obra #${sessao.id}`,
+              artworkStyle: 'FINELINE / BLACKWORK',
+            };
+          }
+        }
+
+        const midiasRes = await fetch(`${apiBaseUrl}/api/midias/agendamento/${targetSessionId}`, {
+          headers: getAuthHeaders(),
+        });
+        if (midiasRes.ok) {
+          const envelope = await midiasRes.json();
+          const midias = Array.isArray(envelope) ? envelope : envelope?.data;
+          if (Array.isArray(midias) && midias.length > 0) {
+            masterShotUrl.value = midias[0].url;
+            additionalAngles.value = midias.slice(1).map((m: any, idx: number) => ({
+              id: String(m.id || `angle-${idx}`),
+              title: m.tipo || `DETALHE 0${idx + 1}`,
+              image: m.url,
+              type: m.tipo === 'VIDEO' ? 'video' : 'image',
+              verified: true,
+            }));
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[MarketingStore] Erro ao sincronizar arte do backend:', err);
     }
   }
 
-  // Action com IF: Upload da fotografia principal para o backend (com fallback mock)
-  async function uploadMasterShotFile(file: File): Promise<ArtworkUploadResponse> {
+  // Upload da fotografia principal para o backend
+  async function uploadMasterShotFile(file: File, agendamentoId: number = 1): Promise<ArtworkUploadResponse> {
     const localUrl = URL.createObjectURL(file);
     setMasterShot(localUrl, file);
 
@@ -493,47 +499,47 @@ export const useMarketingStore = defineStore('marketing', () => {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('clientName', clientContext.value.clientName);
-        formData.append('station', clientContext.value.station);
+        formData.append('agendamentoId', String(agendamentoId));
+        formData.append('tipo', 'FOTO_DEPOIS');
 
-        const response = await fetch(`${apiBaseUrl}/api/marketing/upload/master`, {
+        const response = await fetch(`${apiBaseUrl}/api/midias/upload`, {
           method: 'POST',
+          headers: getAuthHeaders(),
           body: formData,
         });
 
         if (response.ok) {
-          const data = await response.json();
-          if (data && data.url) {
-            masterShotUrl.value = data.url;
+          const res = await response.json();
+          const midia = res?.data || res;
+          if (midia && midia.url) {
+            masterShotUrl.value = midia.url;
             return {
               success: true,
               fromBackend: true,
-              url: data.url,
-              message: 'Fotografia principal carregada e armazenada no servidor central!',
+              url: midia.url,
+              message: 'Fotografia enviada com sucesso para o banco de dados!',
             };
           }
-        } else {
-          console.warn(`[MarketingStore] Erro HTTP ${response.status} no upload da imagem principal.`);
         }
       } catch (err) {
-        console.warn('[MarketingStore] Falha no upload da foto principal para o backend:', err);
+        console.warn('[MarketingStore] Falha no upload para o backend:', err);
       }
     }
 
-    // Fallback Mock seguro
     return {
       success: true,
       fromBackend: false,
       url: localUrl,
-      message: 'Fotografia principal carregada na bancada (Modo Simulação Local).',
+      message: 'Fotografia carregada localmente.',
     };
   }
 
-  // Action com IF: Upload de ângulo adicional/vídeo para o backend
+  // Upload de ângulo adicional para o backend
   async function uploadAdditionalAngleFile(
     file: File,
     title = 'DETALHE DA OBRA',
-    type: 'image' | 'video' = 'image'
+    type: 'image' | 'video' = 'image',
+    agendamentoId: number = 1
   ): Promise<ArtworkUploadResponse> {
     const localUrl = URL.createObjectURL(file);
     const tempAngle: AdditionalAngle = {
@@ -549,23 +555,25 @@ export const useMarketingStore = defineStore('marketing', () => {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('type', type);
-        formData.append('title', title);
+        formData.append('agendamentoId', String(agendamentoId));
+        formData.append('tipo', type === 'video' ? 'VIDEO' : 'FOTO_DEPOIS');
 
-        const response = await fetch(`${apiBaseUrl}/api/marketing/upload/angulo`, {
+        const response = await fetch(`${apiBaseUrl}/api/midias/upload`, {
           method: 'POST',
+          headers: getAuthHeaders(),
           body: formData,
         });
 
         if (response.ok) {
-          const data = await response.json();
-          if (data && data.url) {
-            tempAngle.image = data.url;
+          const res = await response.json();
+          const midia = res?.data || res;
+          if (midia && midia.url) {
+            tempAngle.image = midia.url;
             return {
               success: true,
               fromBackend: true,
-              url: data.url,
-              message: 'Novo ângulo enviado com sucesso para o servidor!',
+              url: midia.url,
+              message: 'Novo ângulo enviado com sucesso para o banco de dados!',
             };
           }
         }
@@ -580,6 +588,17 @@ export const useMarketingStore = defineStore('marketing', () => {
       url: localUrl,
       message: 'Novo ângulo adicionado localmente à galeria da sessão.',
     };
+  }
+
+  function resetToDefaults() {
+    masterShotUrl.value = null;
+    masterShotFile.value = null;
+    selectedTone.value = 'chiaroscuro';
+    captionTitle.value = '';
+    captionBody.value = '';
+    hashtagsList.value = [];
+    selectedHashtags.value = [];
+    selectedPreset.value = 'melhor';
   }
 
   return {
