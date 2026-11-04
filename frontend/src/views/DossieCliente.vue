@@ -23,7 +23,7 @@
           <div class="flex items-center gap-1.5 bg-[#141416] border border-[rgba(201,168,106,0.25)] px-3 py-1 rounded-full shadow-sm">
             <span class="w-1.5 h-1.5 rounded-full bg-[#c9a86a]"></span>
             <span class="font-jetbrains text-[10px] font-bold tracking-[1.5px] text-[#f2ebd9] uppercase">
-              DOSSIÊ {{ client?.dossierNumber || '#0482' }}
+              DOSSIÊ {{ client?.dossierNumber || `#${clientId}` }}
             </span>
           </div>
         </div>
@@ -34,21 +34,21 @@
           <div class="flex items-start justify-between">
             <div class="flex-1 pr-3">
               <h1 class="font-playfair text-[27px] sm:text-[29px] font-semibold text-[#f2ebd9] leading-tight mb-2 tracking-wide">
-                {{ client?.name || 'Camila Albuquerque' }}
+                {{ client?.name || 'Carregando cliente...' }}
               </h1>
               
               <div class="space-y-1 text-[#b8afa0]">
                 <div class="flex items-center gap-2">
                   <Phone class="w-3.5 h-3.5 text-[#c9a86a] shrink-0" />
                   <span class="font-jetbrains text-[12.5px] text-[#b8afa0] tracking-wide">
-                    {{ client?.phone || '+55 11 98844-3321' }}
+                    {{ client?.phone || 'Telefone não informado' }}
                   </span>
                 </div>
                 
                 <div class="flex items-center gap-2">
                   <CreditCard class="w-3.5 h-3.5 text-[#c9a86a] shrink-0" />
                   <span class="font-jetbrains text-[12px] text-[#a39e93] tracking-wide">
-                    CPF: {{ client?.cpf || '***.382.918-**' }}
+                    Identificador / E-mail: {{ client?.cpf || 'Não informado' }}
                   </span>
                 </div>
               </div>
@@ -57,7 +57,7 @@
             <!-- Monogram Avatar -->
             <div class="w-14 h-14 bg-[#0c0c0e] border border-[rgba(201,168,106,0.25)] rounded-[2px] flex items-center justify-center shrink-0 shadow-inner">
               <span class="font-playfair font-bold text-[22px] text-[#c9a86a] tracking-wider">
-                {{ client?.initials || 'CA' }}
+                {{ client?.initials || 'CL' }}
               </span>
             </div>
           </div>
@@ -71,10 +71,10 @@
               </span>
               <div class="flex items-baseline">
                 <span class="font-jetbrains text-[18px] font-bold text-[#c9a86a] mr-1.5 leading-none">
-                  3
+                  {{ client?.worksCount || 0 }}
                 </span>
                 <span class="font-inter text-[11.5px] text-[#f2ebd9]">
-                  Obras - 1 Agendada
+                  Obras - {{ client?.scheduledWorksCount || 0 }} Agendada(s)
                 </span>
               </div>
             </div>
@@ -84,11 +84,11 @@
               <span class="block font-inter text-[9px] font-bold tracking-[1px] text-[#a39e93] uppercase mb-1">
                 PERFIL DÉRMICO
               </span>
-              <div class="font-jetbrains text-[11px] font-bold text-[#f2ebd9] uppercase tracking-wide">
-                FITZPATRICK II
+              <div class="font-jetbrains text-[11px] font-bold text-[#f2ebd9] uppercase tracking-wide truncate">
+                {{ client?.dermalProfile?.fitzpatrick || 'ANAMNESE' }}
               </div>
-              <div class="font-inter text-[10.5px] text-[#a39e93] mt-0.5">
-                Boa retenção de cinzas
+              <div class="font-inter text-[10.5px] text-[#a39e93] mt-0.5 truncate">
+                {{ client?.dermalProfile?.description || 'Histórico clínico registrado.' }}
               </div>
             </div>
           </div>
@@ -99,17 +99,17 @@
               <ShieldCheck class="w-4.5 h-4.5 text-[#86efac] shrink-0" />
               <div class="truncate">
                 <div class="font-inter text-[10px] font-bold tracking-[1px] text-[#f2ebd9] uppercase leading-tight">
-                  ANAMNESE VÁLIDA
+                  {{ client?.anamneseStatus?.title || 'ANAMNESE' }}
                 </div>
                 <div class="font-inter text-[10.5px] text-[#a39e93] truncate leading-tight mt-0.5">
-                  Sem alergias a pigmentos minerais / orgânicos
+                  {{ client?.anamneseStatus?.notes || 'Consentimento registrado no banco.' }}
                 </div>
               </div>
             </div>
 
             <div class="bg-[#102619] border border-[#2d6342] px-2.5 py-1 rounded-[2px] shrink-0">
               <span class="font-jetbrains text-[9.5px] font-bold text-[#86efac] tracking-[1.2px] uppercase">
-                APROVADA
+                {{ client?.anamneseStatus?.badge || 'CONCLUÍDA' }}
               </span>
             </div>
           </div>
@@ -142,145 +142,113 @@
           </button>
         </div>
 
-        <!-- TAB 1: OBRAS & SESSÕES (Faithful reproduction of requested screenshot) -->
+        <!-- TAB 1: OBRAS & SESSÕES -->
         <div v-if="activeTab === 'obras'">
           <!-- Records Count Pill Badge -->
           <div class="mb-3">
             <span class="bg-[#141416] border border-[rgba(201,168,106,0.25)] px-2.5 py-1 rounded-[2px] font-jetbrains text-[9.5px] font-bold text-[#c9a86a] tracking-[1.2px] uppercase inline-flex items-center">
-              3 REGISTROS
+              {{ (client?.artworks || []).length }} REGISTROS NO BANCO
             </span>
           </div>
 
-          <!-- PROJECT CARD 1: Estudo de São Jerônimo -->
-          <div class="bg-[#141416] border border-[rgba(201,168,106,0.18)] rounded-[2px] p-4 shadow-xl mb-4">
-            <!-- Header Line: Badge & Time -->
-            <div class="flex items-center justify-between mb-2">
-              <span class="bg-[#102619] border border-[#2d6342] text-[#86efac] font-jetbrains text-[9.5px] font-bold px-2 py-0.5 rounded-[2px] tracking-wider uppercase">
-                OBRA SELADA & CURADA
-              </span>
-              <span class="font-jetbrains text-[10.5px] text-[#a39e93] uppercase">
-                16/OUT/2024 • 4H EXEC.
-              </span>
-            </div>
-
-            <!-- Title & Concept Description -->
-            <h2 class="font-playfair text-[20px] font-semibold text-[#f2ebd9] leading-tight mb-1">
-              Estudo de São Jerônimo
-            </h2>
-            <p class="font-inter text-[12px] text-[#a39e93] leading-relaxed mb-3">
-              Manga Chiaroscuro Renascentista com gradiente profundo de sombras e contraste dramático.
-            </p>
-
-            <!-- Tattoo Portfolio Artwork Box / Carousel Peek -->
-            <div class="relative w-full rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[#09090b] mb-3 group">
-              <img
-                src="/assets/sao_jeronimo_tattoo.jpg"
-                alt="Estudo de São Jerônimo"
-                class="w-full h-48 sm:h-52 object-cover object-center group-hover:scale-[1.02] transition-transform duration-500 cursor-pointer"
-                @click="openGalleryModal"
-              />
-
-              <!-- Bottom Overlay Tags -->
-              <div class="absolute bottom-2 left-2 flex items-center gap-1.5">
-                <span class="bg-[rgba(9,9,11,0.85)] backdrop-blur-sm border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-jetbrains text-[8.5px] font-bold px-1.5 py-0.5 rounded-[2px] uppercase">
-                  #CHIAROSCURO
+          <!-- Dynamic Artworks List -->
+          <div v-if="(client?.artworks || []).length > 0" class="space-y-4 mb-6">
+            <div
+              v-for="art in client?.artworks"
+              :key="art.id"
+              class="bg-[#141416] border border-[rgba(201,168,106,0.18)] rounded-[2px] p-4 shadow-xl"
+            >
+              <!-- Header Line: Badge & Time -->
+              <div class="flex items-center justify-between mb-2">
+                <span class="bg-[#102619] border border-[#2d6342] text-[#86efac] font-jetbrains text-[9.5px] font-bold px-2 py-0.5 rounded-[2px] tracking-wider uppercase">
+                  {{ art.badgeStatus }}
                 </span>
-                <span class="bg-[rgba(9,9,11,0.85)] backdrop-blur-sm border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-jetbrains text-[8.5px] font-bold px-1.5 py-0.5 rounded-[2px] uppercase">
-                  #RENASCENTISTA
+                <span class="font-jetbrains text-[10.5px] text-[#a39e93] uppercase">
+                  {{ art.dateAndDuration }}
                 </span>
               </div>
 
-              <!-- Bottom Right RAW Label -->
-              <div class="absolute bottom-2 right-2 bg-[rgba(9,9,11,0.7)] backdrop-blur-sm px-2 py-0.5 rounded-[2px]">
-                <span class="font-jetbrains text-[9.5px] text-[#b8afa0]">
-                  Foto RAW 4K
-                </span>
-              </div>
-            </div>
+              <!-- Title & Concept Description -->
+              <h2 class="font-playfair text-[20px] font-semibold text-[#f2ebd9] leading-tight mb-1">
+                {{ art.title }}
+              </h2>
+              <p class="font-inter text-[12px] text-[#a39e93] leading-relaxed mb-3">
+                {{ art.conceptDescription }}
+              </p>
 
-            <!-- Artista Responsável Section -->
-            <div class="border-t border-b border-[rgba(255,255,255,0.06)] py-2.5 my-3">
-              <span class="block font-inter text-[9px] font-bold tracking-[1.2px] text-[#7a766f] uppercase">
-                ARTISTA RESPONSÁVEL
-              </span>
-              <div class="font-inter text-[12.5px] font-medium text-[#f2ebd9] mt-0.5">
-                Gabriel D. (Master)
-              </div>
-            </div>
+              <!-- Tattoo Portfolio Artwork Box -->
+              <div class="relative w-full rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[#09090b] mb-3 group">
+                <img
+                  :src="art.image"
+                  :alt="art.title"
+                  class="w-full h-48 sm:h-52 object-cover object-center group-hover:scale-[1.02] transition-transform duration-500 cursor-pointer"
+                  @click="openGalleryModal(art)"
+                />
 
-            <!-- Documentação Jurídica & Arquivos -->
-            <div>
-              <span class="block font-inter text-[9px] font-bold tracking-[1.4px] text-[#c9a86a] uppercase mb-2">
-                DOCUMENTAÇÃO JURÍDICA & ARQUIVOS
-              </span>
-              <div class="grid grid-cols-2 gap-2">
-                <button
-                  @click="openTermoModal"
-                  class="bg-[#0c0c0e] hover:bg-[#19191c] border border-[rgba(201,168,106,0.25)] hover:border-[#c9a86a] p-2.5 rounded-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all"
-                >
-                  <CheckCircle2 class="w-4 h-4 text-[#c9a86a]" />
-                  <span class="font-inter text-[10px] font-bold tracking-[0.8px] text-[#f2ebd9] uppercase">
-                    TERMO ASSINADO
+                <!-- Bottom Overlay Tags -->
+                <div class="absolute bottom-2 left-2 flex items-center gap-1.5">
+                  <span
+                    v-for="tag in art.tags"
+                    :key="tag"
+                    class="bg-[rgba(9,9,11,0.85)] backdrop-blur-sm border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-jetbrains text-[8.5px] font-bold px-1.5 py-0.5 rounded-[2px] uppercase"
+                  >
+                    {{ tag }}
                   </span>
-                </button>
+                </div>
 
-                <button
-                  @click="openGalleryModal"
-                  class="bg-[#0c0c0e] hover:bg-[#19191c] border border-[rgba(201,168,106,0.25)] hover:border-[#c9a86a] p-2.5 rounded-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all"
-                >
-                  <Camera class="w-4 h-4 text-[#c9a86a]" />
-                  <span class="font-inter text-[10px] font-bold tracking-[0.8px] text-[#f2ebd9] uppercase">
-                    FOTOS RAW (3)
+                <!-- Bottom Right RAW Label -->
+                <div class="absolute bottom-2 right-2 bg-[rgba(9,9,11,0.7)] backdrop-blur-sm px-2 py-0.5 rounded-[2px]">
+                  <span class="font-jetbrains text-[9.5px] text-[#b8afa0]">
+                    {{ art.rawLabel }}
                   </span>
-                </button>
+                </div>
+              </div>
+
+              <!-- Artista Responsável Section -->
+              <div class="border-t border-b border-[rgba(255,255,255,0.06)] py-2.5 my-3">
+                <span class="block font-inter text-[9px] font-bold tracking-[1.2px] text-[#7a766f] uppercase">
+                  ARTISTA RESPONSÁVEL
+                </span>
+                <div class="font-inter text-[12.5px] font-medium text-[#f2ebd9] mt-0.5">
+                  {{ art.artistResponsible }}
+                </div>
+              </div>
+
+              <!-- Documentação Jurídica & Arquivos -->
+              <div>
+                <span class="block font-inter text-[9px] font-bold tracking-[1.4px] text-[#c9a86a] uppercase mb-2">
+                  DOCUMENTAÇÃO JURÍDICA & ARQUIVOS
+                </span>
+                <div class="grid grid-cols-2 gap-2">
+                  <button
+                    @click="openTermoModal(art)"
+                    class="bg-[#0c0c0e] hover:bg-[#19191c] border border-[rgba(201,168,106,0.25)] hover:border-[#c9a86a] p-2.5 rounded-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    <CheckCircle2 class="w-4 h-4 text-[#c9a86a]" />
+                    <span class="font-inter text-[10px] font-bold tracking-[0.8px] text-[#f2ebd9] uppercase">
+                      {{ art.signedTermAvailable ? 'TERMO ASSINADO' : 'TERMO PENDENTE' }}
+                    </span>
+                  </button>
+
+                  <button
+                    @click="openGalleryModal(art)"
+                    class="bg-[#0c0c0e] hover:bg-[#19191c] border border-[rgba(201,168,106,0.25)] hover:border-[#c9a86a] p-2.5 rounded-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    <Camera class="w-4 h-4 text-[#c9a86a]" />
+                    <span class="font-inter text-[10px] font-bold tracking-[0.8px] text-[#f2ebd9] uppercase">
+                      FOTOS REGISTRADAS ({{ art.rawPhotosCount }})
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- PROJECT CARD 2: Peônia Imperial Fine Line -->
-          <div class="bg-[#141416] border border-[rgba(201,168,106,0.18)] rounded-[2px] p-4 shadow-xl mb-6">
-            <!-- Header Line: Badge & Execution Date -->
-            <div class="flex items-center justify-between mb-2.5">
-              <span class="bg-[#18181b] border border-[rgba(255,255,255,0.1)] text-[#a39e93] font-jetbrains text-[9px] font-bold px-2 py-0.5 rounded-[2px] tracking-wider uppercase">
-                PROTOCOLO D+30 CONCLUÍDO
-              </span>
-              <span class="font-jetbrains text-[10.5px] text-[#a39e93] uppercase">
-                22/AGO/2024 • 2H30 EXEC.
-              </span>
-            </div>
-
-            <!-- Thumbnail & Title -->
-            <div class="flex items-center gap-3">
-              <div class="w-14 h-14 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[#09090b] shrink-0">
-                <img
-                  src="/assets/tattoo_healing_check.jpg"
-                  alt="Peônia Imperial Fine Line"
-                  class="w-full h-full object-cover"
-                />
-              </div>
-              <div class="flex-1 min-w-0">
-                <h3 class="font-playfair text-[18px] font-semibold text-[#f2ebd9] leading-snug">
-                  Peônia Imperial Fine Line
-                </h3>
-              </div>
-            </div>
-
-            <!-- Artista Responsável -->
-            <div class="border-t border-[rgba(255,255,255,0.06)] pt-2.5 mt-3 mb-2.5">
-              <span class="block font-inter text-[9px] font-bold tracking-[1.2px] text-[#7a766f] uppercase">
-                ARTISTA RESPONSÁVEL
-              </span>
-              <div class="font-inter text-[12.5px] font-medium text-[#f2ebd9] mt-0.5">
-                Gabriel D. (Master)
-              </div>
-            </div>
-
-            <!-- Cicatrização Status -->
-            <div class="flex items-center gap-1.5 text-[11.5px]">
-              <CheckCircle2 class="w-3.5 h-3.5 text-[#c9a86a] shrink-0" />
-              <span class="text-[#a39e93]">Cicatrização: </span>
-              <strong class="text-[#f2ebd9] font-medium">Perfeita e uniforme</strong>
-            </div>
+          <!-- Empty State -->
+          <div v-else class="text-center py-10 bg-[#141416] rounded-[2px] border border-[rgba(255,255,255,0.06)] mb-6">
+            <Camera class="w-8 h-8 text-[#a39e93] mx-auto mb-2 opacity-50" />
+            <p class="font-playfair text-[17px] text-[#f2ebd9]">Nenhuma obra ou sessão registrada</p>
+            <p class="font-montserrat text-[12px] text-[#a39e93] mt-1">Este cliente ainda não possui sessões vinculadas no banco.</p>
           </div>
 
           <!-- Bottom Action Buttons: Obras & Sessões Deck (3 Buttons) -->
@@ -452,7 +420,7 @@
 
             <div class="bg-[#0e0e11] border border-[rgba(255,255,255,0.05)] p-2.5 rounded-[2px] mb-3 text-[12px] space-y-1">
               <div class="flex justify-between items-center text-[10px] font-jetbrains text-[#a39e93]">
-                <span>CLIENTE: CAMILA ALBUQUERQUE</span>
+                <span>CLIENTE: {{ client?.name?.toUpperCase() || 'CLIENTE' }}</span>
                 <span class="text-[#86efac] font-bold">AVALIAÇÃO: 10/10</span>
               </div>
               <p class="text-[#f2ebd9] font-inter text-[12px] leading-relaxed">
@@ -469,7 +437,7 @@
           </div>
         </div>
 
-        <!-- MODAL 2: GALERIA RAW (Estudo de São Jerônimo) -->
+        <!-- MODAL 2: GALERIA RAW -->
         <div
           v-if="showGalleryModal"
           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-opacity"
@@ -480,7 +448,7 @@
               <div class="flex items-center gap-2">
                 <Camera class="w-4 h-4 text-[#c9a86a]" />
                 <h3 class="font-playfair text-[17px] font-semibold text-[#f2ebd9]">
-                  Acervo RAW 4K · Estudo de São Jerônimo
+                  Acervo RAW 4K · {{ activeModalArtwork?.title || client?.name || 'Obra' }}
                 </h3>
               </div>
               <button
@@ -493,19 +461,19 @@
 
             <div class="rounded-[2px] overflow-hidden border border-[rgba(201,168,106,0.2)] bg-[#09090b] mb-3">
               <img
-                src="/assets/sao_jeronimo_tattoo.jpg"
-                alt="Estudo de São Jerônimo RAW"
+                :src="activeModalArtwork?.image || '/assets/sao_jeronimo_tattoo.jpg'"
+                :alt="activeModalArtwork?.title || 'Obra RAW'"
                 class="w-full h-64 object-cover"
               />
             </div>
 
             <div class="bg-[#09090b] p-3 rounded-[2px] border border-[rgba(255,255,255,0.05)] text-[12px] space-y-1 mb-3">
               <div class="flex justify-between text-[10px] font-jetbrains text-[#a39e93]">
-                <span>RESOLUÇÃO: 3840 x 2160 (RAW)</span>
-                <span class="text-[#c9a86a]">CANON EOS R5 · 85MM</span>
+                <span>REGISTRO DE ARQUIVO</span>
+                <span class="text-[#c9a86a]">{{ activeModalArtwork?.badgeStatus || 'SESSÃO CONCLUÍDA' }}</span>
               </div>
               <p class="text-[#b8afa0] font-inter text-[11.5px]">
-                Registro de fechamento anatômico de antebraço. Técnica Chiaroscuro aplicada por Gabriel D. em sessão única de 4 horas.
+                {{ activeModalArtwork?.conceptDescription || 'Registro de alta precisão técnica arquivado no acervo.' }}
               </p>
             </div>
 
@@ -542,13 +510,13 @@
 
             <div class="bg-[#09090b] p-3 rounded-[2px] border border-[rgba(255,255,255,0.05)] text-[12px] space-y-2 mb-3">
               <div class="text-[#c9a86a] font-jetbrains text-[10px] uppercase font-bold">
-                DOCUMENTO ELETRÔNICO #TC-2024-0482
+                DOCUMENTO ELETRÔNICO #TC-{{ client?.dossierNumber?.replace('#', '') || '0001' }}
               </div>
               <p class="text-[#f2ebd9] font-inter text-[12px] leading-relaxed">
-                Termo assinado biometricamente por Camila Albuquerque em 16/10/2024 às 09:12.
+                Termo assinado biometricamente por {{ client?.name || 'Cliente' }}.
               </p>
               <div class="text-[#a39e93] font-jetbrains text-[10px]">
-                IP: 177.142.**.** · HASH SHA-256 REGISTRADO
+                CONFORMIDADE LGPD · REGISTRO NOTARIAL IMUTÁVEL
               </div>
             </div>
 
@@ -724,14 +692,14 @@ import {
   X
 } from '@lucide/vue';
 import AppHeader from '../components/AppHeader.vue';
-import { useClientsStore } from '@/stores/clients';
+import { useClientsStore, type ClientArtwork } from '@/stores/clients';
 
 const router = useRouter();
 const route = useRoute();
 const clientsStore = useClientsStore();
 
 // Client ID dinâmico vindo da rota ou padrão
-const clientId = computed(() => (route.query.id as string) || 'c-0482');
+const clientId = computed(() => (route.query.id as string) || '1');
 
 // State - Default to 'obras'
 const activeTab = ref<'obras' | 'pos-cuidado'>('obras');
@@ -740,6 +708,7 @@ const showGalleryModal = ref(false);
 const showTermoModal = ref(false);
 const showPosModal = ref(false);
 const showPreModal = ref(false);
+const activeModalArtwork = ref<ClientArtwork | null>(null);
 
 const client = computed(() => clientsStore.activeDossier);
 
@@ -747,19 +716,19 @@ const client = computed(() => clientsStore.activeDossier);
 const posMessageText = ref('');
 const preMessageText = ref('');
 
-// Sincroniza dados do dossiê com o backend (com verificação condicional e fallback mock)
+// Sincroniza dados do dossiê com o backend
 onMounted(async () => {
   await clientsStore.fetchClientDossier(clientId.value);
-  posMessageText.value = client.value.posMessageText;
-  preMessageText.value = client.value.preMessageText;
+  posMessageText.value = client.value?.posMessageText || '';
+  preMessageText.value = client.value?.preMessageText || '';
 });
 
 watch(
   () => client.value,
   (newVal) => {
     if (newVal) {
-      posMessageText.value = newVal.posMessageText;
-      preMessageText.value = newVal.preMessageText;
+      posMessageText.value = newVal.posMessageText || '';
+      preMessageText.value = newVal.preMessageText || '';
     }
   }
 );
@@ -780,27 +749,28 @@ function handleProfile() {
   console.log('Perfil aberto');
 }
 
-function openGalleryModal() {
+function openGalleryModal(art?: ClientArtwork) {
+  activeModalArtwork.value = art || client.value?.artworks?.[0] || null;
   showGalleryModal.value = true;
 }
 
-function openTermoModal() {
+function openTermoModal(art?: ClientArtwork) {
+  activeModalArtwork.value = art || client.value?.artworks?.[0] || null;
   showTermoModal.value = true;
 }
 
 function openNovaSessaoModal() {
-  router.push({ name: 'UploadArte' });
+  router.push({ name: 'UploadArte', query: { id: clientId.value } });
 }
 
 async function openDisparoTermoModal() {
-  // Disparo com verificação condicional (backend vs simulação WhatsApp)
   const result = await clientsStore.dispatchTermoWhatsapp(clientId.value);
   alert(result.message);
 }
 
 function exportPdf() {
   const c = client.value;
-  alert(`Exportando Dossiê Artístico ${c?.dossierNumber || '#0482'} de ${c?.name || 'Camila Albuquerque'} em PDF de alta resolução...`);
+  alert(`Exportando Dossiê Artístico ${c?.dossierNumber || ''} de ${c?.name || 'Cliente'} em PDF de alta resolução...`);
 }
 
 async function savePosMessage() {

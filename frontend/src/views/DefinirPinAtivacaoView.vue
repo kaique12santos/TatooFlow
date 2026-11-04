@@ -136,7 +136,7 @@
         <div class="bg-[#141416] rounded-[2px] p-3.5 border border-[rgba(255,255,255,0.06)] shadow-xl mb-4">
           <!-- Hero Studio Photo -->
           <div class="relative w-full h-44 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.06)] mb-3.5 bg-[#09090b]">
-            <img :src="valeriaStudioImage" alt="Valéria Moretti na Bancada 01" class="w-full h-full object-cover" />
+            <img :src="valeriaStudioImage" alt="Operador na bancada" class="w-full h-full object-cover" />
 
             <!-- Bottom Left Badge -->
             <div class="absolute bottom-2.5 left-2.5 bg-[rgba(9,9,11,0.88)] backdrop-blur-md px-2.5 py-1 rounded-[2px] border border-[rgba(255,255,255,0.12)] flex items-center gap-1.5 shadow-md">
@@ -188,7 +188,7 @@
               DISPARO VIA WHATSAPP CONCLUÍDO
             </span>
             <p class="font-montserrat text-[11px] text-[#a39e93] leading-relaxed">
-              Comprovante com hash criptográfica enviado para <span class="text-[#f2ebd9] font-medium">+55 11 98765-****</span>.
+              Comprovante com hash criptográfica enviado para <span class="text-[#f2ebd9] font-medium">{{ authStore.activationProfile.phone || 'telefone cadastrado' }}</span>.
             </p>
           </div>
         </div>
@@ -309,7 +309,7 @@ const artistRole = computed(() => authStore.activationProfile.role);
 const artistSpecialty = computed(() => authStore.activationProfile.specialty);
 
 // PIN temporário reativo
-const pinCode = computed(() => queryPin.value || authStore.activationProfile.temporaryPin || '749 • 382');
+const pinCode = computed(() => queryPin.value || authStore.activationProfile.temporaryPin || '—');
 const copied = ref(false);
 
 function copyPin() {

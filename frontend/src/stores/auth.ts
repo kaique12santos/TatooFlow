@@ -61,19 +61,18 @@ const STORAGE_KEY = 'tattooflow_user_role';
 const TOKEN_STORAGE_KEY = 'tattooflow_auth_token';
 const DEVICE_STORAGE_KEY = 'tattooflow_device_id';
 
-const defaultActivationProfile: UserActivationProfile = {
-  id: 'usr-val-02',
-  name: 'Valéria Moretti',
-  role: 'TATUADORA RESIDENTE',
-  station: 'BANCADA 01',
-  specialty: 'Fine Line & Blackwork',
-  avatar:
-    'https://s3-alpha-sig.figma.com/img/0293/54de/2b9d6df9205d9c45a19a4ab2b6e1cf2b?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=ax7-6ukFtX0NwnJ0iphPZ4~BxB2zL~A40Rl7u3V5LzuSfKI0hmMd06dXbnanHlX1GnQ68tBPUjVdj1DKBt5THDYdJweORRbVNTTUt86jMzq16w77DcW3AYYLQ6HCWmXnJ11eIiKiev3S4iDWMfrPYC5GE0r1tQdBSlOZFmyNj~uPoZY1kF0iPiBepwjiJCtowIDUCBuLoqE3oYqjvfG7obfW1lM~tOB0RosQWYeJcQcdkjv9CK~ysfHLWjtjtVGO96gs4ePFAT~CU~vK6nrX8Eo5Gh2vBVr9b5uoMB523ILTXVfCqO1gMNP3t46KSRQ4lQhkfPlNB2b81iC8FWVluA__',
-  status: 'valid',
-  statusLabel: 'VALIDADO',
-  temporaryPin: '749 • 382',
-  remainingSeconds: 14 * 60 + 53, // 14 min 53 seg
-  phone: '+55 (11) 98112-3344',
+const emptyActivationProfile: UserActivationProfile = {
+  id: '',
+  name: '',
+  role: '',
+  station: '',
+  specialty: '',
+  avatar: '',
+  status: 'pending',
+  statusLabel: '',
+  temporaryPin: '',
+  remainingSeconds: 0,
+  phone: '',
 };
 
 export const useAuthStore = defineStore('auth', () => {
@@ -112,7 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
   const deviceId = ref(getDeviceId());
   const profile = ref<UserProfile | null>(null);
   const isLoading = ref(false);
-  const activationProfile = ref<UserActivationProfile>({ ...defaultActivationProfile });
+  const activationProfile = ref<UserActivationProfile>({ ...emptyActivationProfile });
   const isPinLoading = ref<boolean>(false);
 
   const user = computed<UserProfile>(() => profile.value || {
@@ -223,11 +222,10 @@ export const useAuthStore = defineStore('auth', () => {
     isPinLoading.value = false;
   }
 
-  // Action com IF: Definir PIN definitivo do terminal
+  // Action: Definir PIN definitivo do terminal
   async function definePermanentPin(payload: PinDefinitionPayload): Promise<PinActionResponse> {
     isPinLoading.value = true;
 
-    // IF 1: Tenta registrar o novo PIN no backend
     if (apiBaseUrl) {
       try {
         const response = await fetch(`${apiBaseUrl}/api/auth/definir-pin`, {
@@ -236,14 +234,13 @@ export const useAuthStore = defineStore('auth', () => {
           body: JSON.stringify(payload),
         });
 
-        // IF 2: Se o backend confirmou a ativação
         if (response.ok) {
           const data = await response.json();
           isPinLoading.value = false;
           return {
             success: true,
             fromBackend: true,
-            message: data.message || 'PIN permanente autenticado e ativo no servidor!',
+            message: data.message || 'PIN permanente registrado com sucesso no servidor!',
           };
         } else {
           console.warn(`[AuthStore] Backend retornou erro HTTP ${response.status} ao definir PIN.`);
@@ -253,18 +250,16 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
 
-    // Fallback Mock garantido
     isPinLoading.value = false;
     return {
-      success: true,
+      success: false,
       fromBackend: false,
-      message: 'PIN permanente definido com sucesso na bancada (Modo Local Seguro).',
+      message: 'Não foi possível registrar o PIN no servidor.',
     };
   }
 
-  // Action com IF: Reenviar PIN temporário por WhatsApp
+  // Action: Reenviar PIN temporário por WhatsApp
   async function resendTemporaryPin(phoneOrToken?: string): Promise<PinActionResponse> {
-    // IF 1: Tenta disparar via endpoint do backend
     if (apiBaseUrl) {
       try {
         const response = await fetch(`${apiBaseUrl}/api/auth/pin-temporario/reenviar`, {
@@ -275,7 +270,6 @@ export const useAuthStore = defineStore('auth', () => {
           }),
         });
 
-        // IF 2: Se resposta OK
         if (response.ok) {
           return {
             success: true,
@@ -288,73 +282,33 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
 
-    // Fallback Mock
     return {
-      success: true,
+      success: false,
       fromBackend: false,
-      message: `Comprovante e PIN reenviados com sucesso para ${activationProfile.value.phone} (Modo Simulação).`,
+      message: 'Não foi possível reenviar o PIN pelo servidor.',
     };
   }
 
-  // Action com IF: Validar PIN de segurança na tela de bloqueio (PinLock)
-  async function verifyPinLock(pin: string, artistId?: string): Promise<PinAuthResponse> {
+  // Action: Validar PIN de segurança na tela de bloqueio (PinLock) com backend real
+  async function verifyPinLock(pin: string, _artistId?: string): Promise<PinAuthResponse> {
     isPinLoading.value = true;
+    const loginResult = await login(pin, deviceId.value);
+    isPinLoading.value = false;
 
-    // IF 1: Verifica se a URL base do backend está configurada
-    if (apiBaseUrl) {
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/auth/pin-lock/verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            pin,
-            artistId: artistId || activationProfile.value.id,
-            station: activationProfile.value.station,
-          }),
-        });
-
-        // IF 2: Se o backend autenticou com sucesso
-        if (response.ok) {
-          const data = await response.json();
-          console.log('[AuthStore] PIN validado com sucesso via backend:', data);
-          if (data.role) {
-            setRole(data.role as UserRole);
-          }
-          isPinLoading.value = false;
-          return {
-            success: true,
-            fromBackend: true,
-            message: data.message || 'Acesso liberado pelo servidor central do atelier.',
-            role: data.role || currentRole.value,
-            user: data.user,
-          };
-        } else {
-          const errorData = await response.json().catch(() => ({}));
-          console.warn(`[AuthStore] Backend rejeitou o PIN (Status HTTP ${response.status}):`, errorData);
-          if (response.status === 401 || response.status === 403) {
-            isPinLoading.value = false;
-            return {
-              success: false,
-              fromBackend: true,
-              message: errorData.message || 'PIN de segurança incorreto. Tente novamente.',
-            };
-          }
-        }
-      } catch (err) {
-        console.warn('[AuthStore] Falha de conexão ao validar PIN no backend. Utilizando fallback local:', err);
-      }
-    } else {
-      console.info('[AuthStore] VITE_API_URL não configurada. Validando PIN em modo local seguro.');
+    if (loginResult.success) {
+      return {
+        success: true,
+        fromBackend: true,
+        message: loginResult.message,
+        role: currentRole.value,
+        user: user.value,
+      };
     }
 
-    // Fallback Mock Seguro (Modo Local)
-    await new Promise((resolve) => setTimeout(resolve, 350));
-    isPinLoading.value = false;
     return {
-      success: true,
-      fromBackend: false,
-      message: 'Acesso liberado no terminal de bancada (Modo Local Seguro).',
-      role: currentRole.value,
+      success: false,
+      fromBackend: true,
+      message: loginResult.message || 'PIN incorreto ou aparelho não autorizado no servidor.',
     };
   }
 
