@@ -1,15 +1,15 @@
 <template>
   <div v-if="!isTabBarHidden" class="fixed bottom-0 left-0 right-0 z-50">
-    <!-- Quick Role Switcher Pill for seamless preview/testing between Admin & Tatuador -->
-    <div class="flex justify-center -mb-2 pointer-events-auto">
+    <!-- Quick Role Switcher Pill for Admin to preview Tatuador interface -->
+    <div v-if="authStore.user.role === 'admin'" class="flex justify-center -mb-2 pointer-events-auto">
       <button
         @click="switchProfile"
         class="bg-[#141416]/95 hover:bg-[#1a1a1e] border border-[rgba(201,168,106,0.35)] backdrop-blur-md px-3 py-0.5 rounded-full shadow-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer group"
-        title="Alternar entre perfil Admin e Tatuador"
+        title="Alternar visão de teste entre Admin e Tatuador"
       >
         <span class="w-1.5 h-1.5 rounded-full bg-[#d6b77e] animate-pulse"></span>
         <span class="font-jetbrains text-[9px] font-bold tracking-wider text-[#d6b77e] uppercase">
-          PERFIL: {{ authStore.currentRole === 'admin' ? 'ADMIN (4 ABAS)' : 'TATUADOR (3 ABAS)' }}
+          VISÃO: {{ authStore.currentRole === 'admin' ? 'ADMIN (4 ABAS)' : 'TATUADOR (3 ABAS)' }}
         </span>
         <ArrowLeftRight class="w-2.5 h-2.5 text-[#a39e93] group-hover:text-[#d6b77e] transition-colors" />
       </button>
@@ -23,6 +23,7 @@
       <ion-tab-button
         v-for="item in visibleNavItems"
         :key="item.id"
+        :tab="item.id"
         @click="navigate(item)"
         :class="[
           'bg-transparent transition-all relative overflow-hidden flex flex-col items-center justify-center cursor-pointer flex-1',
@@ -70,10 +71,11 @@ import { computed } from 'vue';
 import { IonTabBar, IonTabButton, IonLabel } from '@ionic/vue';
 import {
   Calendar,
+  Contact,
   Users,
   Camera,
   ClipboardList,
-  Landmark,
+  Wallet,
   Package,
   ArrowLeftRight,
 } from '@lucide/vue';
@@ -102,7 +104,7 @@ const tatuadorNavItems: AppNavigationItem[] = [
   {
     id: 'clientes',
     name: 'Clientes',
-    icon: Users,
+    icon: Contact,
     route: { name: 'Clientes' },
     match: ['Clientes', 'DossieCliente'],
     role: 'tatuador',
@@ -130,7 +132,7 @@ const adminNavItems: AppNavigationItem[] = [
   {
     id: 'gestao',
     name: 'Gestão',
-    icon: Landmark,
+    icon: Wallet,
     route: { name: 'Fechamento' },
     match: ['Fechamento', 'PerformanceArtistas'],
     role: 'admin',

@@ -179,9 +179,11 @@ import { Search, X, Users, FolderOpen, Camera, MessageSquare } from '@lucide/vue
 import { useRouter } from 'vue-router';
 import AppHeader from '../components/AppHeader.vue';
 import { useClientsStore, type ClientItem } from '@/stores/clients';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const clientsStore = useClientsStore();
+const alert = useAlert();
 
 const searchQuery = ref('');
 const activeFilter = ref('todos');
@@ -231,6 +233,11 @@ function startNewSession(_client: ClientItem) {
 }
 
 function contactWhatsapp(client: ClientItem) {
-  alert(`Abrindo WhatsApp para contato com ${client.name} (${client.phone})`);
+  const cleanPhone = (client.phone || '').replace(/\D/g, '');
+  if (cleanPhone) {
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
+  } else {
+    void alert.warning(`O cliente ${client.name} não possui número de WhatsApp cadastrado no prontuário.`, 'Contato Indisponível');
+  }
 }
 </script>

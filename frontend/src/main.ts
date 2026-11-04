@@ -38,7 +38,10 @@ window.fetch = (input: RequestInfo | URL, init: RequestInit = {}) => {
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(IonicVue)
+app.use(IonicVue, {
+  swipeBackEnabled: true,
+  hardwareBackButton: true,
+})
 app.use(router)
 
 router.isReady().then(() => {

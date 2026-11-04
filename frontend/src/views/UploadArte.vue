@@ -325,8 +325,15 @@
 
       </div>
 
-      <!-- Barra de Ação Ancorada no Rodapé Mobile (Acima da Tab Bar) -->
-      <div class="fixed bottom-[62px] left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-[rgba(201,168,106,0.2)] px-4 py-2.5 shadow-[0_-8px_25px_rgba(0,0,0,0.8)]">
+      <!-- Barra de Ação Ancorada no Rodapé Mobile -->
+      <div
+        :class="[
+          'fixed left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-[rgba(201,168,106,0.2)] px-4 shadow-[0_-8px_25px_rgba(0,0,0,0.8)] transition-all',
+          isTabBarHidden
+            ? 'bottom-0 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3'
+            : 'bottom-[62px] py-2.5'
+        ]"
+      >
         <div class="max-w-[480px] mx-auto flex items-center gap-3">
           <button
             @click="handleClose"
@@ -351,7 +358,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import { useRouter, useRoute } from 'vue-router';
 import {
@@ -373,6 +380,8 @@ import { useMarketingStore } from '@/stores/marketing';
 const router = useRouter();
 const route = useRoute();
 const marketingStore = useMarketingStore();
+
+const isTabBarHidden = computed<boolean>(() => Boolean(route.meta.hideTabBar));
 
 // State
 const fileInputRef = ref<HTMLInputElement | null>(null);

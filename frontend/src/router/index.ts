@@ -157,6 +157,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'Dossiê do Cliente',
       activeTab: 'clientes',
+      hideTabBar: true,
     },
   },
   {
@@ -170,6 +171,8 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'Convites de Primeiro Acesso',
       activeTab: 'equipe',
+      role: 'admin',
+      hideTabBar: true,
     },
   },
   {
@@ -247,6 +250,8 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'Cadastrar Insumo',
       activeTab: 'estoque',
+      role: 'admin',
+      hideTabBar: true,
     },
   },
   {
@@ -256,6 +261,8 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'Performance por Artista',
       activeTab: 'gestao',
+      role: 'admin',
+      hideTabBar: true,
     },
   },
   {
@@ -265,6 +272,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'Termo de Consentimento & Anamnese',
       activeTab: 'agenda',
+      hideTabBar: true,
     },
   },
   {
@@ -282,6 +290,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'Reserva de Espaço & Agenda',
       activeTab: 'agenda',
+      hideTabBar: true,
     },
   },
   {
@@ -303,6 +312,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'Kit Cirúrgico & Insumos',
       activeTab: 'agenda',
+      hideTabBar: true,
     },
   },
   {
@@ -339,16 +349,15 @@ router.beforeEach(async (to, _from, next) => {
     return next(currentRole === 'admin' ? '/triagem' : '/agenda');
   }
 
-  // If route explicitly requires a role that does not match current profile,
-  // allow smooth redirection to corresponding role home
+  // Strict RBAC: Proteção de acesso baseada no perfil ativo
   if (to.meta.role && to.meta.role !== currentRole) {
-    if (currentRole === 'admin' && to.meta.role === 'tatuador') {
-      // Trying to access tatuador-only route as admin
-      return next(); // Still permit direct link access, or next('/triagem') if strict
-    }
     if (currentRole === 'tatuador' && to.meta.role === 'admin') {
-      // Trying to access admin-only route as tatuador
-      return next(); // Still permit direct link access, or next('/agenda') if strict
+      // Bloqueia tatuador de acessar telas de gestão/admin e redireciona com segurança
+      return next('/agenda');
+    }
+    if (currentRole === 'admin' && to.meta.role === 'tatuador') {
+      // Permite acesso de auditoria do admin às telas do tatuador
+      return next();
     }
   }
 

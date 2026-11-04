@@ -338,9 +338,11 @@ import {
 import { useRouter } from 'vue-router';
 import AppHeader from '../components/AppHeader.vue';
 import { useInventoryStore } from '@/stores/inventory';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const inventoryStore = useInventoryStore();
+const alert = useAlert();
 
 const isSaving = ref(false);
 
@@ -384,7 +386,7 @@ function goBack() {
 
 async function saveItem() {
   if (!form.value.name.trim()) {
-    alert('Por favor, informe o nome do insumo antes de salvar.');
+    await alert.warning('Por favor, informe o nome do insumo antes de salvar no almoxarifado.', 'Campo Obrigatório');
     return;
   }
 
@@ -392,10 +394,11 @@ async function saveItem() {
   try {
     // Executa cadastro com verificação condicional (backend se disponível vs fallback mock local)
     const result = await inventoryStore.createStockItem(form.value);
-    console.log('[CadastrarInsumo] Insumo processado:', result);
+    await alert.success(`Insumo "${form.value.name}" cadastrado com sucesso no almoxarifado!`, 'Insumo Adicionado');
     router.push('/estoque');
   } catch (err) {
     console.warn('[CadastrarInsumo] Erro no cadastro:', err);
+    await alert.error('Não foi possível salvar o insumo no momento.', 'Erro Operacional');
     router.push('/estoque');
   } finally {
     isSaving.value = false;

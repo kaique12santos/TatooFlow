@@ -192,9 +192,11 @@ import { useRouter } from 'vue-router';
 import AppHeader from '../components/AppHeader.vue';
 import MonthSelectorCard from '../components/MonthSelectorCard.vue';
 import { useFinancialStore } from '@/stores/financial';
+import { useAlert } from '@/composables/useAlert';
 
 const router = useRouter();
 const financialStore = useFinancialStore();
+const alert = useAlert();
 
 // Sincroniza balancete mensal do backend com fallback mock
 onMounted(async () => {
@@ -203,7 +205,7 @@ onMounted(async () => {
 
 async function downloadPdf() {
   const result = await financialStore.downloadMonthlyReportPdf();
-  alert(result.message);
+  await alert.success(result.message, 'Livro-Razão Notarial');
 }
 
 function openArtistReport() {
