@@ -74,17 +74,13 @@ withDefaults(
     stats?: StationStat[];
   }>(),
   {
-    artistName: 'Gabriel Dornelles',
-    stationLabel: 'BANCADA 01',
-    avatarUrl: 'https://s3-alpha-sig.figma.com/img/5d0c/dcc0/9526114594d0aed5412f2474cb8e9edd?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=P1mpY0e-3jYcKZZ4V6lJa-wZX15noDjlie3AaNFYXRFtKCc2JtVtcHKTVPPOKZwlKgjkYuYoSskAd3EeVIl1XhQ~4sdzBkuizJhyHXE~nZd24V6mlagidhhwr0cD5wFHqfJCR9YjP5-LiuIczdRpZaKKHT3Fy8W5OwIyLnEIOSyAvXmD8dJOtSilrMNZKm1gchqHZyy8ymyeSU~ufKlI8L5vrIViaV-RPTBLi18xmOTZc1s~UsqtHIjSOcq-dcYtq2bGGF8HHQbKTt1fo-WM-CrvuCbhBoZk9TlFu4SGOn9SIDoK~QlnKyJzCIFBhL-6kuS61CuNvHxZytSNceFVjw__',
+    artistName: 'Artista',
+    stationLabel: 'BANCADA',
+    avatarUrl: '',
     statusText: 'ATIVO',
-    dateText: '24.OUT.2026',
-    weekdayText: 'QUINTA-FEIRA',
-    stats: () => [
-      { label: 'SESSÕES HOJE', value: '03', valueClass: 'font-playfair text-[20px] font-semibold text-[#e6c383]' },
-      { label: 'HORAS BANCADA', value: '07h 30m', valueClass: 'font-jetbrains text-[13px] font-medium text-[#f2ebd9]' },
-      { label: 'CAUÇÃO RETIDA', value: 'R$ 1.850', valueClass: 'font-jetbrains text-[13px] font-medium text-[#e6c383]' },
-    ],
+    dateText: '',
+    weekdayText: '',
+    stats: () => [],
   }
 );
 </script>

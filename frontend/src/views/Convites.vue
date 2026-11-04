@@ -284,11 +284,11 @@ function handleBack() {
 const heroImage = 'https://s3-alpha-sig.figma.com/img/e50a/06e1/5f90aaa2ed7535632339e8df873aa5f4?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=XPkhlwiepG0U5OxiSEy64vwkVwDhYHK59hL6n6cAnw1YnN0pm25i~ITQ-8HC8YD-ke17dTGdB7dUICNheaTE5wKyyqIy-Pt4BmV~1gC5~5sWoBwvWAckylOfnMNvk4ZEUNJtwO3-C8LL2HhaNWIDpUYxnXsYbLRhuZm-BCQbx71HTGuJCEsuqPQocMEpR0Ix0EOvcsqX65rTLHzbXgkFPGIkJ193Kyxk6AzvH84PQIVBRiU1IUm8iCtmcVEeMkwUx3sLi9g28BvL2SGiukCSQQpd2oC5RmiHegx7X3h6hUrCLPK1iglTx~q8-mStOaK3Vi6ZY~Odo8YMeia6rpGhAg__';
 
 // Form state
-const artistName = ref('Gabriel D. Marcenna');
-const artistEmail = ref('gabriel@newconcept.art');
-const artistPhone = ref('+55 (11) 98765-4321');
+const artistName = ref('');
+const artistEmail = ref('');
+const artistPhone = ref('');
 const autoPin = ref(true);
-const generatedPin = ref('749 • 201');
+const generatedPin = ref('');
 const selectedValidity = ref('48h');
 const isSubmitting = ref(false);
 

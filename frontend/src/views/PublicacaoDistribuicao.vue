@@ -42,12 +42,12 @@
           </div>
 
           <div class="font-inter font-medium text-[11.5px] text-[#f2ebd9] mb-1">
-            {{ marketingStore.clientContext.clientName }} - {{ marketingStore.clientContext.station }} - M. {{ marketingStore.clientContext.artistName }}
+            {{ marketingStore.clientContext.clientName || 'Cliente' }}{{ marketingStore.clientContext.station ? ' - ' + marketingStore.clientContext.station : '' }}{{ marketingStore.clientContext.artistName ? ' - M. ' + marketingStore.clientContext.artistName : '' }}
           </div>
 
           <div class="flex items-center gap-1 text-[11px] text-[#a39e93] truncate">
             <span class="text-[#c9a86a]">🖼️</span>
-            <span class="truncate">Obra: {{ marketingStore.clientContext.artworkTitle }}</span>
+            <span class="truncate">Obra: {{ marketingStore.clientContext.artworkTitle || 'Sessão de Tatuagem' }}</span>
           </div>
         </div>
 
@@ -57,7 +57,7 @@
             <!-- Avatar Monogram -->
             <div class="w-12 h-12 bg-[#0c0c0e] border border-[rgba(201,168,106,0.3)] rounded-[2px] flex items-center justify-center relative shrink-0 shadow-inner">
               <span class="font-playfair font-bold text-[16px] text-[#c9a86a]">
-                {{ marketingStore.activeSocialAccount?.monogram || 'NC' }}
+                {{ marketingStore.activeSocialAccount?.monogram || 'AT' }}
               </span>
               <!-- Tiny Instagram Badge -->
               <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#141416] border border-[rgba(201,168,106,0.35)] rounded-full flex items-center justify-center text-[#c9a86a]">
@@ -68,7 +68,7 @@
             <!-- Profile Details -->
             <div class="min-w-0 truncate">
               <div class="font-playfair text-[14.5px] font-semibold text-[#f2ebd9] truncate">
-                {{ marketingStore.activeSocialAccount?.handle || '@Gabriel_dornelles' }}
+                {{ marketingStore.activeSocialAccount?.handle || '@atelier.dornelles' }}
               </div>
               <div class="flex items-center gap-1.5 mt-0.5">
                 <span
@@ -76,7 +76,7 @@
                   :class="(marketingStore.activeSocialAccount?.isValid ?? true) ? 'bg-[#86efac]' : 'bg-[#e06c75]'"
                 ></span>
                 <span class="font-jetbrains text-[8.5px] font-bold text-[#a39e93] tracking-[0.5px] uppercase truncate">
-                  {{ marketingStore.activeSocialAccount?.statusToken || 'TOKEN META GRAPH V20.0 VÁLIDO' }}
+                  {{ marketingStore.activeSocialAccount?.statusToken || 'CONEXÃO INSTAGRAM ATIVA' }}
                 </span>
               </div>
             </div>
@@ -109,13 +109,15 @@
           <!-- Post Preview Deck -->
           <div class="bg-[#141416] border border-[rgba(201,168,106,0.18)] rounded-[4px] p-3.5 shadow-xl">
             <div class="flex items-start gap-3">
-              <!-- Thumbnail Mock -->
-              <div class="w-20 h-24 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[#09090b] relative shrink-0">
+              <!-- Thumbnail -->
+              <div class="w-20 h-24 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[#09090b] relative shrink-0 flex items-center justify-center">
                 <img
-                  :src="marketingStore.masterShotUrl || '/assets/sao_jeronimo_tattoo.jpg'"
+                  v-if="marketingStore.masterShotUrl"
+                  :src="marketingStore.masterShotUrl"
                   alt="Post Preview"
                   class="w-full h-full object-cover"
                 />
+                <Sparkles v-else class="w-5 h-5 text-[#c9a86a]" />
                 <span class="absolute bottom-1 right-1 bg-black/80 font-jetbrains text-[8px] text-[#b8afa0] px-1 rounded-[1px]">
                   1/4
                 </span>
@@ -290,7 +292,7 @@
                   <span>Publicar no Feed Principal</span>
                 </div>
                 <p class="font-inter text-[11px] text-[#a39e93] mt-0.5">
-                  Exibir na grade permanente da galeria @Gabriel_dornelles.
+                  Exibir na grade permanente da galeria {{ marketingStore.activeSocialAccount?.handle || 'do estúdio' }}.
                 </p>
               </div>
 
@@ -375,7 +377,7 @@
                   <span>Fixar no Dossiê Digital do Cliente</span>
                 </div>
                 <p class="font-inter text-[11px] text-[#a39e93] mt-0.5">
-                  Registrar permalink no livro de registros de Camila Albuquerque.
+                  Registrar permalink no livro de registros de {{ marketingStore.clientContext.clientName || 'cliente' }}.
                 </p>
               </div>
 
@@ -430,7 +432,7 @@
               Publicação Agendada!
             </h3>
             <p class="font-inter text-[12px] text-[#a39e93] mb-4">
-              A obra {{ marketingStore.clientContext.artworkTitle }} foi programada com sucesso para {{ marketingStore.scheduleDate }} às {{ marketingStore.scheduleTime }} no perfil {{ marketingStore.activeSocialAccount?.handle || '@Gabriel_dornelles' }} e fixada no Dossiê de {{ marketingStore.clientContext.clientName }}.
+              A obra {{ marketingStore.clientContext.artworkTitle || 'concluída' }} foi programada com sucesso para {{ marketingStore.scheduleDate }} às {{ marketingStore.scheduleTime }} no perfil {{ marketingStore.activeSocialAccount?.handle || 'do estúdio' }} e fixada no Dossiê de {{ marketingStore.clientContext.clientName || 'cliente' }}.
             </p>
 
             <button
@@ -509,7 +511,7 @@ function handleProfile() {
 
 async function switchAccount() {
   const result = await marketingStore.switchSocialAccount();
-  alert(`Conta conectada alternada com sucesso para: ${result.account.handle}`);
+  alert(`Conta conectada alternada com sucesso para: ${result.account?.handle || 'Conta padrão'}`);
 }
 
 async function agendarPublicacao() {

@@ -188,7 +188,7 @@ const artistRole = computed(() => authStore.activationProfile.role);
 const artistStation = computed(() => authStore.activationProfile.station);
 
 const currentStep = ref(1);
-const pin = ref('1234');
+const pin = ref('');
 const isSubmitting = ref(false);
 
 function handleKeyPress(key: KeypadItem) {

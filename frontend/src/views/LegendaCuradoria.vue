@@ -47,20 +47,22 @@
 
           <!-- Artwork Recognition Row -->
           <div class="flex items-center gap-3">
-            <div class="w-14 h-14 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[#09090b] shrink-0">
+            <div class="w-14 h-14 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[#09090b] shrink-0 flex items-center justify-center">
               <img
-                :src="marketingStore.masterShotUrl || '/assets/sao_jeronimo_tattoo.jpg'"
-                alt="São Jerônimo"
+                v-if="marketingStore.masterShotUrl"
+                :src="marketingStore.masterShotUrl"
+                alt="Obra"
                 class="w-full h-full object-cover"
               />
+              <Sparkles v-else class="w-6 h-6 text-[#c9a86a]" />
             </div>
 
             <div class="flex-1 min-w-0">
               <div class="font-jetbrains text-[10px] font-bold text-[#e6c383] tracking-wide uppercase truncate">
-                ▨ {{ marketingStore.clientContext.artworkStyle }}
+                ▨ {{ marketingStore.clientContext.artworkStyle || 'CURADORIA DE ARTE' }}
               </div>
               <p class="font-inter text-[11.5px] text-[#a39e93] leading-relaxed mt-0.5 truncate">
-                {{ marketingStore.clientContext.artworkTitle }}
+                {{ marketingStore.clientContext.artworkTitle || 'Sessão de Obra do Estúdio' }}
               </p>
             </div>
           </div>

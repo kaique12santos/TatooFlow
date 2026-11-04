@@ -252,7 +252,7 @@
               <div class="flex items-center gap-1.5 pt-0.5">
                 <span class="w-1.5 h-1.5 rounded-full" :class="reservationOrigin === 'backend' ? 'bg-[#86efac]' : 'bg-[#e6c383]'"></span>
                 <span :class="reservationOrigin === 'backend' ? 'text-[#86efac] font-medium' : 'text-[#e6c383] font-medium'">
-                  {{ reservationOrigin === 'backend' ? 'SINCRONIZADO VIA BACKEND' : 'STATUS: BANCADA PREPARADA (BAIXA MOCK REATIVA)' }}
+                  {{ reservationOrigin === 'backend' ? 'SINCRONIZADO VIA BACKEND' : 'STATUS: BANCADA PREPARADA' }}
                 </span>
               </div>
             </div>
@@ -329,7 +329,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import { useRouter, useRoute } from 'vue-router';
 import {
@@ -378,68 +378,37 @@ export interface KitItem {
   maxStock: number;
 }
 
-const kitItems = ref<KitItem[]>([
-  {
-    id: 'agulha-03rl',
-    title: 'Cartucho Agulha 03RL (Chiaroscuro)',
-    subtitle: 'Lote Esterilizado 2027',
-    quantity: 2,
-    stock: '38 un. disponíveis',
-    maxStock: 38
-  },
-  {
-    id: 'carbon-black',
-    title: 'Pigmento Carbon Black Puro (#882)',
-    subtitle: 'Frasco Notarial Lacrado 30ml',
-    quantity: 1,
-    stock: '14 un. disponíveis',
-    maxStock: 14
-  },
-  {
-    id: 'luvas-m',
-    title: 'Luvas Nitrílicas Pretas (Tam. M)',
-    subtitle: 'Grau Médico Isento de Pó',
-    quantity: 2,
-    stock: '180 pares disponíveis',
-    maxStock: 180
-  },
-  {
-    id: 'stencil',
-    title: 'Papel Stencil Hectográfico Especial',
-    subtitle: 'Gramatura Alta 4 Folhas Archival',
-    quantity: 3,
-    stock: '92 fl. disponíveis',
-    maxStock: 92
-  },
-  {
-    id: 'filme-dermico',
-    title: 'Filme Curativo Dérmico Protetor',
-    subtitle: 'Rolo 15cm x 10m (1 Fracionamento)',
-    quantity: 1,
-    stock: '12 rolos disponíveis',
-    maxStock: 12
-  },
-  {
-    id: 'vaselina',
-    title: 'Vaselina Dermocosmética Notarial',
-    subtitle: 'Monodose Estéril 30g',
-    quantity: 1,
-    stock: '50 un. disponíveis',
-    maxStock: 50
-  }
-]);
+const kitItems = ref<KitItem[]>([]);
 
-const extraItemsPool = [
-  { id: 'biqueira-grip', title: 'Biqueira Descartável Grip 25mm', subtitle: 'Esterilizada ETO', stock: '64 un. disponíveis', maxStock: 64 },
-  { id: 'espuma-calmante', title: 'Espuma Calmante Epitelial 150ml', subtitle: 'Extrato de Camomila & Hamamélis', stock: '22 frascos disponíveis', maxStock: 22 },
-  { id: 'alcool-spray', title: 'Álcool Isopropílico 70% Spray', subtitle: 'Assepsia de Bancada', stock: '40 un. disponíveis', maxStock: 40 },
-];
+onMounted(async () => {
+  await inventoryStore.fetchStock();
+  if (inventoryStore.stockItems.length > 0) {
+    kitItems.value = inventoryStore.stockItems.slice(0, 6).map((item) => ({
+      id: item.id,
+      title: item.name,
+      subtitle: `Categoria: ${item.category.toUpperCase()}`,
+      quantity: 1,
+      stock: `${item.currentStock} ${item.unit} disponíveis`,
+      maxStock: item.currentStock,
+    }));
+  }
+});
+
+const extraItemsPool = computed(() => {
+  return inventoryStore.stockItems.slice(6).map((item) => ({
+    id: item.id,
+    title: item.name,
+    subtitle: `Categoria: ${item.category.toUpperCase()}`,
+    stock: `${item.currentStock} ${item.unit} disponíveis`,
+    maxStock: item.currentStock,
+  }));
+});
 
 const showSuccessModal = ref(false);
 const showAddModal = ref(false);
 const isReserving = ref(false);
 const reservationProtocol = ref('');
-const reservationOrigin = ref<'backend' | 'mock'>('mock');
+const reservationOrigin = ref<'backend' | 'local'>('backend');
 
 function incrementQty(item: KitItem) {
   if (item.maxStock !== undefined && item.quantity >= item.maxStock) {
@@ -458,7 +427,7 @@ function openAddModal() {
   showAddModal.value = true;
 }
 
-function addExtraItem(extra: typeof extraItemsPool[0]) {
+function addExtraItem(extra: { id: string; title: string; subtitle: string; stock: string; maxStock?: number }) {
   kitItems.value.push({
     id: extra.id || `extra-${Date.now()}`,
     title: extra.title,
@@ -492,7 +461,6 @@ async function confirmarReserva() {
   isReserving.value = true;
 
   try {
-    // Aloca materiais com verificação condicional de backend / mock
     const result = await inventoryStore.allocateMaterials(
       sessionId.value,
       client.value.id,
@@ -500,13 +468,11 @@ async function confirmarReserva() {
     );
 
     reservationProtocol.value = result.protocol;
-    reservationOrigin.value = result.fromBackend ? 'backend' : 'mock';
+    reservationOrigin.value = 'backend';
     showSuccessModal.value = true;
-  } catch (err) {
-    console.warn('[AlocacaoMateriais] Erro ao alocar materiais via store:', err);
-    reservationProtocol.value = `BX-FLB-${Date.now().toString().slice(-6)}`;
-    reservationOrigin.value = 'mock';
-    showSuccessModal.value = true;
+  } catch (err: any) {
+    console.error('[AlocacaoMateriais] Erro ao alocar materiais via store:', err);
+    alert(err?.message || 'Falha ao registrar alocação de estoque no servidor.');
   } finally {
     isReserving.value = false;
   }

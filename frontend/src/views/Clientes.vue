@@ -186,12 +186,18 @@ const clientsStore = useClientsStore();
 const searchQuery = ref('');
 const activeFilter = ref('todos');
 
-const filters = [
-  { id: 'todos', label: 'TODOS (4)' },
-  { id: 'valid', label: 'ANAMNESE OK (2)' },
-  { id: 'pending', label: 'PENDENTE (1)' },
-  { id: 'finished', label: 'CONCLUÍDO (1)' },
-];
+const filters = computed(() => {
+  const all = clients.value.length;
+  const valid = clients.value.filter((c) => c.status === 'valid').length;
+  const pending = clients.value.filter((c) => c.status === 'pending').length;
+  const finished = clients.value.filter((c) => c.status === 'finished').length;
+  return [
+    { id: 'todos', label: `TODOS (${all})` },
+    { id: 'valid', label: `ANAMNESE OK (${valid})` },
+    { id: 'pending', label: `PENDENTE (${pending})` },
+    { id: 'finished', label: `CONCLUÍDO (${finished})` },
+  ];
+});
 
 // Sincroniza com o endpoint /api/clientes (com verificação condicional e fallback mock)
 onMounted(async () => {

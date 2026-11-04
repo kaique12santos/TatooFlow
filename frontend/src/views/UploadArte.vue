@@ -32,13 +32,13 @@
           <div class="flex items-start justify-between">
             <div>
               <span class="bg-[#1d1a15] border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-jetbrains text-[9.5px] font-bold px-2.5 py-0.5 rounded-[2px] tracking-wider uppercase inline-block mb-2">
-                BANCADA 01 • GABRIEL DORNELLES
+                {{ marketingStore.clientContext.station || 'BANCADA DO ATELIER' }} • {{ marketingStore.clientContext.artistName || 'ARTISTA' }}
               </span>
               <h1 class="font-playfair text-[25px] sm:text-[27px] font-semibold text-[#f2ebd9] leading-tight mb-1">
-                Camila Albuquerque
+                {{ marketingStore.clientContext.clientName || 'Cliente' }}
               </h1>
               <p class="font-inter text-[12px] text-[#a39e93]">
-                Sessão 03/03 • Estudo de São Jerônimo...
+                {{ marketingStore.clientContext.sessionInfo || marketingStore.clientContext.artworkTitle || 'Sessão em andamento' }}
               </p>
             </div>
 
@@ -431,8 +431,7 @@ async function handleFileSelected(event: Event) {
 }
 
 function openCameraBancada() {
-  // Simula captura da câmera integrada na Bancada 01 com fallback mock
-  marketingStore.setMasterShot('/assets/sao_jeronimo_tattoo.jpg', null);
+  triggerFileInput();
 }
 
 function previewDetail(idx: number) {
