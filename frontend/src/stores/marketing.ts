@@ -139,10 +139,24 @@ export const useMarketingStore = defineStore('marketing', () => {
   // ==========================================
   // PASSO 3: PUBLICAÇÃO & DISTRIBUIÇÃO
   // ==========================================
-  const selectedPreset = ref<'hoje' | 'amanha' | 'melhor'>('melhor');
+  const selectedPreset = ref<'hoje' | 'amanha' | 'melhor' | null>('melhor');
   const now = new Date();
   const scheduleDate = ref<string>(now.toLocaleDateString('pt-BR'));
   const scheduleDateFormatted = ref<string>(now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }));
+  // Native date inputs use ISO dates; the API payload keeps its existing pt-BR format.
+  const scheduleDateInput = computed({
+    get: () => scheduleDate.value.split('/').reverse().join('-'),
+    set: (value: string) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return;
+      const [year, month, day] = value.split('-').map(Number);
+      const date = new Date(year!, month! - 1, day!);
+      scheduleDate.value = date.toLocaleDateString('pt-BR');
+      scheduleDateFormatted.value = date.toLocaleDateString('pt-BR', {
+        weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
+      });
+      selectedPreset.value = null;
+    },
+  });
   const scheduleTime = ref<string>('20:45');
   const protocolNumber = ref<string>('');
   const isSubmittingSchedule = ref<boolean>(false);
@@ -617,6 +631,7 @@ export const useMarketingStore = defineStore('marketing', () => {
     selectedPreset,
     scheduleDate,
     scheduleDateFormatted,
+    scheduleDateInput,
     scheduleTime,
     protocolNumber,
     isSubmittingSchedule,
