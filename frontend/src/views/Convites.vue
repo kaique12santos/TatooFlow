@@ -67,7 +67,7 @@
               />
             </div>
 
-            <!-- Field 2: E-mail ProfissIONAL -->
+            <!-- Field 2: E-mail Profissional -->
             <div>
               <label class="flex items-center gap-1.5 font-inter text-[9px] font-bold text-[#a39e93] tracking-[1.44px] uppercase mb-1.5">
                 <Mail class="w-3.5 h-3.5 text-[#a39e93]" />
