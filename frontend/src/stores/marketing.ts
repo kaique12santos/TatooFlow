@@ -80,6 +80,7 @@ export const useMarketingStore = defineStore('marketing', () => {
   // ==========================================
   const masterShotUrl = ref<string | null>(null);
   const masterShotFile = ref<File | null>(null);
+  const activeSessionId = ref<string | null>(null);
   const colorProfileActive = ref<boolean>(true);
   const additionalAngles = ref<AdditionalAngle[]>([]);
 
@@ -139,10 +140,24 @@ export const useMarketingStore = defineStore('marketing', () => {
   // ==========================================
   // PASSO 3: PUBLICAÇÃO & DISTRIBUIÇÃO
   // ==========================================
-  const selectedPreset = ref<'hoje' | 'amanha' | 'melhor'>('melhor');
+  const selectedPreset = ref<'hoje' | 'amanha' | 'melhor' | null>('melhor');
   const now = new Date();
   const scheduleDate = ref<string>(now.toLocaleDateString('pt-BR'));
   const scheduleDateFormatted = ref<string>(now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }));
+  // Native date inputs use ISO dates; the API payload keeps its existing pt-BR format.
+  const scheduleDateInput = computed({
+    get: () => scheduleDate.value.split('/').reverse().join('-'),
+    set: (value: string) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return;
+      const [year, month, day] = value.split('-').map(Number);
+      const date = new Date(year!, month! - 1, day!);
+      scheduleDate.value = date.toLocaleDateString('pt-BR');
+      scheduleDateFormatted.value = date.toLocaleDateString('pt-BR', {
+        weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
+      });
+      selectedPreset.value = null;
+    },
+  });
   const scheduleTime = ref<string>('20:45');
   const protocolNumber = ref<string>('');
   const isSubmittingSchedule = ref<boolean>(false);
@@ -186,6 +201,32 @@ export const useMarketingStore = defineStore('marketing', () => {
   function setMasterShot(previewUrl: string, file: File | null = null) {
     masterShotUrl.value = previewUrl;
     masterShotFile.value = file;
+  }
+
+  function clearMasterShot() {
+    if (masterShotUrl.value?.startsWith('blob:')) URL.revokeObjectURL(masterShotUrl.value);
+    masterShotUrl.value = null;
+    masterShotFile.value = null;
+  }
+
+  function removeAdditionalAngle(id: string) {
+    const angle = additionalAngles.value.find(item => item.id === id);
+    if (angle?.image.startsWith('blob:')) URL.revokeObjectURL(angle.image);
+    additionalAngles.value = additionalAngles.value.filter(item => item.id !== id);
+  }
+
+  function clearArtworkSession() {
+    clearMasterShot();
+    additionalAngles.value.forEach(angle => {
+      if (angle.image.startsWith('blob:')) URL.revokeObjectURL(angle.image);
+    });
+    additionalAngles.value = [];
+    activeSessionId.value = null;
+    clientContext.value = { clientName: '', station: '', artistName: '', sessionInfo: '', artworkTitle: '', artworkStyle: '' };
+    captionTitle.value = '';
+    captionBody.value = '';
+    hashtagsList.value = [];
+    selectedHashtags.value = [];
   }
 
   function addAdditionalAngle(angle: Omit<AdditionalAngle, 'id'>) {
@@ -324,6 +365,7 @@ export const useMarketingStore = defineStore('marketing', () => {
         method: 'POST',
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
+          agendamentoId: activeSessionId.value ? Number(activeSessionId.value) : undefined,
           masterShotUrl: masterShotUrl.value,
           caption: fullFormattedCaption.value,
           scheduleDate: scheduleDate.value,
@@ -406,31 +448,22 @@ export const useMarketingStore = defineStore('marketing', () => {
 
   // Sincroniza sessão de arte e fotografia real do backend
   async function fetchArtworkSession(sessionId?: string): Promise<void> {
+    clearArtworkSession();
+    if (!sessionId) return;
     if (!apiBaseUrl) return;
     try {
-      let targetSessionId = sessionId;
-
-      if (!targetSessionId) {
-        const agendamentosRes = await fetch(`${apiBaseUrl}/api/agendamentos`, {
-          headers: getAuthHeaders(),
-        });
-        if (agendamentosRes.ok) {
-          const envelope = await agendamentosRes.json();
-          const list = Array.isArray(envelope) ? envelope : envelope?.data;
-          if (Array.isArray(list) && list.length > 0) {
-            targetSessionId = String(list[0].id);
-          }
-        }
-      }
+      const targetSessionId = sessionId;
 
       if (targetSessionId) {
         const sessaoRes = await fetch(`${apiBaseUrl}/api/agendamentos/${targetSessionId}`, {
           headers: getAuthHeaders(),
         });
+        if (!sessaoRes.ok) throw new Error('Não foi possível carregar a sessão selecionada.');
         if (sessaoRes.ok) {
           const envelope = await sessaoRes.json();
           const sessao = envelope?.data || envelope;
           if (sessao) {
+            activeSessionId.value = String(sessao.id);
             let nomeCliente = 'Cliente';
             if (sessao.clienteId) {
               const cliRes = await fetch(`${apiBaseUrl}/api/clientes/${sessao.clienteId}`, {
@@ -486,13 +519,16 @@ export const useMarketingStore = defineStore('marketing', () => {
         }
       }
     } catch (err) {
-      console.warn('[MarketingStore] Erro ao sincronizar arte do backend:', err);
+      clearArtworkSession();
+      throw err;
     }
   }
 
   // Upload da fotografia principal para o backend
-  async function uploadMasterShotFile(file: File, agendamentoId: number = 1): Promise<ArtworkUploadResponse> {
+  async function uploadMasterShotFile(file: File, agendamentoId: number = Number(activeSessionId.value)): Promise<ArtworkUploadResponse> {
+    if (!agendamentoId) throw new Error('Selecione uma sessão antes de enviar a foto.');
     const localUrl = URL.createObjectURL(file);
+    clearMasterShot();
     setMasterShot(localUrl, file);
 
     if (apiBaseUrl) {
@@ -539,8 +575,9 @@ export const useMarketingStore = defineStore('marketing', () => {
     file: File,
     title = 'DETALHE DA OBRA',
     type: 'image' | 'video' = 'image',
-    agendamentoId: number = 1
+    agendamentoId: number = Number(activeSessionId.value)
   ): Promise<ArtworkUploadResponse> {
+    if (!agendamentoId) throw new Error('Selecione uma sessão antes de enviar a mídia.');
     const localUrl = URL.createObjectURL(file);
     const tempAngle: AdditionalAngle = {
       id: `angle-${Date.now()}`,
@@ -568,7 +605,9 @@ export const useMarketingStore = defineStore('marketing', () => {
           const res = await response.json();
           const midia = res?.data || res;
           if (midia && midia.url) {
-            tempAngle.image = midia.url;
+            const uploadedAngle = additionalAngles.value.find(angle => angle.id === tempAngle.id);
+            if (uploadedAngle) uploadedAngle.image = midia.url;
+            URL.revokeObjectURL(localUrl);
             return {
               success: true,
               fromBackend: true,
@@ -591,6 +630,7 @@ export const useMarketingStore = defineStore('marketing', () => {
   }
 
   function resetToDefaults() {
+    clearArtworkSession();
     masterShotUrl.value = null;
     masterShotFile.value = null;
     selectedTone.value = 'chiaroscuro';
@@ -605,6 +645,10 @@ export const useMarketingStore = defineStore('marketing', () => {
     clientContext,
     masterShotUrl,
     masterShotFile,
+    activeSessionId,
+    clearMasterShot,
+    removeAdditionalAngle,
+    clearArtworkSession,
     colorProfileActive,
     additionalAngles,
     selectedTone,
@@ -617,6 +661,7 @@ export const useMarketingStore = defineStore('marketing', () => {
     selectedPreset,
     scheduleDate,
     scheduleDateFormatted,
+    scheduleDateInput,
     scheduleTime,
     protocolNumber,
     isSubmittingSchedule,
