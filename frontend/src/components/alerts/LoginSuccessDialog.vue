@@ -3,8 +3,6 @@
     :is-open="isOpen"
     variant="success"
     title="Acesso Autorizado"
-    description="Sua identidade e terminal foram autenticados com sucesso no TattooFlow."
-    badge="AUTENTICAÇÃO NOTARIAL"
     confirm-label="Acessar Sistema"
     :show-cancel="false"
     :close-on-backdrop="false"
@@ -37,26 +35,6 @@
             </span>
           </div>
 
-          <!-- Metadata Grid -->
-          <div class="mt-3.5 pt-3 border-t border-[rgba(255,255,255,0.06)] grid grid-cols-2 gap-2 text-left">
-            <div>
-              <span class="font-jetbrains text-[8.5px] font-bold text-[#a39e93] tracking-wider uppercase block">
-                POSTO / ESTAÇÃO
-              </span>
-              <p class="font-inter text-[11px] font-semibold text-[#f2ebd9] mt-0.5 truncate">
-                {{ data.userStation || 'BANCADA 01' }}
-              </p>
-            </div>
-
-            <div>
-              <span class="font-jetbrains text-[8.5px] font-bold text-[#a39e93] tracking-wider uppercase block">
-                TERMINAL FÍSICO
-              </span>
-              <p class="font-jetbrains text-[10px] text-[#c9a86a] mt-0.5 truncate" :title="data.deviceId">
-                {{ data.deviceId }}
-              </p>
-            </div>
-          </div>
         </div>
 
         <p class="text-center font-inter text-[11px] text-[#8e8a82]">
@@ -93,4 +71,3 @@ const userInitials = computed(() => {
     .toUpperCase();
 });
 </script>
-
