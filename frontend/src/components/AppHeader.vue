@@ -37,11 +37,11 @@
         <p class="font-inter text-[13px] font-semibold text-[#f2ebd9] truncate">{{ authStore.user.name }}</p>
         <p class="font-inter text-[11px] text-[#a39e93] truncate mt-1">{{ authStore.user.email }}</p>
       </div>
-      <button @click="openProfile" class="w-full flex items-center gap-2 px-2 py-2.5 text-left font-inter text-[12px] text-[#f2ebd9] hover:bg-[#1d1a15] rounded-md">
+      <button @click="openProfile" class="w-full flex items-center gap-2 px-2 py-2.5 text-left font-inter text-[12px] text-[#f2ebd9] hover:bg-[#1d1a15] rounded-md mt-2">
         <UserRound class="w-4 h-4 text-[#d6b77e]" />
         Ver meu perfil
       </button>
-      <button @click="signOut" class="w-full flex items-center gap-2 px-2 py-2.5 text-left font-inter text-[12px] text-[#ef8b83] hover:bg-[#24191a] rounded-md">
+      <button @click="signOut" class="w-full flex items-center gap-2 px-2 py-2.5 text-left font-inter text-[12px] text-[#ef8b83] hover:bg-[#24191a] rounded-md mt-2">
         <LogOut class="w-4 h-4" />
         Sair
       </button>
@@ -80,7 +80,7 @@ withDefaults(
   {
     studioName: 'NEW CONCEPT TATTOO',
     systemName: 'TATTOOFLOW',
-    logoUrl: 'https://s3-alpha-sig.figma.com/img/3c73/8bb6/09078c4aab5df9f0c9aa2e5b4489ac50?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=SCdgUzfuAfo61MxW3nRPxZOcJqBEhQi-8pORR9hhvKMCiPgugvyqSkk5p5z~NsYx4HWlSe8d0~9xPpbGi4f0np1DwPhWBszD0Gtf2B-5-ZuCuO~lDpnfdBGO~MsVmMg7G7G~0X2qrANB-bLoTOBm7T3s7JPpz5pmaCt1bhEI3Ja4DW8T1u0TVhCJ-n~ZU3t6Hi37tnzBY1fUiCqqStql4MyyqsQSyU4~bwbhMxIZimqefof0zrJi1lvERse9cv-po2bpTcfnoftzt0aTLVsIoMurlP4ZphisFdZ2MFrErItliBLSAQkiGd7jHKFImnqew8JRbdJ2AI5CYU3ebuHZZQ__',
+    logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzGCVzlhfSXkiIXZZP2qsoC7pPL62DUrY1oKrIlnrDXehqLz0M4swPJGqz&s=10',
     hasNotifications: true,
   }
 );

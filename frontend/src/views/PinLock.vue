@@ -114,7 +114,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 // Logo and Valéria Moretti fallback avatar
-const imgLogo = 'https://s3-alpha-sig.figma.com/img/3c73/8bb6/09078c4aab5df9f0c9aa2e5b4489ac50?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=SCdgUzfuAfo61MxW3nRPxZOcJqBEhQi-8pORR9hhvKMCiPgugvyqSkk5p5z~NsYx4HWlSe8d0~9xPpbGi4f0np1DwPhWBszD0Gtf2B-5-ZuCuO~lDpnfdBGO~MsVmMg7G7G~0X2qrANB-bLoTOBm7T3s7JPpz5pmaCt1bhEI3Ja4DW8T1u0TVhCJ-n~ZU3t6Hi37tnzBY1fUiCqqStql4MyyqsQSyU4~bwbhMxIZimqefof0zrJi1lvERse9cv-po2bpTcfnoftzt0aTLVsIoMurlP4ZphisFdZ2MFrErItliBLSAQkiGd7jHKFImnqew8JRbdJ2AI5CYU3ebuHZZQ__';
+const imgLogo = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzGCVzlhfSXkiIXZZP2qsoC7pPL62DUrY1oKrIlnrDXehqLz0M4swPJGqz&s=10';
 const defaultArtistAvatar = 'https://s3-alpha-sig.figma.com/img/d350/7974/b8053e45bab384d26da949240ac51daf?Expires=1792368000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=c4nOMCaL58JpcHdWsqACkO1KKSFnCcg-jmIYgxoqZUPbM~dLCCz6SQ-RypE7g~E0IuuYAMRJTg9U7M6dWUl~bVEYV5Lwzr-Ld-Y2w4NNvFa743FpUKD2l2IGOBicVk2YdtwfsQJOqrEnGLdDU38qf0u18D4jLAJTC8rFxyWOol19frRfhlUEEYzcTzFPo5~EPawcWkgMlCyLQTxdFEPVrWPcK2Uq4o7H72FlPfMR3XO6gPyuBJhaz5vZ3RBeYeDPnXopf-er17mZ2YhMmoSbbPQH6KE3NfCe~npSB2nay078pwwk-HfligiPfKNJ0Pj5t~-zy7JG5cnQdpTuhXgtDA__';
 
 // Sincronização reativa com a store de autenticação

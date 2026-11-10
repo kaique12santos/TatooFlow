@@ -21,12 +21,7 @@
           </button>
 
           <!-- Protocol & Asepsis Badge / Header Tag -->
-          <div class="flex items-center gap-1.5 px-0.5">
-            <span class="text-[#c9a86a] text-[10px] leading-none">✦</span>
-            <span class="font-jetbrains text-[10px] font-bold tracking-[1.8px] text-[#c9a86a] uppercase">
-              PROTOCOLO NOTARIAL
-            </span>
-          </div>
+          
         </div>
 
         <!-- Page Title & Subtitle -->
