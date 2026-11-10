@@ -378,6 +378,11 @@ button:not(.rounded-full):not([class*="rounded-"]) {
   border-radius: var(--ion-border-radius);
 }
 
+button.rounded-full,
+button[class*="rounded-full"] {
+  border-radius: 9999px !important;
+}
+
 /* 2. Cards (ion-card e cartões estruturais) */
 ion-card {
   --background: var(--bg-card);

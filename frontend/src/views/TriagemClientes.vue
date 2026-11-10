@@ -7,22 +7,14 @@
           @click-profile="router.push('/perfil')"
         />
 
-        <!-- Reception Protocol Badge -->
-        <div class="flex items-center gap-1.5 mt-2 mb-2 px-0.5">
-          <span class="text-[#c9a86a] text-[10px] leading-none">✦</span>
-          <span class="font-jetbrains text-[10px] font-bold tracking-[1.8px] text-[#c9a86a] uppercase">
-            RECEPÇÃO
-          </span>
-        </div>
+        
 
         <!-- Page Title & Subtitle -->
         <div class="mb-4 px-0.5">
           <h1 class="font-playfair text-[25px] sm:text-[28px] font-semibold text-[#f2ebd9] leading-tight mb-1">
             Triagem de Clientes
           </h1>
-          <p class="font-inter text-[12px] text-[#a39e93] leading-relaxed">
-            WhatsApp &amp; Cobrança de Sinal
-          </p>
+         
         </div>
 
         <!-- Search Bar Input -->
@@ -32,7 +24,7 @@
         </div>
 
         <!-- Webhook WhatsApp Live Status & Test Button -->
-        <div class="flex items-center justify-between bg-[#141416] border border-[#25D366]/25 rounded-[4px] px-3 py-1.5 mb-3 text-[10px] shadow-sm">
+        <!-- <div class="flex items-center justify-between bg-[#141416] border border-[#25D366]/25 rounded-[4px] px-3 py-1.5 mb-3 text-[10px] shadow-sm">
           <div class="flex items-center gap-1.5 text-[#25D366]">
             <span class="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-pulse"></span>
             <span class="font-jetbrains font-bold tracking-wider uppercase text-[9px]">WEBHOOK WHATSAPP ATIVO</span>
@@ -45,7 +37,7 @@
             <span>SIMULAR PUSH</span>
             <ArrowRight class="w-2.5 h-2.5" />
           </button>
-        </div>
+        </div> -->
 
         <div class="bg-[#141416] border border-[rgba(255,255,255,0.08)] rounded-[4px] px-3.5 py-2.5 flex items-center gap-2.5 mb-3 shadow-sm">
           <Search class="w-4 h-4 text-[#8e8a82] shrink-0" />
