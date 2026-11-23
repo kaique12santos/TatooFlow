@@ -17,38 +17,43 @@
           <fieldset :disabled="salvando || cadastrandoCliente || cadastrandoTatuador" class="space-y-5 disabled:opacity-60">
             <section class="bg-[#141416] border border-white/10 rounded-lg p-4 space-y-4">
               <div class="flex items-center justify-between gap-2">
-                <label for="cliente-agenda" class="text-xs text-[#e6c383] uppercase tracking-wider">Cliente</label>
-                <button type="button" @click="novoCliente = !novoCliente" class="text-xs text-[#c9a86a] underline">{{ novoCliente ? 'Usar cliente cadastrado' : 'Cadastrar cliente' }}</button>
+                <label :for="novoCliente ? 'nome-cliente-input' : 'cliente-agenda'" class="text-xs text-[#e6c383] uppercase tracking-wider">Cliente</label>
+                <button type="button" @click="alternarNovoCliente" class="text-xs text-[#c9a86a] underline">{{ novoCliente ? 'Usar cliente cadastrado' : 'Cadastrar cliente' }}</button>
               </div>
-              <div v-if="novoCliente" class="space-y-3 border-b border-white/10 pb-4">
-                <label class="block text-xs text-[#a39e93]">Nome do cliente<input v-model="nomeCliente" maxlength="255" class="campo mt-2" autocomplete="name" /></label>
-                <label class="block text-xs text-[#a39e93]">WhatsApp com código do país e DDD<input v-model="telefoneCliente" type="tel" class="campo mt-2" placeholder="5511999999999" autocomplete="tel" /></label>
+              <div v-if="novoCliente" class="space-y-3">
+                <label class="block text-xs text-[#a39e93]">Nome do cliente<input id="nome-cliente-input" v-model="nomeCliente" maxlength="255" class="campo mt-2" autocomplete="name" @keydown.enter.prevent="cadastrarCliente" /></label>
+                <label class="block text-xs text-[#a39e93]">WhatsApp com código do país e DDD<input v-model="telefoneCliente" type="tel" class="campo mt-2" placeholder="5511999999999" autocomplete="tel" @keydown.enter.prevent="cadastrarCliente" /></label>
                 <p v-if="erroCliente" role="alert" class="text-xs text-[#ef8b83]">{{ erroCliente }}</p>
                 <button type="button" @click="cadastrarCliente" class="border border-[#c9a86a]/50 text-[#e6c383] rounded px-3 py-2 text-sm">{{ cadastrandoCliente ? 'Salvando cliente...' : 'Salvar cliente' }}</button>
               </div>
-              <select id="cliente-agenda" v-model="form.clienteId" required class="campo">
-                <option value="" disabled>Selecione um cliente</option>
-                <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">{{ cliente.nome }}{{ cliente.telefone ? ` · ${cliente.telefone}` : '' }}</option>
-              </select>
-              <p v-if="!clientes.length" class="text-xs text-[#a39e93]">Cadastre o primeiro cliente acima para continuar.</p>
-              <p v-else-if="clienteSelecionado && !clienteSelecionado.telefone" class="text-xs text-[#e6c383]">Este cliente não tem telefone cadastrado. Os cuidados automáticos precisam de um telefone.</p>
-              <div class="flex items-center justify-between gap-2">
-                <label for="tatuador-agenda" class="text-xs text-[#e6c383] uppercase tracking-wider">Tatuador</label>
-                <button v-if="auth.user.role === 'admin'" type="button" @click="novoTatuador = !novoTatuador" class="text-xs text-[#c9a86a] underline">{{ novoTatuador ? 'Usar tatuador cadastrado' : 'Cadastrar tatuador' }}</button>
+              <div v-else class="space-y-2">
+                <select id="cliente-agenda" v-model="form.clienteId" required class="campo">
+                  <option value="" disabled>Selecione um cliente</option>
+                  <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">{{ cliente.nome }}{{ cliente.telefone ? ` · ${cliente.telefone}` : '' }}</option>
+                </select>
+                <p v-if="!clientes.length" class="text-xs text-[#a39e93]">Cadastre o primeiro cliente acima para continuar.</p>
+                <p v-else-if="clienteSelecionado && !clienteSelecionado.telefone" class="text-xs text-[#e6c383]">Este cliente não tem telefone cadastrado. Os cuidados automáticos precisam de um telefone.</p>
               </div>
-              <div v-if="novoTatuador" class="space-y-3 border-b border-white/10 pb-4">
-                <label class="block text-xs text-[#a39e93]">Nome do tatuador<input v-model="dadosTatuador.nome" maxlength="255" class="campo mt-2" /></label>
-                <label class="block text-xs text-[#a39e93]">E-mail<input v-model="dadosTatuador.email" type="email" maxlength="255" class="campo mt-2" autocomplete="off" /></label>
-                <label class="block text-xs text-[#a39e93]">PIN de acesso (4 a 6 dígitos)<input v-model="dadosTatuador.pin" type="password" inputmode="numeric" maxlength="6" class="campo mt-2" autocomplete="new-password" /></label>
-                <label class="block text-xs text-[#a39e93]">ID do aparelho autorizado<input v-model="dadosTatuador.aparelhoId" maxlength="255" class="campo mt-2" /></label>
+
+              <div class="flex items-center justify-between gap-2">
+                <label :for="novoTatuador ? 'nome-tatuador-input' : 'tatuador-agenda'" class="text-xs text-[#e6c383] uppercase tracking-wider">Tatuador</label>
+                <button v-if="auth.user.role === 'admin'" type="button" @click="alternarNovoTatuador" class="text-xs text-[#c9a86a] underline">{{ novoTatuador ? 'Usar tatuador cadastrado' : 'Cadastrar tatuador' }}</button>
+              </div>
+              <div v-if="novoTatuador" class="space-y-3">
+                <label class="block text-xs text-[#a39e93]">Nome do tatuador<input id="nome-tatuador-input" v-model="dadosTatuador.nome" maxlength="255" class="campo mt-2" @keydown.enter.prevent="cadastrarTatuador" /></label>
+                <label class="block text-xs text-[#a39e93]">E-mail<input v-model="dadosTatuador.email" type="email" maxlength="255" class="campo mt-2" autocomplete="off" @keydown.enter.prevent="cadastrarTatuador" /></label>
+                <label class="block text-xs text-[#a39e93]">PIN de acesso (4 a 6 dígitos)<input v-model="dadosTatuador.pin" type="password" inputmode="numeric" maxlength="6" class="campo mt-2" autocomplete="new-password" @keydown.enter.prevent="cadastrarTatuador" /></label>
+                <label class="block text-xs text-[#a39e93]">ID do aparelho autorizado<input v-model="dadosTatuador.aparelhoId" maxlength="255" class="campo mt-2" @keydown.enter.prevent="cadastrarTatuador" /></label>
                 <p v-if="erroTatuador" role="alert" class="text-xs text-[#ef8b83]">{{ erroTatuador }}</p>
                 <button type="button" @click="cadastrarTatuador" class="border border-[#c9a86a]/50 text-[#e6c383] rounded px-3 py-2 text-sm">{{ cadastrandoTatuador ? 'Salvando tatuador...' : 'Salvar tatuador' }}</button>
               </div>
-              <select id="tatuador-agenda" v-model="form.tatuadorId" required class="campo">
-                <option value="" disabled>Selecione um tatuador</option>
-                <option v-for="tatuador in tatuadores" :key="tatuador.id" :value="tatuador.id">{{ tatuador.nome }}</option>
-              </select>
-              <p v-if="!tatuadores.length" role="status" class="text-xs text-[#e6c383]">Não há tatuadores ativos cadastrados. Peça à administração para cadastrar um usuário com perfil TATUADOR.</p>
+              <div v-else class="space-y-2">
+                <select id="tatuador-agenda" v-model="form.tatuadorId" required class="campo">
+                  <option value="" disabled>Selecione um tatuador</option>
+                  <option v-for="tatuador in tatuadores" :key="tatuador.id" :value="tatuador.id">{{ tatuador.nome }}</option>
+                </select>
+                <p v-if="!tatuadores.length" role="status" class="text-xs text-[#e6c383]">Não há tatuadores ativos cadastrados. Peça à administração para cadastrar um usuário com perfil TATUADOR.</p>
+              </div>
             </section>
 
             <section class="bg-[#141416] border border-white/10 rounded-lg p-4 space-y-4">
@@ -149,6 +154,16 @@ async function carregar() {
   }
 }
 
+function alternarNovoCliente() {
+  novoCliente.value = !novoCliente.value;
+  erroCliente.value = '';
+}
+
+function alternarNovoTatuador() {
+  novoTatuador.value = !novoTatuador.value;
+  erroTatuador.value = '';
+}
+
 async function cadastrarCliente() {
   if (cadastrandoCliente.value) return;
   erroCliente.value = '';
@@ -183,6 +198,14 @@ function voltarContextual() {
 async function salvar() {
   if (salvando.value || cadastrandoCliente.value || cadastrandoTatuador.value) return;
   erro.value = '';
+  if (novoCliente.value) {
+    erro.value = 'Salve o novo cliente ou clique em "Usar cliente cadastrado" antes de salvar o agendamento.';
+    return;
+  }
+  if (novoTatuador.value) {
+    erro.value = 'Salve o novo tatuador ou clique em "Usar tatuador cadastrado" antes de salvar o agendamento.';
+    return;
+  }
   if (!form.clienteId || !form.tatuadorId || !form.data || !form.hora || !Number.isInteger(form.duracaoMinutos) || form.duracaoMinutos < 1 || form.duracaoMinutos > 1440) {
     erro.value = 'Selecione cliente, tatuador, data e horário, com duração entre 1 e 1440 minutos.';
     return;

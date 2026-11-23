@@ -16,26 +16,48 @@
 
     <div class="flex items-center gap-2.5">
       <button
-        @click="$emit('click-notifications')"
+        @click="toggleNotifications"
+        :aria-expanded="isNotificationsOpen"
+        aria-label="Abrir notificações do estúdio"
         class="relative w-9 h-9 bg-[#141416] border border-[rgba(201,168,106,0.2)] rounded-full flex items-center justify-center text-[#b8afa0] hover:text-[#d6b77e] transition-colors cursor-pointer"
       >
         <Bell class="w-4 h-4" />
-        <span v-if="hasNotifications" class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#c9a86a] rounded-full ring-2 ring-[#09090b]"></span>
+        <span v-if="hasNotificationsDot" class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#c9a86a] rounded-full ring-2 ring-[#09090b]"></span>
       </button>
 
       <button
-        @click="isProfileMenuOpen = !isProfileMenuOpen"
+        @click="toggleProfileMenu"
         :aria-expanded="isProfileMenuOpen"
         aria-label="Abrir menu do perfil"
-        class="w-9 h-9 bg-[#1d1a15] border border-[#b89355] rounded-full flex items-center justify-center text-[#c9a86a] shadow-inner cursor-pointer hover:border-[#c9a86a] transition-colors"
+        class="w-9 h-9 bg-[#1d1a15] border border-[#b89355] rounded-full flex items-center justify-center text-[#c9a86a] shadow-inner cursor-pointer hover:border-[#c9a86a] transition-colors overflow-hidden"
       >
-        <User class="w-4.5 h-4.5" />
+        <img
+          v-if="avatarUrl && !avatarError"
+          :src="avatarUrl"
+          :alt="authStore.user.name"
+          class="w-full h-full object-cover"
+          @error="avatarError = true"
+        />
+        <User v-else class="w-4.5 h-4.5" />
       </button>
     </div>
+
+    <!-- Dropdown de Notificações -->
+    <NotificationCenter
+      :is-open="isNotificationsOpen"
+      @close="isNotificationsOpen = false"
+    />
+
     <div v-if="isProfileMenuOpen" class="absolute right-0 top-14 z-50 w-64 bg-[#141416] border border-[rgba(201,168,106,0.35)] rounded-lg shadow-2xl p-3">
-      <div class="border-b border-[rgba(201,168,106,0.14)] pb-3 mb-2">
-        <p class="font-inter text-[13px] font-semibold text-[#f2ebd9] truncate">{{ authStore.user.name }}</p>
-        <p class="font-inter text-[11px] text-[#a39e93] truncate mt-1">{{ authStore.user.email }}</p>
+      <div class="border-b border-[rgba(201,168,106,0.14)] pb-3 mb-2 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full border border-[#b89355] bg-[#1d1a15] overflow-hidden shrink-0 flex items-center justify-center">
+          <img v-if="avatarUrl && !avatarError" :src="avatarUrl" :alt="authStore.user.name" class="w-full h-full object-cover" />
+          <User v-else class="w-5 h-5 text-[#c9a86a]" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="font-inter text-[13px] font-semibold text-[#f2ebd9] truncate">{{ authStore.user.name }}</p>
+          <p class="font-inter text-[11px] text-[#a39e93] truncate mt-0.5">{{ authStore.user.email }}</p>
+        </div>
       </div>
       <button @click="openProfile" class="w-full flex items-center gap-2 px-2 py-2.5 text-left font-inter text-[12px] text-[#f2ebd9] hover:bg-[#1d1a15] rounded-md mt-2">
         <UserRound class="w-4 h-4 text-[#d6b77e]" />
@@ -50,27 +72,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Bell, User, UserRound, LogOut } from '@lucide/vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useNotificationsStore } from '@/stores/notifications';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
+import NotificationCenter from '@/components/NotificationCenter.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const notificationsStore = useNotificationsStore();
+
 const isProfileMenuOpen = ref(false);
+const isNotificationsOpen = ref(false);
+const avatarError = ref(false);
+const avatarUrl = computed(() => getMockAvatar(authStore.user.id || authStore.user.email || 'user'));
 
-function openProfile() {
-  isProfileMenuOpen.value = false;
-  router.push('/perfil');
-}
-
-function signOut() {
-  isProfileMenuOpen.value = false;
-  authStore.logout();
-  router.push('/login');
-}
-
-withDefaults(
+const props = withDefaults(
   defineProps<{
     studioName?: string;
     systemName?: string;
@@ -85,5 +104,42 @@ withDefaults(
   }
 );
 
-defineEmits(['click-notifications', 'click-profile']);
+const emit = defineEmits(['click-notifications', 'click-profile']);
+
+const hasNotificationsDot = computed(() => {
+  if (props.hasNotifications === false) return false;
+  return notificationsStore.hasUnread;
+});
+
+onMounted(() => {
+  if (notificationsStore.items.length === 0) {
+    void notificationsStore.fetchNotifications();
+  }
+});
+
+function toggleNotifications() {
+  isProfileMenuOpen.value = false;
+  isNotificationsOpen.value = !isNotificationsOpen.value;
+  if (isNotificationsOpen.value && notificationsStore.items.length === 0) {
+    void notificationsStore.fetchNotifications();
+  }
+  emit('click-notifications');
+}
+
+function toggleProfileMenu() {
+  isNotificationsOpen.value = false;
+  isProfileMenuOpen.value = !isProfileMenuOpen.value;
+  emit('click-profile');
+}
+
+function openProfile() {
+  isProfileMenuOpen.value = false;
+  router.push('/perfil');
+}
+
+function signOut() {
+  isProfileMenuOpen.value = false;
+  authStore.logout();
+  router.push('/login');
+}
 </script>
