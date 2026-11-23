@@ -30,27 +30,6 @@
           </div>
         </div>
 
-        <!-- Protocol & Context Card -->
-        <div class="bg-[#141416] border border-[rgba(201,168,106,0.18)] rounded-[4px] p-3 shadow-md mb-3">
-          <div class="flex items-center justify-between mb-1">
-            <span class="font-inter text-[9px] font-bold tracking-[1.2px] text-[#7a766f] uppercase">
-              PROTOCOLO DE REGISTRO
-            </span>
-            <span class="font-jetbrains text-[10px] font-bold text-[#c9a86a]">
-              {{ marketingStore.protocolNumber }}
-            </span>
-          </div>
-
-          <div class="font-inter font-medium text-[11.5px] text-[#f2ebd9] mb-1">
-            {{ marketingStore.clientContext.clientName || 'Cliente' }}{{ marketingStore.clientContext.station ? ' - ' + marketingStore.clientContext.station : '' }}{{ marketingStore.clientContext.artistName ? ' - M. ' + marketingStore.clientContext.artistName : '' }}
-          </div>
-
-          <div class="flex items-center gap-1 text-[11px] text-[#a39e93] truncate">
-            <span class="text-[#c9a86a]">🖼️</span>
-            <span class="truncate">Obra: {{ marketingStore.clientContext.artworkTitle || 'Sessão de Tatuagem' }}</span>
-          </div>
-        </div>
-
         <!-- Instagram Connected Profile Card -->
         <div class="bg-[#141416] border border-[rgba(201,168,106,0.2)] rounded-[4px] p-3.5 flex items-center justify-between mb-4 shadow-lg">
           <div class="flex items-center gap-3 min-w-0 pr-2">
@@ -97,7 +76,7 @@
             <div class="flex items-center gap-1.5">
               <span class="text-[#c9a86a] text-[13px]">⚜</span>
               <h2 class="font-inter text-[10px] font-bold tracking-[1.2px] text-[#f2ebd9] uppercase">
-                COMPOSIÇÃO CURADA DO POST
+                COMPOSIÇÃO DA POSTAGEM
               </h2>
             </div>
 

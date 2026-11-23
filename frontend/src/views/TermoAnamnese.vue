@@ -291,13 +291,13 @@
             <span>{{ isSubmittingTerm ? 'AUTENTICANDO NO SERVIDOR...' : 'AUTENTICAR TERMO' }}</span>
           </button>
 
-          <!-- Secondary CTA Button: Enviar Cópia PDF WhatsApp -->
+          <!-- Secondary CTA Button: Baixar Ficha de Anamnese -->
           <button
-            @click="enviarWhatsapp"
+            @click="abrirModalDownload"
             class="w-full bg-[#141416] hover:bg-[#1a1917] border border-[rgba(201,168,106,0.4)] hover:border-[#c9a86a] text-[#e6c383] font-inter text-[11px] font-bold tracking-[1.2px] uppercase py-3.5 px-4 rounded-[2px] flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
           >
-            <FileText class="w-4 h-4 stroke-[2]" />
-            <span>ENVIAR CÓPIA EM PDF PARA WHATSAPP</span>
+            <FileDown class="w-4 h-4 stroke-[2]" />
+            <span>BAIXAR FICHA DE ANAMNESE (PDF)</span>
           </button>
         </div>
 
@@ -355,38 +355,91 @@
         </div>
       </div>
 
-      <!-- SUCCESS MODAL: PDF ENVIADO WHATSAPP -->
+      <!-- MODAL: BAIXAR / VISUALIZAR FICHA DE ANAMNESE (PDF) -->
       <div
-        v-if="showWhatsappModal && client"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity"
-        @click.self="showWhatsappModal = false"
+        v-if="showDownloadModal && client"
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md transition-opacity"
+        @click.self="showDownloadModal = false"
       >
-        <div class="bg-[#141416] border border-[rgba(201,168,106,0.4)] rounded-[4px] max-w-sm w-full p-4 shadow-2xl relative">
-          <div class="flex items-center justify-between pb-3 border-b border-[rgba(255,255,255,0.06)] mb-3">
+        <div class="bg-[#141416] border border-[rgba(201,168,106,0.4)] rounded-[4px] max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl relative overflow-hidden">
+          <!-- Modal Top Header -->
+          <div class="flex items-center justify-between p-3.5 border-b border-[rgba(255,255,255,0.08)] bg-[#101012] shrink-0">
             <div class="flex items-center gap-2">
-              <CheckCircle2 class="w-5 h-5 text-[#86efac]" />
-              <h3 class="font-playfair text-[18px] font-semibold text-[#f2ebd9]">
-                Disparo via WhatsApp
-              </h3>
+              <FileDown class="w-4.5 h-4.5 text-[#d6b77e]" />
+              <div>
+                <h3 class="font-playfair text-[17px] font-semibold text-[#f2ebd9] leading-tight">
+                  Ficha de Anamnese &amp; Termo de Consentimento
+                </h3>
+                <p class="font-inter text-[10.5px] text-[#8e8a82]">
+                  Modelo notarial limpo para preenchimento e arquivamento sanitário
+                </p>
+              </div>
             </div>
-            <button
-              @click="showWhatsappModal = false"
-              class="text-[#a39e93] hover:text-[#f2ebd9] p-1 cursor-pointer"
-            >
-              <X class="w-4 h-4" />
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                @click="imprimirFicha"
+                class="bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[10.5px] font-bold px-3 py-1.5 rounded-[2px] flex items-center gap-1.5 cursor-pointer uppercase tracking-wider transition-colors"
+                title="Salvar como PDF ou Imprimir"
+              >
+                <Printer class="w-3.5 h-3.5" />
+                <span>IMPRIMIR / SALVAR PDF</span>
+              </button>
+              <button
+                @click="showDownloadModal = false"
+                class="text-[#a39e93] hover:text-[#f2ebd9] p-1.5 cursor-pointer rounded-[2px] hover:bg-white/5"
+              >
+                <X class="w-4.5 h-4.5" />
+              </button>
+            </div>
           </div>
 
-          <p class="text-[#f2ebd9] font-inter text-[12.5px] leading-relaxed mb-4">
-            {{ whatsappFeedbackMessage || `A cópia assinada do Termo & Anamnese ${client.termNumber} foi enviada em PDF criptografado para o WhatsApp de ${client.name} (${client.phone}).` }}
-          </p>
+          <!-- Modal Scrollable Preview Body -->
+          <div class="p-3 sm:p-5 overflow-y-auto flex-1 bg-[#09090b]/90">
+            <div class="mb-3 flex items-center justify-between bg-[#141416] border border-[rgba(255,255,255,0.06)] px-3 py-2 rounded-[2px] text-[11px] text-[#a39e93]">
+              <span>Formato padrão A4 P&amp;B para impressão física ou arquivamento digital.</span>
+              <button
+                @click="baixarHtmlFicha"
+                class="text-[#c9a86a] hover:underline font-bold text-[10px] uppercase tracking-wider cursor-pointer"
+              >
+                Baixar arquivo .HTML
+              </button>
+            </div>
 
-          <button
-            @click="showWhatsappModal = false"
-            class="w-full py-2.5 bg-[#c9a86a] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.2px] uppercase rounded-[2px] cursor-pointer hover:bg-[#d6b77e]"
-          >
-            FECHAR
-          </button>
+            <!-- Printable Component Container -->
+            <div ref="documentoAnamneseRef" class="bg-white rounded-[2px] overflow-hidden shadow-2xl">
+              <ModeloAnamnese
+                :client-name="client.name"
+                :client-cpf="client.cpf"
+                :client-phone="client.phone"
+                :artist-name="client.assignedArtist"
+                :artist-station="client.station"
+                :project-title="client.projectTitle"
+                :style="client.style"
+                :concept-description="client.conceptDescription"
+                :term-number="client.termNumber"
+                :questions="anamneseQuestions"
+                :signature-image="currentSignatureBase64"
+                :signed-at="client.termSignedAt"
+              />
+            </div>
+          </div>
+
+          <!-- Modal Footer Actions -->
+          <div class="p-3 border-t border-[rgba(255,255,255,0.08)] bg-[#101012] flex items-center justify-end gap-2.5 shrink-0">
+            <button
+              @click="showDownloadModal = false"
+              class="px-4 py-2 bg-[#1a1917] border border-[rgba(255,255,255,0.1)] text-[#a39e93] hover:text-[#f2ebd9] font-inter text-[11px] font-bold uppercase rounded-[2px] cursor-pointer"
+            >
+              FECHAR
+            </button>
+            <button
+              @click="imprimirFicha"
+              class="px-5 py-2 bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-[1px] uppercase rounded-[2px] flex items-center gap-2 cursor-pointer shadow-md transition-all active:scale-[0.99]"
+            >
+              <Printer class="w-4 h-4" />
+              <span>IMPRIMIR / BAIXAR PDF</span>
+            </button>
+          </div>
         </div>
       </div>
       <div v-if="!client" class="p-6 text-sm text-[#a39e93]">
@@ -414,11 +467,15 @@ import {
   Check,
   Lock,
   FileText,
+  FileDown,
+  Printer,
   ArrowLeft,
   Bot,
   X
 } from '@lucide/vue';
 import AppHeader from '../components/AppHeader.vue';
+import ModeloAnamnese from '@/components/ModeloAnamnese.vue';
+import { printDocument, downloadDocumentHtml } from '@/utils/printDocument';
 import { useTriageStore } from '@/stores/triage';
 import { useAuthStore } from '@/stores/auth';
 import { useAlert } from '@/composables/useAlert';
@@ -495,11 +552,12 @@ const isAgreed = ref(false);
 
 // Modals
 const showAuthModal = ref(false);
-const showWhatsappModal = ref(false);
+const showDownloadModal = ref(false);
 const isSubmittingTerm = ref(false);
 const authProtocol = ref('');
 const authFeedbackMessage = ref('');
-const whatsappFeedbackMessage = ref('');
+const documentoAnamneseRef = ref<HTMLElement | null>(null);
+const currentSignatureBase64 = ref('');
 
 // Signature Canvas Reference & Drawing state
 const signatureCanvas = ref<HTMLCanvasElement | null>(null);
@@ -666,15 +724,27 @@ function concluirParaRecepcao() {
   router.push(authStore.isAdmin ? '/triagem' : '/agenda');
 }
 
-async function enviarWhatsapp() {
-  if (!client.value) return;
-  try {
-    const result = await triageStore.sendTermoWhatsapp();
-    whatsappFeedbackMessage.value = result.message;
-  } catch (err) {
-    await alert.error(err instanceof Error ? err.message : 'Não foi possível enviar o termo.', 'Falha no Envio');
-    return;
+function abrirModalDownload() {
+  if (hasSignature.value && signatureCanvas.value) {
+    currentSignatureBase64.value = signatureCanvas.value.toDataURL('image/png');
+  } else {
+    currentSignatureBase64.value = '';
   }
-  showWhatsappModal.value = true;
+  showDownloadModal.value = true;
+}
+
+function imprimirFicha() {
+  if (!documentoAnamneseRef.value) return;
+  printDocument(documentoAnamneseRef.value, {
+    title: `Ficha_Anamnese_${client.value?.name || 'Cliente'}`.replace(/\s+/g, '_'),
+  });
+}
+
+function baixarHtmlFicha() {
+  if (!documentoAnamneseRef.value) return;
+  downloadDocumentHtml(
+    documentoAnamneseRef.value,
+    `Ficha_Anamnese_${client.value?.name || 'Cliente'}.html`.replace(/\s+/g, '_')
+  );
 }
 </script>
