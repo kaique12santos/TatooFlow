@@ -3,6 +3,7 @@ package com.tattooflow.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tattooflow.common.exception.BusinessException;
+import com.tattooflow.common.util.LegendaSanitizer;
 import com.tattooflow.modules.midia.GerarLegendaRequest;
 import com.tattooflow.modules.midia.LegendaResponse;
 import org.slf4j.Logger;
@@ -175,8 +176,12 @@ public class GeminiService {
                 break;
         }
 
-        // Assegura rigorosamente RN03
+        // Assegura rigorosamente RN03 e texto limpo para Instagram
+        body = LegendaSanitizer.sanitizar(body);
         body = garantirRN03(body, whatsappLink, estilo, localizacao);
+        body = LegendaSanitizer.sanitizar(body);
+        title = LegendaSanitizer.sanitizarTitulo(title);
+        hashtags = LegendaSanitizer.sanitizarHashtags(hashtags);
         String legendaCompleta = body + "\n\n" + String.join(" ", hashtags);
 
         return LegendaResponse.builder()
@@ -240,6 +245,12 @@ public class GeminiService {
             sb.append("- Detalhes da Sessão: ").append(descricao).append("\n");
         }
         sb.append("- Tom Literário: ").append(tom).append(" (ex: chiaroscuro = artístico & denso; solene = clássico & notarial; story = memória & afeto)\n\n");
+        sb.append("DIRETRIZES DE FORMATAÇÃO E ESTILO (INSTAGRAM GRAPH API):\n");
+        sb.append("- Escreva em texto puro (plain text). O Instagram NÃO aceita e NÃO renderiza Markdown.\n");
+        sb.append("- NUNCA utilize asteriscos para negrito ou itálico (NÃO use **palavra** nem *palavra*).\n");
+        sb.append("- NUNCA utilize marcadores de cabeçalho Markdown (# ou ## no início de linhas).\n");
+        sb.append("- NUNCA coloque a legenda entre aspas ou colchetes.\n");
+        sb.append("- Utilize quebras de linha limpas e emojis de forma elegante e sofisticada.\n\n");
         sb.append("REQUISITOS OBRIGATÓRIOS DA REGRA DE NEGÓCIO (RN03):\n");
         sb.append("1. A legenda DEVE obrigatoriamente mencionar o estilo da arte: \"").append(estilo).append("\".\n");
         sb.append("2. A legenda DEVE obrigatoriamente mencionar a localização: \"").append(localizacao).append("\".\n");
@@ -251,6 +262,9 @@ public class GeminiService {
 
     private LegendaResponse formatarRespostaGemini(String textoResposta, String estilo, String localizacao,
                                                    String whatsappLink, String tom, Map<String, Object> client) {
+        // Sanitiza a resposta bruta da IA removendo qualquer formatação Markdown ou caracteres especiais
+        textoResposta = LegendaSanitizer.sanitizar(textoResposta);
+
         List<String> hashtags = new ArrayList<>();
         StringBuilder corpoBuilder = new StringBuilder();
 
@@ -274,14 +288,17 @@ public class GeminiService {
             corpo = textoResposta.trim();
         }
 
-        // Garante RN03
+        // Sanitização profunda e garantia estrita da RN03
+        corpo = LegendaSanitizer.sanitizar(corpo);
         corpo = garantirRN03(corpo, whatsappLink, estilo, localizacao);
+        corpo = LegendaSanitizer.sanitizar(corpo);
 
+        hashtags = LegendaSanitizer.sanitizarHashtags(hashtags);
         if (hashtags.isEmpty()) {
             hashtags = List.of("#TattooFlow", "#" + normalizarHashtag(estilo), "#TattooArt", "#Inked");
         }
 
-        String title = "Estudo de Arte · " + estilo + " (" + tom.toUpperCase() + ")";
+        String title = LegendaSanitizer.sanitizarTitulo("Estudo de Arte · " + estilo + " (" + tom.toUpperCase() + ")");
         String legendaCompleta = corpo + "\n\n" + String.join(" ", hashtags);
 
         return LegendaResponse.builder()

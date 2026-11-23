@@ -2,6 +2,7 @@ package com.tattooflow.modules.postagem;
 
 import com.tattooflow.common.exception.BusinessException;
 import com.tattooflow.common.exception.ResourceNotFoundException;
+import com.tattooflow.common.util.LegendaSanitizer;
 import com.tattooflow.modules.midia.Midia;
 import com.tattooflow.modules.midia.MidiaRepository;
 import com.tattooflow.service.InstagramService;
@@ -70,9 +71,9 @@ public class PostagemService {
             throw new BusinessException("A URL da imagem é obrigatória para agendar a postagem.");
         }
 
-        // 2. Validação da legenda
-        String legenda = request.getLegenda();
-        if (legenda == null || legenda.isBlank()) {
+        // 2. Validação e sanitização da legenda
+        String legenda = LegendaSanitizer.sanitizar(request.getLegenda());
+        if (legenda.isBlank()) {
             throw new BusinessException("A legenda é obrigatória para agendar a postagem.");
         }
 

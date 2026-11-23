@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { sanitizeCaption, sanitizeTitle, sanitizeHashtags } from '@/utils/captionSanitizer';
 
 export interface AdditionalAngle {
   id: string;
@@ -94,7 +95,7 @@ export const useMarketingStore = defineStore('marketing', () => {
   const tonePresets: Record<'chiaroscuro' | 'solene' | 'story', TonePreset> = {
     chiaroscuro: {
       title: 'Estudo de São Jerônimo · Chiaroscuro Renascentista',
-      body: "A profundidade do claro-escuro renascentista materializada na pele. [Descrição da Arte: 'Estudo anatômico e iluminação dramática de São Jerônimo em sua biblioteca, trabalhado com pigmento Carbon Black puro e agulhas 03RL para texturas milimétricas']. Executado na região do [Local do Corpo: Antebraço Externo Esquerdo].",
+      body: 'A profundidade do claro-escuro renascentista materializada na pele. Estudo anatômico e iluminação dramática de São Jerônimo em sua biblioteca, trabalhado com pigmento Carbon Black puro e agulhas 03RL para texturas milimétricas. Executado no Antebraço Externo Esquerdo.',
       hashtags: [
         '#NewConceptTattoo',
         '#ChiaroscuroTattoo',
@@ -164,8 +165,8 @@ export const useMarketingStore = defineStore('marketing', () => {
 
   const channels = ref({
     feed: true,
-    reels: true,
-    stories: true,
+    reels: false,
+    stories: false,
     dossie: true,
   });
 
@@ -249,11 +250,12 @@ export const useMarketingStore = defineStore('marketing', () => {
       if (response.ok) {
         const data = await response.json();
         if (data && data.body) {
-          captionTitle.value = data.title || captionTitle.value || tonePresets.chiaroscuro.title;
-          captionBody.value = data.body;
+          captionTitle.value = sanitizeTitle(data.title || captionTitle.value || tonePresets.chiaroscuro.title);
+          captionBody.value = sanitizeCaption(data.body);
           if (Array.isArray(data.hashtags) && data.hashtags.length > 0) {
-            hashtagsList.value = data.hashtags;
-            selectedHashtags.value = [...data.hashtags];
+            const sanitizedTags = sanitizeHashtags(data.hashtags);
+            hashtagsList.value = sanitizedTags;
+            selectedHashtags.value = [...sanitizedTags];
           }
           if (data.client) {
             clientContext.value = { ...clientContext.value, ...data.client };
@@ -285,11 +287,12 @@ export const useMarketingStore = defineStore('marketing', () => {
         if (response.ok) {
           const data = await response.json();
           if (data && data.body) {
-            captionTitle.value = data.title || tonePresets[tone].title;
-            captionBody.value = data.body;
+            captionTitle.value = sanitizeTitle(data.title || tonePresets[tone].title);
+            captionBody.value = sanitizeCaption(data.body);
             if (Array.isArray(data.hashtags) && data.hashtags.length > 0) {
-              hashtagsList.value = data.hashtags;
-              selectedHashtags.value = [...data.hashtags];
+              const sanitizedTags = sanitizeHashtags(data.hashtags);
+              hashtagsList.value = sanitizedTags;
+              selectedHashtags.value = [...sanitizedTags];
             }
             return;
           }
@@ -304,10 +307,11 @@ export const useMarketingStore = defineStore('marketing', () => {
 
     // Fallback local do Gemini mantido explicitamente por solicitação
     const preset = tonePresets[tone] || tonePresets.chiaroscuro;
-    captionTitle.value = preset.title;
-    captionBody.value = preset.body;
-    hashtagsList.value = [...preset.hashtags];
-    selectedHashtags.value = [...preset.hashtags];
+    captionTitle.value = sanitizeTitle(preset.title);
+    captionBody.value = sanitizeCaption(preset.body);
+    const fallbackTags = sanitizeHashtags(preset.hashtags);
+    hashtagsList.value = [...fallbackTags];
+    selectedHashtags.value = [...fallbackTags];
   }
 
   function toggleHashtag(tag: string) {
@@ -367,7 +371,7 @@ export const useMarketingStore = defineStore('marketing', () => {
         body: JSON.stringify({
           agendamentoId: activeSessionId.value ? Number(activeSessionId.value) : undefined,
           masterShotUrl: masterShotUrl.value,
-          caption: fullFormattedCaption.value,
+          caption: sanitizeCaption(fullFormattedCaption.value),
           scheduleDate: scheduleDate.value,
           scheduleTime: scheduleTime.value,
           channels: channels.value,
