@@ -27,14 +27,14 @@
           </div>
         </div>
 
-        <!-- AI Analysis Header Card (Gemini Vision 1.5 Pro) -->
+        <!-- AI Analysis Header Card (Gemini FLASH 1.5 ) -->
         <div class="bg-[#141416] border border-[rgba(201,168,106,0.18)] rounded-[4px] p-3.5 sm:p-4 shadow-xl mb-4">
           <!-- Top Status Row -->
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2">
               <BadgeCheck class="w-4.5 h-4.5 text-[#c9a86a]" />
               <span class="font-jetbrains text-[11px] font-bold tracking-[1.4px] text-[#e6c383] uppercase">
-                GEMINI VISION 1.5 PRO
+                GEMINI FLASH 1.5
               </span>
             </div>
 
