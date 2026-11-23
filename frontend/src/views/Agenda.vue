@@ -127,6 +127,7 @@ const resumo = computed(() => {
 
 async function alterarStatus({ action, card }: { action: string; card: SessionCardItem }) {
   if (action === 'ANEXAR COMPROVANTE') {
+    if (!authStore.isAdmin) return;
     await router.push({ path: '/triagem', query: { agendamentoId: card.id } });
     return;
   }
