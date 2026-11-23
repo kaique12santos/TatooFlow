@@ -3,6 +3,7 @@ import { computed, markRaw, ref } from 'vue';
 import { Calendar, CheckCircle2, FileText, FileUp, Play, Syringe, X } from '@lucide/vue';
 import type { SessionCardItem } from '@/components/SessionCard.vue';
 import { getMockAvatar } from '@/components/AnexarImagem.vue';
+import { useAuthStore } from '@/stores/auth';
 import {
   listarAgendamentos, listarClientesAgenda, listarUsuariosAgenda, salvarAgendamento,
   type Agendamento, type ClienteAgenda, type StatusAgendamento, type UsuarioAgenda,
@@ -11,6 +12,7 @@ import {
 export type { SessionCardItem };
 
 export const useAgendaStore = defineStore('agenda', () => {
+  const authStore = useAuthStore();
   const registros = ref<Agendamento[]>([]);
   const clientes = ref<ClienteAgenda[]>([]);
   const usuarios = ref<UsuarioAgenda[]>([]);
@@ -33,6 +35,7 @@ export const useAgendaStore = defineStore('agenda', () => {
     const hora = (data: Date) => data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const podeAlterar = registro.status === 'AGENDADO' || registro.status === 'CONFIRMADO' || registro.status === 'EM_ANDAMENTO';
     const podeVerSinal = ['CONFIRMADO', 'EM_ANDAMENTO', 'CONCLUIDO'].includes(registro.status);
+    const podeAnexarComprovante = registro.status === 'AGENDADO' && authStore.isAdmin;
     return {
       id: registro.id,
       category: status.category,
@@ -54,7 +57,7 @@ export const useAgendaStore = defineStore('agenda', () => {
       ],
       actions: [
         ...(podeVerSinal ? [{ label: 'VER SINAL', icon: markRaw(FileText) }] : []),
-        ...(registro.status === 'AGENDADO' ? [{ label: 'ANEXAR COMPROVANTE', icon: markRaw(FileUp), primary: true }] : []),
+        ...(podeAnexarComprovante ? [{ label: 'ANEXAR COMPROVANTE', icon: markRaw(FileUp), primary: true }] : []),
         ...(registro.status === 'CONFIRMADO' ? [{ label: 'INICIAR', icon: markRaw(Play), primary: true }] : []),
         ...(registro.status === 'CONFIRMADO' || registro.status === 'EM_ANDAMENTO' ? [{ label: 'CONCLUIR', icon: markRaw(CheckCircle2) }] : []),
         ...(podeAlterar ? [{ label: 'CANCELAR', icon: markRaw(X) }] : []),

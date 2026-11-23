@@ -184,18 +184,6 @@
             <span class="text-[#c9a86a] text-[16px]">⚑</span>
           </div>
 
-          <!-- AI Recommendation Box -->
-          <div class="bg-[#1a1712] border border-[rgba(201,168,106,0.25)] rounded-[2px] p-3 my-3">
-            <div class="flex items-center gap-1.5 text-[#e6c383]">
-              <span class="text-[12px]">⚖</span>
-              <span class="font-inter text-[9.5px] font-bold tracking-[1.2px] uppercase">
-                CURADORIA ALGORÍTMICA DA GALERIA
-              </span>
-            </div>
-            <p class="font-inter text-[11px] text-[#b8afa0] leading-relaxed mt-1">
-              Horário de pico detectado: O público da New Concept atinge engajamento máximo às <strong class="text-[#f2ebd9]">{{ marketingStore.activeSocialAccount?.engagementPeakTime || '20:45' }}</strong> em {{ marketingStore.activeSocialAccount?.engagementPeakDay || 'sextas-feiras' }}.
-            </p>
-          </div>
 
           <!-- Date Presets Row -->
           <div class="grid grid-cols-3 gap-2 mb-3.5">
@@ -322,63 +310,7 @@
               </button>
             </div>
 
-            <!-- Channel 2: Reels / Processo -->
-            <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3.5 flex items-center justify-between">
-              <div class="flex-1 pr-3">
-                <div class="flex items-center gap-1.5 font-inter text-[12px] font-bold text-[#f2ebd9]">
-                  <Film class="w-4 h-4 text-[#c9a86a]" />
-                  <span>Publicar no Reels / Processo</span>
-                </div>
-                <p class="font-inter text-[11px] text-[#a39e93] mt-0.5">
-                  Sincronizar clipe do timelapsed gravado na Bancada 01.
-                </p>
-              </div>
-
-              <button
-                @click="marketingStore.toggleChannel('reels')"
-                :class="[
-                  'w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 shrink-0',
-                  marketingStore.channels.reels ? 'bg-[#c9a86a]' : 'bg-[#222226]'
-                ]"
-              >
-                <div
-                  :class="[
-                    'w-5 h-5 rounded-full bg-[#09090b] transition-transform',
-                    marketingStore.channels.reels ? 'translate-x-5' : 'translate-x-0'
-                  ]"
-                ></div>
-              </button>
-            </div>
-
-            <!-- Channel 3: Compartilhar nos Stories -->
-            <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3.5 flex items-center justify-between">
-              <div class="flex-1 pr-3">
-                <div class="flex items-center gap-1.5 font-inter text-[12px] font-bold text-[#f2ebd9]">
-                  <Share2 class="w-4 h-4 text-[#c9a86a]" />
-                  <span>Compartilhar nos Stories</span>
-                </div>
-                <p class="font-inter text-[11px] text-[#a39e93] mt-0.5">
-                  Sticker direcionando ao WhatsApp do Artista.
-                </p>
-              </div>
-
-              <button
-                @click="marketingStore.toggleChannel('stories')"
-                :class="[
-                  'w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 shrink-0',
-                  marketingStore.channels.stories ? 'bg-[#c9a86a]' : 'bg-[#222226]'
-                ]"
-              >
-                <div
-                  :class="[
-                    'w-5 h-5 rounded-full bg-[#09090b] transition-transform',
-                    marketingStore.channels.stories ? 'translate-x-5' : 'translate-x-0'
-                  ]"
-                ></div>
-              </button>
-            </div>
-
-            <!-- Channel 4: Fixar no Dossiê Digital do Cliente -->
+            <!-- Channel 2: Fixar no Dossiê Digital do Cliente -->
             <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3.5 flex items-center justify-between">
               <div class="flex-1 pr-3">
                 <div class="flex items-center gap-1.5 font-inter text-[12px] font-bold text-[#f2ebd9]">
@@ -416,7 +348,7 @@
               PRONTO PARA ENVIO À REDE
             </div>
             <div class="font-inter text-[10.5px] text-[#a39e93] leading-tight mt-0.5">
-              4 destinos ativos · Sem duplicação de dados
+              {{ activeDestinosText }}
             </div>
           </div>
         </div>
@@ -481,14 +413,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import { useRouter } from 'vue-router';
 import {
   Sparkles,
   LayoutGrid,
-  Film,
-  Share2,
   FolderCheck,
   ShieldCheck,
   CheckCircle2,
@@ -504,6 +434,9 @@ const marketingStore = useMarketingStore();
 const alert = useAlert();
 
 const showSuccessModal = ref(false);
+
+const activeDestinosCount = computed(() => (marketingStore.channels.feed ? 1 : 0) + (marketingStore.channels.dossie ? 1 : 0));
+const activeDestinosText = computed(() => `${activeDestinosCount.value} ${activeDestinosCount.value === 1 ? 'destino ativo' : 'destinos ativos'} · Sem duplicação de dados`);
 
 // Sincroniza configurações ativas de publicação (backend ou fallback mock)
 onMounted(async () => {
