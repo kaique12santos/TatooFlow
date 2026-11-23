@@ -248,8 +248,12 @@
             </div>
 
             <div class="bg-[#0c0c0e] border border-[rgba(201,168,106,0.25)] rounded-[2px] p-3 flex items-center justify-between text-[12px] text-[#f2ebd9] font-inter">
-              <span>{{ marketingStore.scheduleDateFormatted }}</span>
-              <Calendar class="w-4 h-4 text-[#c9a86a]" />
+              <input
+                v-model="marketingStore.scheduleDateInput"
+                type="date"
+                aria-label="Data da publicação"
+                class="w-full min-w-0 bg-transparent text-[#f2ebd9] outline-none [color-scheme:dark]"
+              />
             </div>
           </div>
 
@@ -265,8 +269,13 @@
             </div>
 
             <div class="bg-[#0c0c0e] border border-[rgba(201,168,106,0.25)] rounded-[2px] p-3 flex items-center justify-between text-[12px] text-[#f2ebd9] font-inter">
-              <span>{{ marketingStore.scheduleTime }} • Horário Nobre Atelier</span>
-              <Clock class="w-4 h-4 text-[#c9a86a]" />
+              <input
+                v-model="marketingStore.scheduleTime"
+                type="time"
+                aria-label="Horário da publicação"
+                class="w-full min-w-0 bg-transparent text-[#f2ebd9] outline-none [color-scheme:dark]"
+                @input="marketingStore.selectedPreset = null"
+              />
             </div>
           </div>
         </div>
@@ -477,8 +486,6 @@ import { IonPage, IonContent } from '@ionic/vue';
 import { useRouter } from 'vue-router';
 import {
   Sparkles,
-  Calendar,
-  Clock,
   LayoutGrid,
   Film,
   Share2,

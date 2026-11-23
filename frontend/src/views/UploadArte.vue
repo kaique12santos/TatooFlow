@@ -29,6 +29,22 @@
 
         <!-- Client & Station Context Header -->
         <div class="mb-5">
+          <label class="block text-[12px] text-[#c9a86a] mb-2">
+            Cliente
+            <select v-model="selectedClientId" :disabled="isBusy" @change="changeClient" class="block w-full mt-1 p-3 bg-[#141416] text-[#f2ebd9] border border-[#c9a86a]/30 rounded">
+              <option value="">Selecione um cliente</option>
+              <option v-for="client in clientsStore.clients" :key="client.id" :value="client.id">{{ client.name }}</option>
+            </select>
+          </label>
+          <label class="block text-[12px] text-[#c9a86a] mb-3">
+            Sessão da arte
+            <select v-model="selectedSessionId" :disabled="isBusy || !selectedClientId" @change="loadSession" class="block w-full mt-1 p-3 bg-[#141416] text-[#f2ebd9] border border-[#c9a86a]/30 rounded">
+              <option value="">Selecione uma sessão</option>
+              <option v-for="session in clientSessions" :key="session.id" :value="String(session.id)">{{ session.descricaoSessao || `Sessão #${session.id}` }}</option>
+            </select>
+          </label>
+          <p v-if="selectedClientId && !clientSessions.length && !isBusy" class="text-[12px] text-[#a39e93] mb-3">Este cliente não possui sessões. Cadastre uma sessão para vincular as mídias.</p>
+          <p v-if="errorMessage" role="alert" class="text-[12px] text-red-300 mb-3">{{ errorMessage }}</p>
           <div class="flex items-start justify-between">
             <div>
               <span class="bg-[#1d1a15] border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-jetbrains text-[9.5px] font-bold px-2.5 py-0.5 rounded-[2px] tracking-wider uppercase inline-block mb-2">
@@ -123,6 +139,9 @@
             </div>
 
             <!-- Upload Action Buttons (2 Columns) -->
+            <button v-if="marketingStore.masterShotUrl" :disabled="isBusy" @click="removeMasterShot" class="w-full mb-3 p-2 text-red-300 border border-red-300/30 rounded disabled:opacity-50">
+              Remover foto da seleção
+            </button>
             <div class="grid grid-cols-2 gap-2.5">
               <button
                 @click="openCameraBancada"
@@ -155,7 +174,7 @@
             </div>
 
             <span class="font-jetbrains text-[10px] text-[#a39e93] uppercase">
-              OPCIONAL (2/4)
+              OPCIONAL ({{ marketingStore.additionalAngles.length }})
             </span>
           </div>
 
@@ -176,7 +195,9 @@
               @click="previewDetail(idx)"
               class="relative aspect-square rounded-[2px] overflow-hidden border border-[rgba(201,168,106,0.25)] bg-[#09090b] group cursor-pointer shadow-md"
             >
+              <video v-if="angle.type === 'video'" :src="angle.image" class="w-full h-full object-cover" muted playsinline preload="metadata" />
               <img
+                v-else
                 :src="angle.image"
                 :alt="angle.title"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -195,6 +216,9 @@
               </div>
 
               <!-- Bottom Label -->
+              <button :disabled="isBusy" @click.stop="marketingStore.removeAdditionalAngle(angle.id)" :aria-label="`Remover ${angle.title} da seleção`" class="absolute top-1 left-1 z-10 p-2 bg-black/90 text-red-300 rounded disabled:opacity-50">
+                <X class="w-4 h-4" />
+              </button>
               <div class="absolute bottom-1 inset-x-1 bg-black/80 backdrop-blur-xs py-0.5 text-center rounded-[1px]">
                 <span class="font-jetbrains text-[8px] font-bold text-[#f2ebd9] uppercase tracking-wider block truncate">
                   {{ angle.title }}
@@ -345,7 +369,7 @@
 
           <button
             @click="avancarParaIA"
-            :disabled="isUploading || marketingStore.isGeneratingAi"
+            :disabled="isBusy || !marketingStore.masterShotUrl || !marketingStore.activeSessionId"
             class="flex-1 h-11 bg-gradient-to-r from-[#c49f5e] via-[#d6b77e] to-[#ba9557] hover:brightness-105 active:scale-[0.99] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.4px] uppercase rounded-[2px] flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(201,168,106,0.28)] transition-all cursor-pointer disabled:opacity-75"
           >
             <span>{{ isUploading ? 'ENVIANDO ARTE...' : marketingStore.isGeneratingAi ? 'PROCESSANDO IA...' : 'AVANÇAR PARA IA' }}</span>
@@ -376,6 +400,8 @@ import {
 } from '@lucide/vue';
 import AppHeader from '../components/AppHeader.vue';
 import { useMarketingStore } from '@/stores/marketing';
+import { useClientsStore } from '@/stores/clients';
+import { apiRequest } from '@/api/http';
 
 const router = useRouter();
 const route = useRoute();
@@ -389,13 +415,66 @@ const angleInputRef = ref<HTMLInputElement | null>(null);
 const showAiModal = ref(false);
 const isUploading = ref(false);
 
-// Sincroniza sessão da bancada e fotografias do backend (ou fallback mock)
+// Carrega os clientes e permite escolher a sessão vinculada às mídias.
+const clientsStore = useClientsStore();
+interface MediaSession { id: number; clienteId: number; descricaoSessao?: string }
+const sessions = ref<MediaSession[]>([]);
+const selectedClientId = ref('');
+const selectedSessionId = ref('');
+const isLoading = ref(false);
+const errorMessage = ref('');
+const isBusy = computed(() => isLoading.value || isUploading.value || marketingStore.isGeneratingAi);
+const clientSessions = computed(() => sessions.value.filter(session => String(session.clienteId) === selectedClientId.value));
+
 onMounted(async () => {
-  const sessionId = (route.query.sessionId as string) || (route.query.id as string);
-  if (typeof marketingStore.fetchArtworkSession === 'function') {
-    await marketingStore.fetchArtworkSession(sessionId);
+  isLoading.value = true;
+  try {
+    await clientsStore.fetchClients();
+    if (clientsStore.error) throw new Error(clientsStore.error);
+    sessions.value = await apiRequest<MediaSession[]>('/api/agendamentos');
+    const sessionId = String(route.query.sessionId || route.query.id || marketingStore.activeSessionId || '');
+    const session = sessions.value.find(item => String(item.id) === sessionId);
+    if (session) {
+      selectedClientId.value = String(session.clienteId);
+      selectedSessionId.value = String(session.id);
+      if (marketingStore.activeSessionId !== String(session.id)) await marketingStore.fetchArtworkSession(String(session.id));
+    } else {
+      marketingStore.clearArtworkSession();
+    }
+  } catch (error) {
+    marketingStore.clearArtworkSession();
+    errorMessage.value = error instanceof Error ? error.message : 'Falha ao carregar clientes e sessões.';
+  } finally {
+    isLoading.value = false;
   }
 });
+
+async function changeClient() {
+  marketingStore.clearArtworkSession();
+  selectedSessionId.value = '';
+  errorMessage.value = '';
+  if (clientSessions.value.length === 1) {
+    selectedSessionId.value = String(clientSessions.value[0]!.id);
+    await loadSession();
+  }
+}
+
+async function loadSession() {
+  isLoading.value = true;
+  errorMessage.value = '';
+  try {
+    await marketingStore.fetchArtworkSession(selectedSessionId.value || undefined);
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Falha ao carregar sessão.';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+function removeMasterShot() {
+  marketingStore.clearMasterShot();
+  if (fileInputRef.value) fileInputRef.value.value = '';
+}
 
 function handleClose() {
   if (window.history.length > 1) {
@@ -414,26 +493,30 @@ function handleProfile() {
 }
 
 function triggerFileInput() {
+  if (isBusy.value) return;
+  if (!marketingStore.activeSessionId) {
+    errorMessage.value = 'Selecione um cliente e uma sessão antes de enviar a foto.';
+    return;
+  }
   if (fileInputRef.value) {
     fileInputRef.value.click();
   }
 }
 
 async function handleFileSelected(event: Event) {
+  if (isBusy.value || !marketingStore.activeSessionId) return;
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
     const file = target.files[0];
     isUploading.value = true;
     try {
-      if (typeof marketingStore.uploadMasterShotFile === 'function') {
-        const result = await marketingStore.uploadMasterShotFile(file);
-        console.log('[UploadArte] Foto carregada:', result.message);
-      } else {
-        marketingStore.setMasterShot(URL.createObjectURL(file), file);
-      }
+      errorMessage.value = '';
+      const result = await marketingStore.uploadMasterShotFile(file);
+      if (!result.fromBackend) errorMessage.value = 'Foto selecionada apenas neste dispositivo. O envio ao servidor falhou.';
     } catch (err) {
-      console.warn('[UploadArte] Falha no upload:', err);
+      errorMessage.value = err instanceof Error ? err.message : 'Falha ao enviar foto.';
     } finally {
+      target.value = '';
       isUploading.value = false;
     }
   }
@@ -448,6 +531,11 @@ function previewDetail(idx: number) {
 }
 
 function addNewAngle() {
+  if (isBusy.value) return;
+  if (!marketingStore.activeSessionId) {
+    errorMessage.value = 'Selecione um cliente e uma sessão antes de enviar a mídia.';
+    return;
+  }
   if (angleInputRef.value) {
     angleInputRef.value.click();
   }
@@ -455,23 +543,23 @@ function addNewAngle() {
 
 async function handleAngleSelected(event: Event) {
   const target = event.target as HTMLInputElement;
-  if (target.files && target.files[0]) {
-    const file = target.files[0];
-    const isVideo = file.type.startsWith('video');
-    if (typeof marketingStore.uploadAdditionalAngleFile === 'function') {
-      await marketingStore.uploadAdditionalAngleFile(
-        file,
-        isVideo ? 'VÍDEO 4K (REELS)' : `ÂNGULO DETALHE 0${marketingStore.additionalAngles.length + 1}`,
-        isVideo ? 'video' : 'image'
-      );
-    } else {
-      marketingStore.addAdditionalAngle({
-        title: isVideo ? 'VÍDEO 4K (REELS)' : `ÂNGULO DETALHE 0${marketingStore.additionalAngles.length + 1}`,
-        image: URL.createObjectURL(file),
-        type: isVideo ? 'video' : 'image',
-        verified: true,
-      });
-    }
+  const file = target.files?.[0];
+  if (!file || isBusy.value || !marketingStore.activeSessionId) return;
+  const isVideo = file.type.startsWith('video');
+  isUploading.value = true;
+  errorMessage.value = '';
+  try {
+    const result = await marketingStore.uploadAdditionalAngleFile(
+      file,
+      isVideo ? 'VÍDEO (REELS)' : `DETALHE ${marketingStore.additionalAngles.length + 1}`,
+      isVideo ? 'video' : 'image'
+    );
+    if (!result.fromBackend) errorMessage.value = 'Mídia selecionada apenas neste dispositivo. O envio ao servidor falhou.';
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Falha ao enviar mídia.';
+  } finally {
+    target.value = '';
+    isUploading.value = false;
   }
 }
 
@@ -481,6 +569,7 @@ function concluirCuradoria() {
 }
 
 async function avancarParaIA() {
+  if (isBusy.value || !marketingStore.masterShotUrl || !marketingStore.activeSessionId) return;
   // Dispara a geração de curadoria IA conectada à store
   await marketingStore.generateAiCaption(marketingStore.selectedTone);
   router.push({ name: 'LegendaCuradoria' });

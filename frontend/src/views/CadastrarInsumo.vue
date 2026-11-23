@@ -27,25 +27,24 @@
             Cadastrar Novo Insumo
           </h1>
 
-          <p class="font-montserrat text-[12px] text-[#a39e93] leading-relaxed">
-            Cadastre novos consumíveis e materiais para controle de reposição e kit de bancada.
-          </p>
+          
         </div>
 
         <!-- Section 01: Identificação do Insumo -->
         <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-4 mb-4 shadow-xl">
           <!-- Section Title Row -->
+           <span class="bg-[#2a2012] border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-inter text-[8px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[2px]">
+              OBRIGATÓRIO
+            </span>
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <Package class="w-4 h-4 text-[#e6c383]" />
-              <h2 class="font-inter text-[11px] font-bold text-[#f2ebd9] tracking-wider uppercase">
+              <!-- <Package class="w-4 h-4 text-[#e6c383]" /> -->
+              <h2 class="font-inter text-[5px] font-bold text-[#f2ebd9] tracking-wider uppercase">
                 01. IDENTIFICAÇÃO DO INSUMO
               </h2>
             </div>
 
-            <span class="bg-[#2a2012] border border-[rgba(201,168,106,0.3)] text-[#e6c383] font-inter text-[8px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[2px]">
-              OBRIGATÓRIO
-            </span>
+            
           </div>
 
           <!-- Field 1: Nome do Insumo -->
@@ -109,17 +108,18 @@
         <!-- Section 02: Fracionamento & Unidade -->
         <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-4 mb-4 shadow-xl">
           <!-- Section Title Row -->
+           <span class="font-inter text-[9px] text-[#a39e93] tracking-widest uppercase">
+              MÉTRICA
+            </span>
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <Ruler class="w-4 h-4 text-[#e6c383]" />
-              <h2 class="font-inter text-[11px] font-bold text-[#f2ebd9] tracking-wider uppercase">
+              <!-- <Ruler class="w-4 h-4 text-[#e6c383]" /> -->
+              <h2 class="font-inter text-[5px] font-bold text-[#f2ebd9] tracking-wider uppercase">
                 02. FRACIONAMENTO & UNIDADE
               </h2>
             </div>
 
-            <span class="font-inter text-[9px] text-[#a39e93] tracking-widest uppercase">
-              MÉTRICA
-            </span>
+            
           </div>
 
           <!-- Unit Type Options -->
@@ -135,7 +135,7 @@
                 :key="unit.id"
                 @click="form.unitType = unit.id"
                 :class="[
-                  'py-2 px-1.5 rounded-[2px] font-inter text-[9px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate',
+                  'py-2 px-1.5 rounded-[2px] font-inter text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate',
                   form.unitType === unit.id
                     ? 'bg-[#eedaa2] text-[#09090b] shadow-md font-extrabold'
                     : 'bg-[#09090b] text-[#a39e93] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(201,168,106,0.3)] hover:text-[#f2ebd9]'
@@ -152,7 +152,7 @@
                 :key="unit.id"
                 @click="form.unitType = unit.id"
                 :class="[
-                  'py-2 px-2 rounded-[2px] font-inter text-[9px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate',
+                  'py-2 px-2 rounded-[2px] font-inter text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate',
                   form.unitType === unit.id
                     ? 'bg-[#eedaa2] text-[#09090b] shadow-md font-extrabold'
                     : 'bg-[#09090b] text-[#a39e93] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(201,168,106,0.3)] hover:text-[#f2ebd9]'
@@ -188,18 +188,19 @@
 
         <!-- Section 03: Parâmetros de Reposição -->
         <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-4 mb-4 shadow-xl">
-          <!-- Section Title Row -->
+          <!-- Section Title Row --> 
+            <span class="bg-[#8c2b2b] text-[#f2ebd9] font-inter text-[8px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[2px]">
+              ALERTA ATIVO
+            </span>
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <SlidersHorizontal class="w-4 h-4 text-[#e6c383]" />
-              <h2 class="font-inter text-[11px] font-bold text-[#f2ebd9] tracking-wider uppercase">
+              <!-- <SlidersHorizontal class="w-4 h-4 text-[#e6c383]" /> -->
+              <h2 class="font-inter text-[5px] font-bold text-[#f2ebd9] tracking-wider uppercase">
                 03. PARÂMETROS DE REPOSIÇÃO
               </h2>
             </div>
 
-            <span class="bg-[#8c2b2b] text-[#f2ebd9] font-inter text-[8px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[2px]">
-              ALERTA ATIVO
-            </span>
+           
           </div>
 
           <!-- Quantities Grid -->
@@ -289,7 +290,7 @@
         <button
           @click="saveItem"
           :disabled="isSaving"
-          class="w-full bg-[#eedaa2] hover:bg-[#d6b77e] disabled:opacity-60 text-[#09090b] font-inter text-[11px] font-bold tracking-[1.44px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 mb-3 transition-all cursor-pointer active:scale-[0.99]"
+          class="w-full bg-[#eedaa2] hover:bg-[#d6b77e] disabled:opacity-60 text-[#09090b] font-inter text-[12px] font-bold tracking-[1.44px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 mb-3 transition-all cursor-pointer active:scale-[0.99]"
         >
           <span>{{ isSaving ? 'SALVANDO INSUMO...' : 'SALVAR E ADICIONAR AO ESTOQUE' }}</span>
           <ArrowRight class="w-4 h-4 stroke-[2.5]" />
@@ -299,7 +300,7 @@
         <button
           @click="goBack"
           :disabled="isSaving"
-          class="font-inter text-[10px] font-bold tracking-[1.2px] text-[#a39e93] hover:text-[#f2ebd9] uppercase text-center block w-full transition-colors cursor-pointer mb-6"
+          class="font-inter text-[12px] font-bold tracking-[1.2px] text-[#a39e93] hover:text-[#f2ebd9] uppercase text-center block w-full transition-colors cursor-pointer mb-6"
         >
           CANCELAR E DESCARTAR
         </button>

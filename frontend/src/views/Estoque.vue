@@ -10,9 +10,6 @@
           <h1 class="font-playfair text-[26px] sm:text-[28px] font-semibold text-[#f2ebd9] leading-tight mb-1">
             Gestão de Estoque &amp; Repasses
           </h1>
-          <p class="font-montserrat text-[12px] text-[#a39e93] leading-relaxed">
-            Curadoria material, rastreio de esterilização e liquidação de proventos.
-          </p>
         </div>
 
         <!-- Section Switcher Tabs & Tablet Action Bar -->
@@ -24,7 +21,7 @@
                 <button
                   @click="activeSection = 'insumos'"
                   :class="[
-                    'py-2.5 px-3 rounded-[2px] font-inter text-[10px] font-bold tracking-[1.2px] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer',
+                    'py-5 px-5 rounded-[2px] font-inter text-[10px] font-bold tracking-[1.2px] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer',
                     activeSection === 'insumos'
                       ? 'bg-[#141416] border border-[rgba(201,168,106,0.3)] text-[#e6c383] shadow-md'
                       : 'bg-transparent border border-[rgba(255,255,255,0.06)] text-[#a39e93] hover:text-[#f2ebd9]'
@@ -34,7 +31,7 @@
                   <span>ESTOQUE DE INSUMOS</span>
                 </button>
 
-                <button
+                <!-- <button
                   @click="activeSection = 'repasses'"
                   :class="[
                     'py-2.5 px-3 rounded-[2px] font-inter text-[10px] font-bold tracking-[1.2px] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer',
@@ -45,7 +42,7 @@
                 >
                   <Wallet class="w-4 h-4" />
                   <span>REPASSES &amp; TAXAS</span>
-                </button>
+                </button> -->
               </div>
             </ion-col>
 
@@ -208,7 +205,7 @@
             <ion-col size="12" size-md="6" size-lg="5" class="ion-no-padding">
               <button
                 @click="cadastrarInsumos"
-                class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.44px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
+                class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[12px] font-bold tracking-[1.44px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
               >
                 <FileText class="w-4 h-4 stroke-[2.2]" />
                 <span>CADASTRAR INSUMOS</span>

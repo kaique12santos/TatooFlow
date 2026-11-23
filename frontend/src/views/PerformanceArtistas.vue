@@ -32,9 +32,7 @@
           <h1 class="font-playfair text-[26px] font-semibold text-[#f2ebd9] leading-tight mb-1">
             Performance dos Artistas
           </h1>
-          <p class="font-montserrat text-[12px] text-[#a39e93] leading-relaxed">
-            Apuração mensal de produção individual e retenção da taxa contratual do atelier ({{ financialStore.summary.artistShareRate }}% Artista / {{ financialStore.summary.studioTaxRate }}% Estúdio).
-          </p>
+          
         </div>
 
         <!-- Global Performance Summary Card -->

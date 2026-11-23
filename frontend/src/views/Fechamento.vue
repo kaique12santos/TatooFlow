@@ -8,11 +8,8 @@
         <!-- Title & Subtitle Section -->
         <div class="mb-5">
           <h1 class="font-playfair text-[26px] font-semibold text-[#f2ebd9] leading-tight mb-1">
-            Relatório Mensal & Auditoria
+            Relatório & Auditoria
           </h1>
-          <p class="font-montserrat text-[12px] text-[#a39e93] leading-relaxed">
-            Conciliação de repasses comissionados, retenção de fees e livro-razão do atelier.
-          </p>
         </div>
 
         <!-- Month Navigation Component -->
@@ -67,7 +64,7 @@
           <div class="pt-2.5 border-t border-[rgba(255,255,255,0.04)] flex items-center gap-2">
             <Pencil class="w-3.5 h-3.5 text-[#a39e93]" />
             <span class="font-montserrat text-[12px] text-[#a39e93]">
-              {{ financialStore.summary.completedWorksCount }} obras e sessões concluídas no atelier
+              {{ financialStore.summary.completedWorksCount }} obras e sessões concluídas
             </span>
           </div>
         </div>
