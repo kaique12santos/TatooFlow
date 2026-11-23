@@ -138,27 +138,17 @@
               </div>
             </div>
 
-            <!-- Upload Action Buttons (2 Columns) -->
             <button v-if="marketingStore.masterShotUrl" :disabled="isBusy" @click="removeMasterShot" class="w-full mb-3 p-2 text-red-300 border border-red-300/30 rounded disabled:opacity-50">
               Remover foto da seleção
             </button>
-            <div class="grid grid-cols-2 gap-2.5">
-              <button
-                @click="openCameraBancada"
-                class="bg-[#1a1917] hover:bg-[#24211d] border border-[rgba(201,168,106,0.2)] active:scale-[0.99] text-[#f2ebd9] font-inter text-[10.5px] font-bold tracking-[0.8px] uppercase rounded-[2px] h-11 flex items-center justify-center gap-2 cursor-pointer transition-all"
-              >
-                <Camera class="w-4 h-4 text-[#c9a86a]" />
-                <span>CÂMERA DA BANCADA</span>
-              </button>
 
-              <button
-                @click="triggerFileInput"
-                class="bg-[#c9a86a] hover:bg-[#d6b77e] active:scale-[0.99] text-[#09090b] font-inter text-[10.5px] font-bold tracking-[0.8px] uppercase rounded-[2px] h-11 flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
-              >
-                <FolderOpen class="w-4 h-4 text-[#09090b]" />
-                <span>ESCOLHER ARQUIVO</span>
-              </button>
-            </div>
+            <button
+              @click="triggerFileInput"
+              class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] active:scale-[0.99] text-[#09090b] font-inter text-[11px] font-bold tracking-[0.8px] uppercase rounded-[2px] h-11 flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
+            >
+              <Images class="w-4 h-4 text-[#09090b]" />
+              <span>ESCOLHER DA GALERIA</span>
+            </button>
           </div>
         </div>
 
@@ -520,10 +510,6 @@ async function handleFileSelected(event: Event) {
       isUploading.value = false;
     }
   }
-}
-
-function openCameraBancada() {
-  triggerFileInput();
 }
 
 function previewDetail(idx: number) {
