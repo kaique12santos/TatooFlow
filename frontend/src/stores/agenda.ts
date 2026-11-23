@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { computed, markRaw, ref } from 'vue';
 import { Calendar, CheckCircle2, FileText, FileUp, Play, Syringe, X } from '@lucide/vue';
 import type { SessionCardItem } from '@/components/SessionCard.vue';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
 import {
   listarAgendamentos, listarClientesAgenda, listarUsuariosAgenda, salvarAgendamento,
   type Agendamento, type ClienteAgenda, type StatusAgendamento, type UsuarioAgenda,
@@ -40,7 +41,7 @@ export const useAgendaStore = defineStore('agenda', () => {
       statusText: status.label,
       statusBadgeStyle: `bg-[#09090b] border border-white/10 ${status.color}`,
       statusIcon: markRaw(status.icon),
-      image: '',
+      image: getMockAvatar(registro.clienteId || registro.id),
       clientName: clientes.value.find((cliente) => cliente.id === registro.clienteId)?.nome || `Cliente #${registro.clienteId}`,
       tattooTitle: registro.descricaoSessao || 'Sessão de tatuagem',
       tattooArea: inicio.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),

@@ -73,8 +73,14 @@
             <!-- Card Header: Monogram/Avatar, Name, Dossier # and Status -->
             <div class="flex items-start justify-between gap-3 mb-3">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-[#09090b] border border-[rgba(201,168,106,0.3)] rounded-[2px] flex items-center justify-center shrink-0 shadow-inner">
-                  <span class="font-playfair font-bold text-[18px] text-[#c9a86a] tracking-wider">
+                <div class="w-12 h-12 bg-[#09090b] border border-[rgba(201,168,106,0.3)] rounded-[2px] flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+                  <img
+                    v-if="client.avatar"
+                    :src="client.avatar"
+                    :alt="client.name"
+                    class="w-full h-full object-cover"
+                  />
+                  <span v-else class="font-playfair font-bold text-[18px] text-[#c9a86a] tracking-wider">
                     {{ client.initials }}
                   </span>
                 </div>

@@ -20,8 +20,9 @@
           <div class="absolute top-0 right-0 left-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#81c784] to-transparent"></div>
 
           <!-- Avatar with initials -->
-          <div class="w-14 h-14 mx-auto rounded-full bg-[#122316] border border-[#81c784]/40 flex items-center justify-center text-[#81c784] font-playfair text-[20px] font-bold shadow-inner mb-2.5">
-            {{ userInitials }}
+          <div class="w-14 h-14 mx-auto rounded-full bg-[#122316] border border-[#81c784]/40 flex items-center justify-center text-[#81c784] font-playfair text-[20px] font-bold shadow-inner mb-2.5 overflow-hidden">
+            <img v-if="userAvatar && !avatarError" :src="userAvatar" :alt="data.userName" class="w-full h-full object-cover" @error="avatarError = true" />
+            <span v-else>{{ userInitials }}</span>
           </div>
 
           <h3 class="font-playfair text-[18px] font-semibold text-[#f2ebd9]">
@@ -46,10 +47,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { ShieldCheck } from '@lucide/vue';
 import BaseAlertDialog from './BaseAlertDialog.vue';
 import type { LoginSuccessData } from './types';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -60,6 +62,16 @@ defineEmits<{
   confirm: [];
   close: [];
 }>();
+
+const avatarError = ref(false);
+const userAvatar = computed(() => (props.data?.userName ? getMockAvatar(props.data.userName) : ''));
+
+watch(
+  () => props.data?.userName,
+  () => {
+    avatarError.value = false;
+  }
+);
 
 const userInitials = computed(() => {
   if (!props.data?.userName) return 'TF';

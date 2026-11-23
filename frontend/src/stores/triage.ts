@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { apiRequest } from '@/api/http';
 import { listarAgendamentos, listarClientesAgenda, listarUsuariosAgenda, registrarSinalAgendamento,
   type ClienteAgenda, type PagamentoSinal, type StatusAgendamento } from '@/api/agendamentos';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
 
 export interface AnamneseData {
   allergies: boolean | null;
@@ -21,6 +22,7 @@ export interface TriageClient {
   agendamentoId?: number;
   statusAgendamento?: StatusAgendamento;
   name: string;
+  avatar?: string;
   phone: string;
   cpf: string;
   projectTitle: string;
@@ -111,7 +113,7 @@ export const useTriageStore = defineStore('triage', () => {
           fila.push({
             id: sessao ? `agendamento-${sessao.id}` : `cliente-${pessoa.id}`, clientId: pessoa.id, agendamentoId: sessao?.id,
             statusAgendamento: sessao?.status,
-            name: pessoa.nome, phone: pessoa.telefone || '', cpf: '', projectTitle: sessao?.descricaoSessao || pre?.ideiasDescricao || '',
+            name: pessoa.nome, avatar: getMockAvatar(pessoa.id), phone: pessoa.telefone || '', cpf: '', projectTitle: sessao?.descricaoSessao || pre?.ideiasDescricao || '',
             style: pre?.referencia || '', conceptDescription: pre?.localCorpo || '', status,
             statusLabel: { aguardando: 'AGUARDANDO ORÇAMENTO', sinal: 'SINAL PENDENTE', confirmados: 'CONFIRMADO' }[status],
             priceTotal: total, depositAmount: sinal?.valor ?? (total == null ? null : Math.ceil(Math.round(total * 100) / 2) / 100),

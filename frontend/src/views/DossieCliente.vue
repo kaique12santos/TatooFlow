@@ -55,8 +55,14 @@
             </div>
 
             <!-- Monogram Avatar -->
-            <div class="w-14 h-14 bg-[#0c0c0e] border border-[rgba(201,168,106,0.25)] rounded-[2px] flex items-center justify-center shrink-0 shadow-inner">
-              <span class="font-playfair font-bold text-[22px] text-[#c9a86a] tracking-wider">
+            <div class="w-14 h-14 bg-[#0c0c0e] border border-[rgba(201,168,106,0.25)] rounded-[2px] flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+              <img
+                v-if="client?.avatar"
+                :src="client.avatar"
+                :alt="client?.name"
+                class="w-full h-full object-cover"
+              />
+              <span v-else class="font-playfair font-bold text-[22px] text-[#c9a86a] tracking-wider">
                 {{ client?.initials || 'CL' }}
               </span>
             </div>

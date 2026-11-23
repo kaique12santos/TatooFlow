@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { UserRole } from '@/types/navigation';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
 
 export interface UserProfile {
   id: string;
@@ -67,7 +68,7 @@ const emptyActivationProfile: UserActivationProfile = {
   role: '',
   station: '',
   specialty: '',
-  avatar: '',
+  avatar: getMockAvatar('terminal-atelier'),
   status: 'pending',
   statusLabel: '',
   temporaryPin: '',
@@ -296,6 +297,7 @@ export const useAuthStore = defineStore('auth', () => {
             activationProfile.value = {
               ...activationProfile.value,
               ...data,
+              avatar: data.avatar || getMockAvatar(data.id || data.name),
             };
             isPinLoading.value = false;
             return;
