@@ -100,7 +100,8 @@
                   <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center gap-3">
                       <div class="w-11 h-11 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.1)] shrink-0 bg-[#09090b]">
-                        <span class="w-full h-full flex items-center justify-center font-playfair text-xl text-[#c9a86a]">{{ featuredClient.name.slice(0, 1).toUpperCase() }}</span>
+                        <img v-if="featuredClient.avatar" :src="featuredClient.avatar" :alt="featuredClient.name" class="w-full h-full object-cover" />
+                        <span v-else class="w-full h-full flex items-center justify-center font-playfair text-xl text-[#c9a86a]">{{ featuredClient.name.slice(0, 1).toUpperCase() }}</span>
                       </div>
                       <div>
                         <div class="flex items-center gap-1.5">
@@ -235,7 +236,8 @@
                     <div class="flex items-start justify-between">
                       <div class="flex items-center gap-2.5">
                         <div class="w-10 h-10 rounded-[2px] overflow-hidden border border-[rgba(255,255,255,0.08)] shrink-0 bg-[#09090b]">
-                          <span class="w-full h-full flex items-center justify-center font-playfair text-lg text-[#c9a86a]">{{ item.name.slice(0, 1).toUpperCase() }}</span>
+                          <img v-if="item.avatar" :src="item.avatar" :alt="item.name" class="w-full h-full object-cover" />
+                          <span v-else class="w-full h-full flex items-center justify-center font-playfair text-lg text-[#c9a86a]">{{ item.name.slice(0, 1).toUpperCase() }}</span>
                         </div>
                         <div>
                           <h3 class="font-playfair text-[15px] font-semibold text-[#f2ebd9] leading-tight">

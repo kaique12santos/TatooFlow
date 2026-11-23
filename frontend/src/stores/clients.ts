@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { apiRequest } from '@/api/http';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
 
 export interface ClientItem {
   id: string;
   name: string;
+  avatar?: string;
   initials: string;
   dossierNumber: string;
   phone: string;
@@ -35,6 +37,7 @@ export interface ClientArtwork {
 export interface ClientDossier {
   id: string;
   name: string;
+  avatar?: string;
   initials: string;
   phone: string;
   cpf: string;
@@ -97,6 +100,7 @@ export const useClientsStore = defineStore('clients', () => {
           return {
             id: String(c.id),
             name: c.nome,
+            avatar: getMockAvatar(c.id || c.nome),
             initials,
             dossierNumber: `DOSSIÊ #${String(c.id).padStart(4, '0')}`,
             phone: c.telefone || '',
@@ -161,6 +165,7 @@ export const useClientsStore = defineStore('clients', () => {
       const dossier: ClientDossier = {
         id: String(cli.id || clientId),
         name: cli.nome || `Cliente #${clientId}`,
+        avatar: getMockAvatar(cli.id || cli.nome || clientId),
         initials,
         phone: cli.telefone || '',
         cpf: cli.email || '',

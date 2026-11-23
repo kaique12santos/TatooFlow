@@ -62,8 +62,9 @@
 
           <!-- Client Subcard -->
           <div class="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-[4px] p-2.5 px-3 flex items-center gap-3 mb-2">
-            <div class="w-9 h-9 rounded-[2px] bg-[#141416] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#8e8a82] shrink-0">
-              <User class="w-4.5 h-4.5" />
+            <div class="w-9 h-9 rounded-[2px] bg-[#141416] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#8e8a82] shrink-0 overflow-hidden">
+              <img v-if="clientAvatar" :src="clientAvatar" :alt="client.name" class="w-full h-full object-cover" />
+              <User v-else class="w-4.5 h-4.5" />
             </div>
             <div class="min-w-0 flex-1">
               <div class="font-jetbrains text-[8.5px] font-bold tracking-[1.2px] text-[#8e8a82] uppercase leading-none">
@@ -82,8 +83,9 @@
 
           <!-- Tattoo Artist Subcard -->
           <div class="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-[4px] p-2.5 px-3 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-[2px] bg-[#141416] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#c9a86a] shrink-0">
-              <PenTool class="w-4.5 h-4.5" />
+            <div class="w-9 h-9 rounded-[2px] bg-[#141416] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#c9a86a] shrink-0 overflow-hidden">
+              <img v-if="artistAvatar" :src="artistAvatar" :alt="client.assignedArtist" class="w-full h-full object-cover" />
+              <PenTool v-else class="w-4.5 h-4.5" />
             </div>
             <div class="min-w-0 flex-1">
               <div class="font-jetbrains text-[8.5px] font-bold tracking-[1.2px] text-[#8e8a82] uppercase leading-none">
@@ -425,6 +427,7 @@ import AppHeader from '../components/AppHeader.vue';
 import { useTriageStore } from '@/stores/triage';
 import { useAuthStore } from '@/stores/auth';
 import { useAlert } from '@/composables/useAlert';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -441,6 +444,9 @@ const client = computed(() => {
   return triageStore.clients.find(c => c.agendamentoId === Number(route.query.agendamentoId) && c.clientId === Number(clientId.value))
     || triageStore.getClientById(clientId.value);
 });
+
+const clientAvatar = computed(() => (client.value ? client.value.avatar || getMockAvatar(client.value.clientId || client.value.name) : ''));
+const artistAvatar = computed(() => (client.value ? getMockAvatar(client.value.assignedArtist || 'artist') : ''));
 
 // Questions modeled with boolean answers from WhatsApp Bot
 const anamneseQuestions = computed(() => [

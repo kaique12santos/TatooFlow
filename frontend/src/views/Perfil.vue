@@ -8,7 +8,10 @@
         <p class="font-inter text-[10px] tracking-[3px] text-[#d6b77e] uppercase">Conta</p>
         <h1 class="font-playfair text-3xl text-[#f2ebd9] mt-2">Meu perfil</h1>
         <section class="mt-8 bg-[#141416] border border-[rgba(201,168,106,0.18)] rounded-lg p-5">
-          <div class="w-16 h-16 rounded-full bg-[#1d1a15] border border-[#b89355] flex items-center justify-center text-[#d6b77e] font-playfair text-2xl">{{ initials }}</div>
+          <div class="w-16 h-16 rounded-full bg-[#1d1a15] border border-[#b89355] flex items-center justify-center text-[#d6b77e] font-playfair text-2xl overflow-hidden shadow-inner">
+            <img v-if="avatarUrl && !avatarError" :src="avatarUrl" :alt="authStore.user.name" class="w-full h-full object-cover" @error="avatarError = true" />
+            <span v-else>{{ initials }}</span>
+          </div>
           <h2 class="font-playfair text-2xl mt-5">{{ authStore.user.name }}</h2>
           <p class="font-inter text-sm text-[#a39e93] mt-1">{{ authStore.user.email }}</p>
           <div class="mt-6 pt-4 border-t border-[rgba(201,168,106,0.14)] space-y-4">
@@ -24,14 +27,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import { ArrowLeft } from '@lucide/vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { getMockAvatar } from '@/components/AnexarImagem.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const avatarError = ref(false);
+const avatarUrl = computed(() => getMockAvatar(authStore.user.id || authStore.user.email || 'user'));
 const roleLabel = computed(() => authStore.user.role === 'admin' ? 'Administrador' : 'Tatuador');
 const initials = computed(() => authStore.user.name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase());
 
