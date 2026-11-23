@@ -272,7 +272,7 @@
               <div class="flex items-center gap-2">
                 <Sparkles class="w-4 h-4 text-[#e6c383]" />
                 <h3 class="font-playfair text-[17px] font-semibold text-[#f2ebd9]">
-                  Curadoria Gemini 1.5 Pro · Passo 2
+                  Curadoria Gemini 1.5 · Passo 2
                 </h3>
               </div>
               <button
