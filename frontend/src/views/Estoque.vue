@@ -27,7 +27,7 @@
                       : 'bg-transparent border border-[rgba(255,255,255,0.06)] text-[#a39e93] hover:text-[#f2ebd9]'
                   ]"
                 >
-                  <Package class="w-4 h-4" />
+                  <Package class="w-5 h-5" />
                   <span>ESTOQUE DE INSUMOS</span>
                 </button>
 
@@ -40,7 +40,7 @@
                       : 'bg-transparent border border-[rgba(255,255,255,0.06)] text-[#a39e93] hover:text-[#f2ebd9]'
                   ]"
                 >
-                  <Wallet class="w-4 h-4" />
+                  <Wallet class="w-5 h-5" />
                   <span>REPASSES &amp; TAXAS</span>
                 </button> -->
               </div>
@@ -52,7 +52,7 @@
                 @click="cadastrarInsumos"
                 class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[10.5px] font-bold tracking-[1.2px] uppercase py-2.5 px-4 rounded-[2px] shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
               >
-                <FileText class="w-4 h-4 stroke-[2.2]" />
+                <FileText class="w-5 h-5 stroke-[2.2]" />
                 <span>+ CADASTRAR INSUMOS</span>
               </button>
             </ion-col>
@@ -82,7 +82,7 @@
           <!-- Section Header Row -->
           <div class="flex items-center justify-between mb-3 px-0.5">
             <div class="flex items-center gap-1.5">
-              <AlertTriangle class="w-4 h-4 text-[#ef4444]" />
+              <AlertTriangle class="w-5 h-5 text-[#ef4444]" />
               <h2 class="font-playfair text-[18px] font-semibold text-[#f2ebd9]">
                 Alertas Críticos
               </h2>
@@ -207,7 +207,7 @@
                 @click="cadastrarInsumos"
                 class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[12px] font-bold tracking-[1.44px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
               >
-                <FileText class="w-4 h-4 stroke-[2.2]" />
+                <FileText class="w-5 h-5 stroke-[2.2]" />
                 <span>CADASTRAR INSUMOS</span>
               </button>
             </ion-col>

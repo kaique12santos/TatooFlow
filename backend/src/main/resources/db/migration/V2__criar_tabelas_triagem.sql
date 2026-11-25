@@ -14,5 +14,5 @@ CREATE TABLE pre_agendamentos (
     local_corpo VARCHAR(100),
     status_triagem VARCHAR(50) DEFAULT 'PENDENTE',
     data_criacao DATETIME,
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );

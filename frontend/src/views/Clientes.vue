@@ -31,8 +31,10 @@
           <div class="relative bg-[#141416] rounded-[2px] border border-[rgba(255,255,255,0.06)] flex items-center px-3 py-2.5 shadow-inner focus-within:border-[rgba(201,168,106,0.5)] transition-all">
             <Search class="w-4 h-4 text-[#a39e93] mr-2.5 shrink-0" />
             <input
+              id="campo-busca-clientes"
               v-model="searchQuery"
               type="text"
+              aria-label="Buscar por nome, CPF, dossiê ou projeto"
               placeholder="Buscar por nome, CPF, dossiê ou projeto..."
               class="w-full bg-transparent text-[13px] font-montserrat text-[#f2ebd9] placeholder-[#a39e93] focus:outline-none"
             />
@@ -41,7 +43,7 @@
               @click="searchQuery = ''"
               class="text-[#a39e93] hover:text-[#f2ebd9] p-1 transition-colors"
             >
-              <X class="w-3.5 h-3.5" />
+              <X class="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -55,8 +57,8 @@
             :class="[
               'px-3 py-1.5 rounded-[2px] font-jetbrains text-[10px] font-bold tracking-wider uppercase whitespace-nowrap cursor-pointer transition-all',
               activeFilter === filter.id
-                ? 'bg-[#c9a86a] text-[#09090b] shadow-sm'
-                : 'bg-[#141416] border border-[rgba(255,255,255,0.06)] text-[#a39e93] hover:text-[#f2ebd9]'
+                ? 'bg-[#c9a86a] text-[#09090b] shadow-sm w-26 h-5'
+                : 'bg-[#141416] border border-[rgba(255,255,255,0.06)] text-[#a39e93] hover:text-[#f2ebd9] w-15 h-5'
             ]"
           >
             {{ filter.label }}
@@ -138,7 +140,7 @@
                 @click="openDossier(client)"
                 class="flex-1 py-2 px-3 rounded-[2px] bg-[#e6c383] text-[#09090b] hover:bg-[#d6b77e] font-inter text-[9px] font-bold tracking-wider uppercase flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-[0.98] cursor-pointer"
               >
-                <FolderOpen class="w-3.5 h-3.5" />
+                <FolderOpen class="w-5 h-5" />
                 <span>ABRIR DOSSIÊ</span>
               </button>
 
@@ -147,7 +149,7 @@
                 class="py-2 px-3 rounded-[2px] bg-[#1a1a1e] text-[#f2ebd9] hover:bg-[#25252a] border border-[rgba(255,255,255,0.06)] font-inter text-[9px] font-bold tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer"
                 title="Nova Sessão / Mídia"
               >
-                <Camera class="w-3.5 h-3.5 text-[#e6c383]" />
+                <Camera class="w-9 h-5 text-[#e6c383]" />
                 <span>MÍDIA</span>
               </button>
 
@@ -156,7 +158,7 @@
                 class="py-2 px-2.5 rounded-[2px] bg-[#1a1a1e] text-[#a39e93] hover:text-[#81c784] hover:bg-[#25252a] border border-[rgba(255,255,255,0.06)] transition-all cursor-pointer"
                 title="WhatsApp"
               >
-                <MessageSquare class="w-3.5 h-3.5" />
+                <MessageSquare class="w-5 h-5" />
               </button>
             </div>
           </div>

@@ -38,7 +38,7 @@
             </span>
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <!-- <Package class="w-4 h-4 text-[#e6c383]" /> -->
+              <!-- <Package class="w-5 h-5 text-[#e6c383]" /> -->
               <h2 class="font-inter text-[5px] font-bold text-[#f2ebd9] tracking-wider uppercase">
                 01. IDENTIFICAÇÃO DO INSUMO
               </h2>
@@ -78,10 +78,10 @@
                 :key="cat.id"
                 @click="form.category = cat.id"
                 :class="[
-                  'py-2.5 px-2.5 rounded-[2px] font-inter text-[9px] font-bold tracking-wider uppercase flex items-center gap-2 transition-all cursor-pointer text-left',
+                  'py-2.5 px-2.5 rounded-[2px] font-inter text-[9px] font-bold tracking-wider uppercase flex items-center gap-2 transition-all cursor-pointer text-left w-45 h-5',
                   form.category === cat.id
-                    ? 'bg-[#eedaa2] text-[#09090b] shadow-md font-extrabold'
-                    : 'bg-[#09090b] text-[#a39e93] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(201,168,106,0.3)] hover:text-[#f2ebd9]'
+                    ? 'bg-[#eedaa2] text-[#09090b] shadow-md font-extrabold '
+                    : 'bg-[#09090b] text-[#a39e93] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(201,168,106,0.3)] hover:text-[#f2ebd9] '
                 ]"
               >
                 <component :is="cat.icon" class="w-3.5 h-3.5 shrink-0" />
@@ -113,7 +113,7 @@
             </span>
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <!-- <Ruler class="w-4 h-4 text-[#e6c383]" /> -->
+              <!-- <Ruler class="w-5 h-5 text-[#e6c383]" /> -->
               <h2 class="font-inter text-[5px] font-bold text-[#f2ebd9] tracking-wider uppercase">
                 02. FRACIONAMENTO & UNIDADE
               </h2>
@@ -135,7 +135,7 @@
                 :key="unit.id"
                 @click="form.unitType = unit.id"
                 :class="[
-                  'py-2 px-1.5 rounded-[2px] font-inter text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate',
+                  'py-2 px-1.5 rounded-[2px] font-inter text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate  h-5',
                   form.unitType === unit.id
                     ? 'bg-[#eedaa2] text-[#09090b] shadow-md font-extrabold'
                     : 'bg-[#09090b] text-[#a39e93] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(201,168,106,0.3)] hover:text-[#f2ebd9]'
@@ -152,7 +152,7 @@
                 :key="unit.id"
                 @click="form.unitType = unit.id"
                 :class="[
-                  'py-2 px-2 rounded-[2px] font-inter text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate',
+                  'py-2 px-2 rounded-[2px] font-inter text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer text-center truncate h-5',
                   form.unitType === unit.id
                     ? 'bg-[#eedaa2] text-[#09090b] shadow-md font-extrabold'
                     : 'bg-[#09090b] text-[#a39e93] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(201,168,106,0.3)] hover:text-[#f2ebd9]'
@@ -181,7 +181,7 @@
                 placeholder="ex: 20 un por caixa, ou 120 borrifadas"
                 class="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] focus:border-[#c9a86a] rounded-[2px] p-3 pr-10 font-montserrat text-[12px] text-[#f2ebd9] placeholder-[#52525b] transition-colors outline-none"
               />
-              <Calculator class="w-4 h-4 text-[#a39e93] absolute right-3 pointer-events-none" />
+              <Calculator class="w-5 h-5 text-[#a39e93] absolute right-3 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -194,7 +194,7 @@
             </span>
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <!-- <SlidersHorizontal class="w-4 h-4 text-[#e6c383]" /> -->
+              <!-- <SlidersHorizontal class="w-5 h-5 text-[#e6c383]" /> -->
               <h2 class="font-inter text-[5px] font-bold text-[#f2ebd9] tracking-wider uppercase">
                 03. PARÂMETROS DE REPOSIÇÃO
               </h2>
@@ -242,7 +242,7 @@
 
           <!-- Critical Notification Notice Box -->
           <div class="bg-[#1c1813] border border-[rgba(201,168,106,0.2)] rounded-[2px] p-3 mb-4 flex items-start gap-2.5">
-            <Bell class="w-4 h-4 text-[#e6c383] shrink-0 mt-0.5" />
+            <Bell class="w-5 h-5 text-[#e6c383] shrink-0 mt-0.5" />
             <p class="font-montserrat text-[11px] text-[#eedaa2] leading-relaxed">
               Ao atingir {{ form.minLevel || 10 }} unidades, o atelier será notificado no painel crítico para requisição automática de compra.
             </p>
@@ -255,7 +255,7 @@
             </label>
 
             <div class="relative flex items-center">
-              <Archive class="w-4 h-4 text-[#a39e93] absolute left-3 pointer-events-none" />
+              <Archive class="w-5 h-5 text-[#a39e93] absolute left-3 pointer-events-none" />
               <input
                 v-model="form.location"
                 type="text"
@@ -269,7 +269,7 @@
         <!-- Protocol Ingot Bar -->
         <div class="bg-[#141416] border border-[rgba(255,255,255,0.06)] rounded-[2px] p-3 mb-5 flex items-center justify-between shadow-lg">
           <div class="flex items-center gap-2.5">
-            <Cpu class="w-4 h-4 text-[#e6c383]" />
+            <Cpu class="w-5 h-5 text-[#e6c383]" />
             <div>
               <span class="font-inter text-[8px] font-bold text-[#a39e93] uppercase tracking-wider block">
                 PROTOCOLO DE REGISTRO
@@ -293,7 +293,7 @@
           class="w-full bg-[#eedaa2] hover:bg-[#d6b77e] disabled:opacity-60 text-[#09090b] font-inter text-[12px] font-bold tracking-[1.44px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 mb-3 transition-all cursor-pointer active:scale-[0.99]"
         >
           <span>{{ isSaving ? 'SALVANDO INSUMO...' : 'SALVAR E ADICIONAR AO ESTOQUE' }}</span>
-          <ArrowRight class="w-4 h-4 stroke-[2.5]" />
+          <ArrowRight class="w-5 h-5 stroke-[2.5]" />
         </button>
 
         <!-- Cancel Link -->

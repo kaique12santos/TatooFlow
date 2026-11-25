@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS pre_agendamentos (
     etapa_bot VARCHAR(50) DEFAULT 'INICIO',
     data_criacao DATETIME,
     data_atualizacao DATETIME,
-    CONSTRAINT fk_pre_agendamentos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    CONSTRAINT fk_pre_agendamentos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
 
 -- 5. Tabela: agendamentos
@@ -72,8 +72,8 @@ CREATE TABLE IF NOT EXISTS termos_aceite (
     data_assinatura DATETIME,
     ip_assinatura VARCHAR(50),
     data_expiracao_retencao DATETIME,
-    CONSTRAINT fk_termos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id),
-    CONSTRAINT fk_termos_agendamento FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id)
+    CONSTRAINT fk_termos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_termos_agendamento FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id) ON DELETE CASCADE
 );
 
 -- 7. Tabela: estoque_itens
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS notificacao_envios (
     tipo VARCHAR(20) NOT NULL,
     enviado_em DATETIME NOT NULL,
     CONSTRAINT uk_notificacao_agendamento_tipo UNIQUE (agendamento_id, tipo),
-    CONSTRAINT fk_notificacao_agendamento FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id)
+    CONSTRAINT fk_notificacao_agendamento FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id) ON DELETE CASCADE
 );
 
 -- 12. View: estoque

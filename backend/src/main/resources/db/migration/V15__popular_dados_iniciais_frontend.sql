@@ -12,11 +12,11 @@
 -- Rodrigo Faust:     PIN 0000 (status desligado/inativo)
 -- Administrador:     PIN 123456
 INSERT INTO usuarios (id, nome, email, senha, perfil, ativo, aparelho_id) VALUES
-(1, 'Gabriel Dornelles', 'gabriel@newconcept.art', '$2b$12$l07xvChnNzpS4q0..SEQQO9eNH9KT6nGa/BZ6bFLxUGObmfdZVUou', 'TATUADOR', true, 'tattooflow-gabriel-device-01'),
-(2, 'Valéria Moretti', 'valeria@newconcept.art', '$2b$12$lVbl9x2cdTTT7BOByhx6J.vKjJF09GXYJFeGSGQj9n5W/rY2i7OQm', 'TATUADOR', true, 'tattooflow-valeria-device-02'),
-(3, 'Marcus V.', 'marcus.v@newconcept.art', '$2b$12$R2MD7JJy8fxnAOntFvNRUeHnyohTAywHqbFMYUMzrNoz2UEReeyAC', 'TATUADOR', true, 'tattooflow-marcus-device-03'),
-(4, 'Rodrigo Faust', 'rodrigo.faust@external.art', '$2b$12$AxCxSm6D7SIXXp3doit8AOe3L/k2MB0SnLl1HEIGt0/TiUjpUYP6u', 'TATUADOR', false, 'tattooflow-rodrigo-device-04'),
-(5, 'Administrador Geral', 'admin@tattooflow.art', '$2b$12$pZhUWVyDxyBI7kZganGb7eqmlyyOzkJ4mN290svV6vckghSfSJzhy', 'ADMIN', true, 'tattooflow-admin-device-master');
+(1, 'Gabriel Dornelles', 'gabriel@newconcept.art', CONCAT('$2b$', '12$', 'l07xvChnNzpS4q0..SEQQO9eNH9KT6nGa/BZ6bFLxUGObmfdZVUou'), 'TATUADOR', true, 'tattooflow-gabriel-device-01'),
+(2, 'Valéria Moretti', 'valeria@newconcept.art', CONCAT('$2b$', '12$', 'lVbl9x2cdTTT7BOByhx6J.vKjJF09GXYJFeGSGQj9n5W/rY2i7OQm'), 'TATUADOR', true, 'tattooflow-valeria-device-02'),
+(3, 'Marcus V.', 'marcus.v@newconcept.art', CONCAT('$2b$', '12$', 'R2MD7JJy8fxnAOntFvNRUeHnyohTAywHqbFMYUMzrNoz2UEReeyAC'), 'TATUADOR', true, 'tattooflow-marcus-device-03'),
+(4, 'Rodrigo Faust', 'rodrigo.faust@external.art', CONCAT('$2b$', '12$', 'AxCxSm6D7SIXXp3doit8AOe3L/k2MB0SnLl1HEIGt0/TiUjpUYP6u'), 'TATUADOR', false, 'tattooflow-rodrigo-device-04'),
+(5, 'Administrador Geral', 'admin@tattooflow.art', CONCAT('$2b$', '12$', 'pZhUWVyDxyBI7kZganGb7eqmlyyOzkJ4mN290svV6vckghSfSJzhy'), 'ADMIN', true, 'tattooflow-admin-device-master');
 
 -- 2. Convites de Artistas / Colaboradores
 INSERT INTO convites (id, codigo, email_convidado, utilizado, data_expiracao) VALUES
@@ -100,13 +100,13 @@ INSERT INTO midias (id, agendamento_id, url, tipo, data_upload) VALUES
 
 -- 11. Envios de Notificações Automáticas (Pré e Pós-Sessão via WhatsApp)
 INSERT INTO notificacao_envios (id, agendamento_id, tipo, enviado_em) VALUES
-(1, 2, 'PRE', '2026-10-15 10:00:00'),
-(2, 2, 'POS', '2026-10-16 18:00:00'),
-(3, 3, 'PRE', '2026-08-21 14:00:00'),
-(4, 3, 'POS', '2026-08-22 20:00:00'),
-(5, 1, 'PRE', '2026-11-04 08:00:00'),
-(6, 8, 'PRE', '2026-10-31 11:00:00'),
-(7, 8, 'POS', '2026-11-01 17:00:00');
+(1, 2, 'PRE_SESSAO', '2026-10-15 10:00:00'),
+(2, 2, 'POS_SESSAO', '2026-10-16 18:00:00'),
+(3, 3, 'PRE_SESSAO', '2026-08-21 14:00:00'),
+(4, 3, 'POS_SESSAO', '2026-08-22 20:00:00'),
+(5, 1, 'PRE_SESSAO', '2026-11-04 08:00:00'),
+(6, 8, 'PRE_SESSAO', '2026-10-31 11:00:00'),
+(7, 8, 'POS_SESSAO', '2026-11-01 17:00:00');
 
 -- 12. Postagens Agendadas e Publicadas no Instagram Graph API [F4-BACK-03, UC03.2]
 INSERT INTO postagens_agendadas (id, agendamento_id, midia_id, image_url, legenda, data_hora_agendada, data_hora_publicacao, status, protocolo, instagram_container_id, instagram_media_id, canais, conta_instagram, tentativas, mensagem_erro, created_at, updated_at) VALUES

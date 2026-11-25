@@ -16,13 +16,23 @@ public class H2LoginTestConfig {
     @Bean
     CommandLineRunner criarUsuarioTeste(UsuarioService usuarioService,
             @Value("${app.login-test.pin}") String pin) {
-        return args -> usuarioService.salvar(Usuario.builder()
-                .nome("Administrador de teste")
-                .email("admin@teste.local")
-                .senha(pin)
-                .aparelhoId("aparelho-admin-teste")
-                .perfil("ADMIN")
-                .ativo(true)
-                .build());
+        return args -> {
+            usuarioService.salvar(Usuario.builder()
+                    .nome("Administrador de teste")
+                    .email("admin@teste.local")
+                    .senha(pin)
+                    .aparelhoId("aparelho-admin-teste")
+                    .perfil("ADMIN")
+                    .ativo(true)
+                    .build());
+            usuarioService.salvar(Usuario.builder()
+                    .nome("Tatuador de teste")
+                    .email("tatuador@teste.local")
+                    .senha(pin)
+                    .aparelhoId("aparelho-tatuador-teste")
+                    .perfil("TATUADOR")
+                    .ativo(true)
+                    .build());
+        };
     }
 }

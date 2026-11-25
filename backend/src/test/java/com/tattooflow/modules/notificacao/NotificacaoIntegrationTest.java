@@ -51,6 +51,7 @@ class NotificacaoIntegrationTest {
     @Autowired private AgendamentoRepository agendamentos;
     @Autowired private ClienteRepository clientes;
     @Autowired private NotificacaoEnvioRepository envios;
+    @Autowired private com.tattooflow.modules.cliente.PreAgendamentoRepository preAgendamentos;
     @Autowired private NotificacaoService service;
     @Autowired private NotificacaoProperties properties;
     @Autowired private Clock clock;
@@ -74,6 +75,7 @@ class NotificacaoIntegrationTest {
     void limpar() {
         envios.deleteAll();
         agendamentos.deleteAll();
+        preAgendamentos.deleteAll();
         clientes.deleteAll();
     }
 

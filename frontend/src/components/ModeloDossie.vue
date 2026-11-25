@@ -23,6 +23,12 @@
         1. Identificação Cadastral do Cliente
       </h3>
       <table class="w-full border-collapse border border-neutral-400 text-[9pt]">
+        <thead class="sr-only">
+          <tr>
+            <th scope="col">Campo</th>
+            <th scope="col">Valor</th>
+          </tr>
+        </thead>
         <tbody>
           <tr>
             <td class="border border-neutral-400 p-1.5 w-1/2">
@@ -57,6 +63,12 @@
         2. Perfil Dérmico &amp; Curadoria Sanitária
       </h3>
       <table class="w-full border-collapse border border-neutral-400 text-[8.5pt]">
+        <thead class="sr-only">
+          <tr>
+            <th scope="col">Campo</th>
+            <th scope="col">Valor</th>
+          </tr>
+        </thead>
         <tbody>
           <tr>
             <td class="border border-neutral-400 p-1.5 w-1/2">
@@ -130,6 +142,12 @@
         4. Protocolos Sanitários de Pré &amp; Pós-Cuidado
       </h3>
       <table class="w-full border-collapse border border-neutral-400 text-[8.5pt]">
+        <thead class="sr-only">
+          <tr>
+            <th scope="col">Protocolo</th>
+            <th scope="col">Orientações</th>
+          </tr>
+        </thead>
         <tbody>
           <tr>
             <td class="border border-neutral-400 p-1.5 w-1/2">

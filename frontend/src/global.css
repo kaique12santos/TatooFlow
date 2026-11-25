@@ -147,12 +147,12 @@
   /* ---------------------------------------------------------------------------
      4. TIPOGRAFIA BASE DO DESIGN SYSTEM
      --------------------------------------------------------------------------- */
-  --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-family-display: 'Playfair Display', serif;
-  --font-family-brand: 'Cinzel', serif;
-  --font-family-body: 'Inter', sans-serif;
-  --font-family-desc: 'Montserrat', sans-serif;
-  --font-family-mono: 'JetBrains Mono', monospace;
+  --ion-font-family: 'Arial', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Inter, sans-serif;
+  --font-family-display: 'Arial', serif;
+  --font-family-brand: 'Arial', serif;
+  --font-family-body: 'Arial', sans-serif;
+  --font-family-desc: 'Arial', sans-serif;
+  --font-family-mono: 'Arial', monospace;
 
   /* ---------------------------------------------------------------------------
      5. PADRONIZAÇÃO GLOBAL DE ARREDONDAMENTOS (--ion-border-radius)
