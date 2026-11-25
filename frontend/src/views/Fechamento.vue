@@ -159,10 +159,11 @@
         <div class="space-y-3">
           <button
             @click="downloadPdf"
-            class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-wider uppercase py-3.5 px-4 rounded-[2px] shadow-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer active:scale-[0.99]"
+            :disabled="isDownloading"
+            class="w-full bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-wider uppercase py-3.5 px-4 rounded-[2px] shadow-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FileText class="w-4 h-4" />
-            <span>BAIXAR RELATÓRIO MENSAL (PDF)</span>
+            <FileText class="w-5 h-5" :class="{ 'animate-pulse': isDownloading }" />
+            <span>{{ isDownloading ? 'GERANDO RELATÓRIO PDF...' : 'BAIXAR RELATÓRIO MENSAL (PDF)' }}</span>
           </button>
 
           <button
@@ -170,10 +171,10 @@
             class="w-full bg-[#141416] hover:bg-[#1a1a1e] text-[#f2ebd9] border border-[#c9a86a] font-inter text-[11px] font-bold tracking-wider uppercase py-3.5 px-4 rounded-[2px] flex items-center justify-between transition-all cursor-pointer active:scale-[0.99]"
           >
             <div class="flex items-center gap-2">
-              <Users class="w-4 h-4 text-[#e6c383]" />
+              <Users class="w-5 h-5 text-[#e6c383]" />
               <span class="text-[#d6b77e]">RELATÓRIO POR ARTISTA</span>
             </div>
-            <ArrowRight class="w-4 h-4 text-[#e6c383]" />
+            <ArrowRight class="w-5 h-5 text-[#e6c383]" />
           </button>
         </div>
       </div>
@@ -182,7 +183,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { IonPage, IonContent } from '@ionic/vue';
 import { TrendingUp, Pencil, Lock, ShieldCheck, FileText, Users, ArrowRight } from '@lucide/vue';
 import { useRouter } from 'vue-router';
@@ -194,6 +195,7 @@ import { useAlert } from '@/composables/useAlert';
 const router = useRouter();
 const financialStore = useFinancialStore();
 const alert = useAlert();
+const isDownloading = ref(false);
 
 // Sincroniza balancete mensal do backend com fallback mock
 onMounted(async () => {
@@ -201,8 +203,20 @@ onMounted(async () => {
 });
 
 async function downloadPdf() {
-  const result = await financialStore.downloadMonthlyReportPdf();
-  await alert.success(result.message, 'Livro-Razão Notarial');
+  if (isDownloading.value) return;
+  isDownloading.value = true;
+  try {
+    const result = await financialStore.downloadMonthlyReportPdf();
+    if (result.success) {
+      await alert.success(result.message, 'Livro-Razão Notarial');
+    } else {
+      await alert.error(result.message, 'Falha no Download');
+    }
+  } catch (err: any) {
+    await alert.error(err?.message || 'Falha ao baixar relatório.', 'Falha no Download');
+  } finally {
+    isDownloading.value = false;
+  }
 }
 
 function openArtistReport() {

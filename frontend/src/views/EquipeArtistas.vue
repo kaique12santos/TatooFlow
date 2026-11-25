@@ -7,7 +7,7 @@
 
         <!-- Administrative Breadcrumb -->
         <div class="flex items-center gap-1.5 mb-1.5">
-          <KeyRound class="w-3.5 h-3.5 text-[#c9a86a]" />
+          <KeyRound class="w-5 h-5 text-[#c9a86a]" />
           <span class="font-inter text-[9px] font-bold text-[#c9a86a] tracking-[1.44px] uppercase">
             PAINEL ADMINISTRATIVO • CONTROLE DE ACESSO
           </span>
@@ -68,7 +68,7 @@
             @click="inviteNewArtist"
             class="flex-1 bg-[#c9a86a] hover:bg-[#d6b77e] text-[#09090b] font-inter text-[11px] font-bold tracking-[1.44px] uppercase py-3.5 px-4 rounded-[2px] shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
           >
-            <KeyRound class="w-4 h-4 stroke-[2.2]" />
+            <KeyRound class="w-5 h-5 stroke-[2.2]" />
             <span>CONVIDAR NOVO TATUADOR</span>
           </button>
 
@@ -77,13 +77,13 @@
             class="w-12 h-11 bg-[#141416] hover:bg-[#1a1a1f] border border-[rgba(201,168,106,0.3)] text-[#e6c383] rounded-[2px] flex items-center justify-center cursor-pointer transition-all active:scale-95 shadow-md shrink-0"
             title="Gerar convite rápido"
           >
-            <Ticket class="w-4 h-4" />
+            <Ticket class="w-5 h-5" />
           </button>
         </div>
 
         <!-- Search Bar -->
         <div class="relative mb-3 flex items-center">
-          <Search class="w-4 h-4 text-[#a39e93] absolute left-3.5 pointer-events-none" />
+          <Search class="w-5 h-5 text-[#a39e93] absolute left-3.5 pointer-events-none" />
           <input
             v-model="searchQuery"
             type="text"
@@ -99,7 +99,7 @@
             :key="filter.id"
             @click="activeFilter = filter.id"
             :class="[
-              'font-inter text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-[2px] transition-all cursor-pointer',
+              'font-inter text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-[2px] transition-all cursor-pointer w-25 h-5',
               activeFilter === filter.id
                 ? 'bg-[#e6c383] text-[#09090b] shadow-sm'
                 : 'bg-transparent text-[#a39e93] hover:text-[#f2ebd9]'
@@ -174,7 +174,7 @@
               class="bg-[#180d0e] border border-[rgba(239,68,68,0.2)] rounded-[2px] p-3 my-3"
             >
               <div class="flex items-center gap-1.5 text-[#ef4444] mb-1">
-                <Scissors class="w-3.5 h-3.5 rotate-90" />
+                <Scissors class="w-5 h-5 rotate-90" />
                 <span class="font-inter text-[9px] font-bold tracking-[1.2px] uppercase">
                   ACESSO FÍSICO & DIGITAL INTERROMPIDO
                 </span>
@@ -192,7 +192,7 @@
                   @click="editPermissions(artist)"
                   class="bg-[#09090b] hover:bg-[#18181c] border border-[rgba(255,255,255,0.08)] text-[#f2ebd9] font-inter text-[9px] font-bold tracking-wider uppercase py-2.5 px-3 rounded-[2px] flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                 >
-                  <SlidersHorizontal class="w-3.5 h-3.5 text-[#a39e93]" />
+                  <SlidersHorizontal class="w-5 h-5 text-[#a39e93]" />
                   <span>EDITAR PERMISSÕES</span>
                 </button>
 
@@ -200,7 +200,7 @@
                   @click="revokeAccess(artist)"
                   class="bg-[#09090b] hover:bg-[#1f1315] border border-[rgba(255,255,255,0.08)] hover:border-red-900/40 text-[#f2ebd9] hover:text-red-400 font-inter text-[9px] font-bold tracking-wider uppercase py-2.5 px-3 rounded-[2px] flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                 >
-                  <RotateCcw class="w-3.5 h-3.5 text-[#ef4444]" />
+                  <RotateCcw class="w-5 h-5 text-[#ef4444]" />
                   <span>REVOGAR ACESSO</span>
                 </button>
               </template>
@@ -211,7 +211,7 @@
                   @click="reactivateProfile(artist)"
                   class="bg-[#09090b] hover:bg-[#18181c] border border-[rgba(255,255,255,0.08)] text-[#f2ebd9] font-inter text-[9px] font-bold tracking-wider uppercase py-2.5 px-3 rounded-[2px] flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                 >
-                  <RefreshCw class="w-3.5 h-3.5 text-[#c9a86a]" />
+                  <RefreshCw class="w-5 h-5 text-[#c9a86a]" />
                   <span>REATIVAR PERFIL</span>
                 </button>
 
@@ -219,7 +219,7 @@
                   @click="deletePermanently(artist)"
                   class="bg-[#782828] hover:bg-[#8f3030] text-[#f2ebd9] font-inter text-[9px] font-bold tracking-wider uppercase py-2.5 px-3 rounded-[2px] flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-md"
                 >
-                  <Trash2 class="w-3.5 h-3.5" />
+                  <Trash2 class="w-5 h-5" />
                   <span>EXCLUIR DEFINITIVO</span>
                 </button>
               </template>
@@ -230,7 +230,7 @@
         <!-- Security & Governance Banner Card -->
         <div class="bg-[#0c1017] border border-[rgba(59,130,246,0.2)] rounded-[2px] p-4 mb-6 shadow-xl">
           <div class="flex items-center gap-1.5 text-[#93c5fd] mb-2">
-            <ShieldCheck class="w-4 h-4 text-[#93c5fd]" />
+            <ShieldCheck class="w-5 h-5 text-[#93c5fd]" />
             <span class="font-inter text-[9px] font-bold tracking-[1.44px] uppercase">
               AUDITORIA DE SEGURANÇA & GOVERNANÇA NOTARIAL
             </span>

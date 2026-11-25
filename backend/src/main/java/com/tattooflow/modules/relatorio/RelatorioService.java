@@ -30,17 +30,35 @@ public class RelatorioService {
     private final AgendamentoRepository agendamentoRepository;
     private final EstoqueRepository estoqueRepository;
     private final UsuarioRepository usuarioRepository;
+    private final RelatorioPdfService relatorioPdfService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public RelatorioService(RepasseRepository repasseRepository,
+                            FinanceiroRepository financeiroRepository,
+                            AgendamentoRepository agendamentoRepository,
+                            EstoqueRepository estoqueRepository,
+                            UsuarioRepository usuarioRepository,
+                            RelatorioPdfService relatorioPdfService) {
+        this.repasseRepository = repasseRepository;
+        this.financeiroRepository = financeiroRepository;
+        this.agendamentoRepository = agendamentoRepository;
+        this.estoqueRepository = estoqueRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.relatorioPdfService = relatorioPdfService != null ? relatorioPdfService : new RelatorioPdfService();
+    }
 
     public RelatorioService(RepasseRepository repasseRepository,
                             FinanceiroRepository financeiroRepository,
                             AgendamentoRepository agendamentoRepository,
                             EstoqueRepository estoqueRepository,
                             UsuarioRepository usuarioRepository) {
-        this.repasseRepository = repasseRepository;
-        this.financeiroRepository = financeiroRepository;
-        this.agendamentoRepository = agendamentoRepository;
-        this.estoqueRepository = estoqueRepository;
-        this.usuarioRepository = usuarioRepository;
+        this(repasseRepository, financeiroRepository, agendamentoRepository, estoqueRepository, usuarioRepository, new RelatorioPdfService());
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] gerarRelatorioMensalPdf(int mes, int ano) {
+        RelatorioMensalDTO relatorio = gerarRelatorioMensal(mes, ano);
+        return relatorioPdfService.gerarPdf(relatorio);
     }
 
     @Transactional(readOnly = true)

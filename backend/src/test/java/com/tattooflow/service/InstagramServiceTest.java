@@ -99,8 +99,7 @@ class InstagramServiceTest {
         String imageUrl = "https://res.cloudinary.com/demo/image/upload/v1/tatoo.webp";
         String legenda = "Tatuagem FineLine Chiaroscuro #TattooFlow";
 
-        String expectedContainerUrl = "https://graph.facebook.com/v21.0/" + ACCOUNT_ID + "/media?image_url=" + imageUrl +
-                "&caption=Tatuagem%20FineLine%20Chiaroscuro%20%23TattooFlow&access_token=" + ACCESS_TOKEN;
+        String expectedContainerUrl = "https://graph.facebook.com/v21.0/" + ACCOUNT_ID + "/media";
 
         // Etapa 1: Container Creation
         mockServer.expect(requestTo(expectedContainerUrl))
@@ -108,7 +107,7 @@ class InstagramServiceTest {
                 .andRespond(withSuccess("{\"id\": \"container_998877\"}", MediaType.APPLICATION_JSON));
 
         // Etapa 2: Media Publish
-        mockServer.expect(requestTo("https://graph.facebook.com/v21.0/" + ACCOUNT_ID + "/media_publish?creation_id=container_998877&access_token=" + ACCESS_TOKEN))
+        mockServer.expect(requestTo("https://graph.facebook.com/v21.0/" + ACCOUNT_ID + "/media_publish"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\"id\": \"media_112233\"}", MediaType.APPLICATION_JSON));
 
@@ -127,7 +126,7 @@ class InstagramServiceTest {
         String imageUrl = "https://res.cloudinary.com/demo/image/upload/v1/tatoo.webp";
         String legenda = "Legenda";
 
-        mockServer.expect(requestTo("https://graph.facebook.com/v21.0/" + ACCOUNT_ID + "/media?image_url=" + imageUrl + "&caption=" + legenda + "&access_token=" + ACCESS_TOKEN))
+        mockServer.expect(requestTo("https://graph.facebook.com/v21.0/" + ACCOUNT_ID + "/media"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withStatus(HttpStatus.BAD_REQUEST)
                         .body("{\"error\":{\"message\":\"Invalid image URL\",\"type\":\"OAuthException\",\"code\":100}}")

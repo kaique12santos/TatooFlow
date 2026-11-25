@@ -23,6 +23,12 @@
         1. Identificação das Partes &amp; Procedimento
       </h3>
       <table class="w-full border-collapse border border-neutral-400 text-[9pt]">
+        <thead class="sr-only">
+          <tr>
+            <th scope="col">Campo</th>
+            <th scope="col">Valor</th>
+          </tr>
+        </thead>
         <tbody>
           <tr>
             <td class="border border-neutral-400 p-1.5 w-1/2">

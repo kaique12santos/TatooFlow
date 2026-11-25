@@ -191,7 +191,7 @@ class ClienteBuscaEHistoricoIntegrationTest {
     @DisplayName("GET /api/clientes/busca?termo= deve encontrar cliente pelo tipo de trabalho no orçamento (pré-agendamento)")
     void deveBuscarClientePorTipoTrabalhoNoPreAgendamento() throws Exception {
         mockMvc.perform(get("/api/clientes/busca")
-                        .param("termo", "Realismo")
+                        .param("termo", "Preto e Cinza")
                         .header(HttpHeaders.AUTHORIZATION, authorization)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
