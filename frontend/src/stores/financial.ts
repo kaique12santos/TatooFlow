@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { apiRequest } from '@/api/http';
+import { apiRequest, apiRequestBlob } from '@/api/http';
 
 export interface ArtistPerformanceBreakdown {
   id?: string;
@@ -151,19 +151,52 @@ export const useFinancialStore = defineStore('financial', () => {
   // Solicita geração ou download do relatório mensal
   async function downloadMonthlyReportPdf(targetMonth: string = currentMonth.value): Promise<FinancialActionResponse> {
     try {
-      const query = encodeURIComponent(targetMonth);
-      const data = await apiRequest<any>(`/api/relatorios/mensal/pdf?mes=${query}`);
+      const monthMap: Record<string, number> = {
+        JANEIRO: 1,
+        FEVEREIRO: 2,
+        MARÇO: 3,
+        MARCO: 3,
+        ABRIL: 4,
+        MAIO: 5,
+        JUNHO: 6,
+        JULHO: 7,
+        AGOSTO: 8,
+        SETEMBRO: 9,
+        OUTUBRO: 10,
+        NOVEMBRO: 11,
+        DEZEMBRO: 12,
+      };
+
+      const parts = targetMonth.split('/');
+      const monthName = parts[0]?.trim().toUpperCase() || '';
+      const yearNum = parseInt(parts[1]?.trim() || '2026', 10);
+      const monthNum = monthMap[monthName] || 11;
+
+      // Chama a rota autenticada que retorna o blob do PDF
+      const blob = await apiRequestBlob(`/api/relatorios/mensal/pdf?mes=${monthNum}&ano=${yearNum}`);
+
+      // Cria a URL temporária para disparar o download no navegador
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const filename = `relatorio_fechamento_${String(monthNum).padStart(2, '0')}_${yearNum}.pdf`;
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
       return {
         success: true,
         fromBackend: true,
-        downloadUrl: data?.downloadUrl,
-        message: data?.message || `Relatório de ${targetMonth} exportado com sucesso.`,
+        message: `Relatório de ${targetMonth} baixado com sucesso!`,
       };
     } catch (err: any) {
+      console.error('[FinancialStore] Erro ao baixar relatório mensal:', err);
       return {
         success: false,
         fromBackend: false,
-        message: err?.message || `Não foi possível gerar o PDF de ${targetMonth} no servidor.`,
+        message: err?.message || `Não foi possível baixar o PDF de ${targetMonth}.`,
       };
     }
   }

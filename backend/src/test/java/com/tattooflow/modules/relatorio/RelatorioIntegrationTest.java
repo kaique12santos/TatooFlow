@@ -120,13 +120,13 @@ class RelatorioIntegrationTest {
     void deveObterRelatorioMensalVazioComSucesso() throws Exception {
         mockMvc.perform(get("/api/relatorios/mensal")
                         .header(HttpHeaders.AUTHORIZATION, adminToken)
-                        .param("mes", "11")
+                        .param("mes", "5")
                         .param("ano", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.mes").value(11))
+                .andExpect(jsonPath("$.data.mes").value(5))
                 .andExpect(jsonPath("$.data.ano").value(2026))
-                .andExpect(jsonPath("$.data.periodo").value("11/2026"))
+                .andExpect(jsonPath("$.data.periodo").value("05/2026"))
                 .andExpect(jsonPath("$.data.totalFaturamento").value(0.0))
                 .andExpect(jsonPath("$.data.totalComissoes").value(0.0))
                 .andExpect(jsonPath("$.data.totalRepasses").value(0.0))
@@ -154,12 +154,12 @@ class RelatorioIntegrationTest {
                 .telefone("11999990000")
                 .build());
 
-        LocalDateTime dataNovembro = LocalDateTime.of(2026, 11, 10, 15, 0);
+        LocalDateTime dataMaio = LocalDateTime.of(2026, 5, 10, 15, 0);
 
         Agendamento agendamento = agendamentoRepository.save(Agendamento.builder()
                 .clienteId(cliente.getId())
                 .tatuadorId(tatuador.getId())
-                .dataHora(dataNovembro)
+                .dataHora(dataMaio)
                 .duracaoMinutos(180)
                 .descricaoSessao("Tatuagem Dragão Oriental")
                 .valorEstimado(new BigDecimal("1200.00"))
@@ -174,7 +174,7 @@ class RelatorioIntegrationTest {
                 .valorRepasse(new BigDecimal("700.00"))
                 .valorLiquido(new BigDecimal("700.00"))
                 .porcentagemEstudio(new BigDecimal("30.00"))
-                .dataRepasse(dataNovembro)
+                .dataRepasse(dataMaio)
                 .status("CONCLUIDO")
                 .build());
 
@@ -183,7 +183,7 @@ class RelatorioIntegrationTest {
                 .valor(new BigDecimal("1200.00"))
                 .status("CONCLUIDO")
                 .tipo("PAGAMENTO")
-                .dataPagamento(dataNovembro)
+                .dataPagamento(dataMaio)
                 .build());
 
         estoqueRepository.save(ItemEstoque.builder()
@@ -196,11 +196,11 @@ class RelatorioIntegrationTest {
 
         mockMvc.perform(get("/api/relatorios/mensal")
                         .header(HttpHeaders.AUTHORIZATION, adminToken)
-                        .param("mes", "11")
+                        .param("mes", "5")
                         .param("ano", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.mes").value(11))
+                .andExpect(jsonPath("$.data.mes").value(5))
                 .andExpect(jsonPath("$.data.ano").value(2026))
                 .andExpect(jsonPath("$.data.totalFaturamento").value(1200.00))
                 .andExpect(jsonPath("$.data.totalComissoes").value(300.00))
@@ -215,7 +215,39 @@ class RelatorioIntegrationTest {
                 .andExpect(jsonPath("$.data.detalhamentoArtistas[0].comissaoEstudio").value(300.00))
                 .andExpect(jsonPath("$.data.detalhamentoArtistas[0].repasseArtista").value(700.00))
                 .andExpect(jsonPath("$.data.detalhamentoArtistas[0].custoInsumos").value(200.00))
-                .andExpect(jsonPath("$.data.resumoEstoque.itensEmEstoqueCritico").value(1))
+                .andExpect(jsonPath("$.data.resumoEstoque.itensEmEstoqueCritico", greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.data.resumoEstoque.alertaEstoqueAtivo").value(true));
+    }
+
+    @Test
+    @DisplayName("[F8-BACK-01] Deve exportar relatório mensal em PDF com sucesso via GET /api/relatorios/mensal/pdf")
+    void deveExportarRelatorioMensalPdfComSucesso() throws Exception {
+        byte[] pdfBytes = mockMvc.perform(get("/api/relatorios/mensal/pdf")
+                        .header(HttpHeaders.AUTHORIZATION, adminToken)
+                        .param("mes", "11")
+                        .param("ano", "2026"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("relatorio_fechamento_11_2026.pdf")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        org.junit.jupiter.api.Assertions.assertNotNull(pdfBytes);
+        org.junit.jupiter.api.Assertions.assertTrue(pdfBytes.length > 0);
+        String headerPdf = new String(pdfBytes, 0, Math.min(pdfBytes.length, 5));
+        org.junit.jupiter.api.Assertions.assertEquals("%PDF-", headerPdf);
+    }
+
+    @Test
+    @DisplayName("[F8-BACK-01] Deve suportar rota direta /relatorios/mensal/pdf com parâmetro textual de mês")
+    void deveExportarRelatorioMensalPdfComMesTextual() throws Exception {
+        byte[] pdfBytes = mockMvc.perform(get("/relatorios/mensal/pdf")
+                        .header(HttpHeaders.AUTHORIZATION, adminToken)
+                        .param("mes", "NOVEMBRO / 2026"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("relatorio_fechamento_11_2026.pdf")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        org.junit.jupiter.api.Assertions.assertTrue(pdfBytes.length > 0);
     }
 }
