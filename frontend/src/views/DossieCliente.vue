@@ -675,7 +675,11 @@
         <div
           v-if="showExportModal && client"
           class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md transition-opacity"
+          role="dialog"
+          aria-modal="true"
+          tabindex="0"
           @click.self="showExportModal = false"
+          @keydown.esc="showExportModal = false"
         >
           <div class="bg-[#141416] border border-[rgba(201,168,106,0.4)] rounded-[4px] max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl relative overflow-hidden">
             <!-- Modal Header -->

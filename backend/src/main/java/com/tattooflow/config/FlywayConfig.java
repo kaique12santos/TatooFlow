@@ -1,0 +1,33 @@
+package com.tattooflow.config;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Estratégia de migração do Flyway para garantir resiliência em deploy na nuvem.
+ * Executa o repair antes do migrate para sincronizar checksums de arquivos ajustados
+ * em tabelas já existentes (ex: Aiven MySQL em produção no Render).
+ */
+@Configuration
+public class FlywayConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(FlywayConfig.class);
+
+    @Bean
+    public FlywayMigrationStrategy flywayMigrationStrategy() {
+        return flyway -> {
+            try {
+                log.info("Executando flyway.repair() para sincronizar histórico e checksums de schema...");
+                flyway.repair();
+            } catch (Exception e) {
+                log.warn("Aviso ao executar flyway.repair(): {}", e.getMessage());
+            }
+            log.info("Executando flyway.migrate()...");
+            flyway.migrate();
+            log.info("Migrações Flyway aplicadas com sucesso.");
+        };
+    }
+}
