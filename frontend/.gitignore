@@ -50,6 +50,7 @@ frontend/builds/
 # Environment Files
 *.env
 *.env.local
+*.env.production
 
 # Database & OS
 *.db
