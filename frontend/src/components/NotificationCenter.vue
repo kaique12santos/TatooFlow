@@ -51,7 +51,11 @@
       <div
         v-for="item in items"
         :key="item.id"
+        role="button"
+        tabindex="0"
         @click="handleClickItem(item)"
+        @keydown.enter="handleClickItem(item)"
+        @keydown.space.prevent="handleClickItem(item)"
         :class="[
           'p-3 transition-colors cursor-pointer flex items-start gap-3 relative',
           item.lida
